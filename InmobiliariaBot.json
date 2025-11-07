@@ -303,25 +303,15 @@
 		},
 		{
 			"parameters": {
-				"options": {}
-			},
-			"type": "n8n-nodes-base.set",
-			"typeVersion": 3.4,
-			"position": [-1024, 352],
-			"id": "a85c8398-6ea1-45d1-a604-9357b0c7e7c6",
-			"name": "Set Misbehavior Notification"
-		},
-		{
-			"parameters": {
 				"operation": "send",
 				"phoneNumberId": "812415788624920",
-				"recipientPhoneNumber": "={{ $json.wa_id }}",
-				"textBody": "={{ $json.notificationMessage }}",
+				"recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+				"textBody": "={{ $json.message.content }}",
 				"additionalFields": {}
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-832, 352],
+			"position": [-704, 352],
 			"id": "52c459f4-cdc8-497e-b4f5-4cc952ee7969",
 			"name": "Send Misbehavior Notice",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
@@ -2709,13 +2699,43 @@
 			"parameters": {
 				"content": "## ---> Misbehavior",
 				"height": 496,
-				"width": 1568
+				"width": 1664
 			},
 			"type": "n8n-nodes-base.stickyNote",
 			"position": [-2192, 48],
 			"typeVersion": 1,
 			"id": "25cb3df6-54fb-4bcb-9dfc-6467efca2ad4",
 			"name": "Sticky Note"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"messages": {
+					"values": [
+						{
+							"content": "=Tu función es analizar el contenido de {{ $json.data.comentario }} para identificar el motivo del rechazo (por ejemplo: lenguaje ofensivo, actitud inapropiada, insistencia indebida o falta de respeto).\n\nCon base en ello, redacta un mensaje breve, claro y profesional que:\n1. Indique que la interacción ha sido rechazada.\n2. Informe que el contacto ha sido bloqueado por comportamiento inapropiado.\n3. Mantenga un tono amable, empático y sin agresividad.\n4. Termine con un cierre cordial (por ejemplo: deseando éxito o buen día).\n\nEjemplo de estilo esperado:\n\"Ups 😕, derivado de tu mensaje anterior hemos rechazado y bloqueado tu contacto, ya que no se permiten faltas de respeto ni conductas inapropiadas. Te deseamos mucho éxito en tu búsqueda.\"\n\nEvita repetir el texto del ejemplo; genera una versión coherente y natural adaptada al contexto del comentario recibido.\n",
+							"role": "system"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 1.8,
+			"position": [-1024, 352],
+			"id": "6a2c8489-5ab6-4040-a742-9e58d5a06509",
+			"name": "Message a model",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
 		}
 	],
 	"connections": {
@@ -2898,18 +2918,7 @@
 			"main": [
 				[
 					{
-						"node": "Set Misbehavior Notification",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Set Misbehavior Notification": {
-			"main": [
-				[
-					{
-						"node": "Send Misbehavior Notice",
+						"node": "Message a model",
 						"type": "main",
 						"index": 0
 					}
@@ -3878,6 +3887,17 @@
 				[
 					{
 						"node": "Parse AI Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message a model": {
+			"main": [
+				[
+					{
+						"node": "Send Misbehavior Notice",
 						"type": "main",
 						"index": 0
 					}
