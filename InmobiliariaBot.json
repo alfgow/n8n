@@ -1,29 +1,356 @@
 {
 	"name": "InmobiliariaBot",
 	"nodes": [
-		{
-			"parameters": {
-				"updates": ["messages"],
-				"options": {}
-			},
-			"type": "n8n-nodes-base.whatsAppTrigger",
-			"typeVersion": 1,
-			"position": [-3872, -2064],
-			"id": "85eca279-c8b2-4854-8305-4ca1316e8b33",
-			"name": "WhatsApp Trigger",
-			"webhookId": "74594388-e12c-4f20-b583-78678872e5e7",
-			"credentials": {
-				"whatsAppTriggerApi": {
-					"id": "wFOtw7oArsG5zhql",
-					"name": "WhatsApp OAuth account"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"rules": {
-					"values": [
-						{
+                {
+                        "parameters": {
+                                "updates": ["messages"],
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.whatsAppTrigger",
+                        "typeVersion": 1,
+                        "position": [-3872, -2064],
+                        "id": "85eca279-c8b2-4854-8305-4ca1316e8b33",
+                        "name": "WhatsApp Trigger",
+                        "webhookId": "74594388-e12c-4f20-b583-78678872e5e7",
+                        "credentials": {
+                                "whatsAppTriggerApi": {
+                                        "id": "wFOtw7oArsG5zhql",
+                                        "name": "WhatsApp OAuth account"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "jsCode": "const original = JSON.parse(JSON.stringify($json || {}));\nconst waId = original?.contacts?.[0]?.wa_id || '';\n\nlet messageBody = '';\nconst message = original?.messages?.[0] || {};\n\nif (message?.text?.body) {\n  messageBody = message.text.body;\n} else if (message?.interactive?.body?.text) {\n  messageBody = message.interactive.body.text;\n} else if (message?.button?.text) {\n  messageBody = message.button.text;\n}\n\nconst normalized = messageBody.toLowerCase();\nconst keywords = [\n  'pendejo', 'pendeja', 'idiota', 'estupido', 'estúpido', 'estupida', 'estúpida', 'tonto', 'tonta',\n  'imbecil', 'imbécil', 'maldito', 'maldita', 'chingada', 'chingado', 'chingar', 'chingate', 'puta', 'puto',\n  'mierda', 'carajo', 'joder', 'perra', 'perro', 'vete al diablo', 'vete a la mierda', 'fuck', 'shit',\n  'bastard', 'asshole', 'stupid', 'dumb', 'idiot', 'fucker', 'motherfucker', 'hate you', 'pinche',\n  'mal servicio', 'asco', 'estafadores', 'los voy a denunciar', 'los voy a demandar', 'te voy a demandar',\n  'te voy a golpear', 'te voy a matar'\n];\n\nconst matched = [];\n\nif (messageBody) {\n  for (const term of keywords) {\n    if (normalized.includes(term)) {\n      matched.push(term);\n    }\n  }\n}\n\nconst isMisbehavior = matched.length > 0;\nconst reason = isMisbehavior\n  ? `Lenguaje no permitido detectado (${matched.join(', ')})`\n  : '';\n\nreturn [\n  {\n    json: {\n      ...original,\n      wa_id: waId,\n      misbehaviorDetected: isMisbehavior,\n      misbehaviorMatchedWords: matched,\n      misbehaviorReason: reason,\n      misbehaviorOriginalMessage: messageBody\n    }\n  }\n];"
+                        },
+                        "type": "n8n-nodes-base.code",
+                        "typeVersion": 2,
+                        "position": [-3712, -2064],
+                        "id": "d60e8b1f-3a4c-40d9-9aa9-4d9d02f7b123",
+                        "name": "Filter: Misbehavior Detector"
+                },
+                {
+                        "parameters": {
+                                "conditions": {
+                                        "options": {
+                                                "caseSensitive": true,
+                                                "leftValue": "",
+                                                "typeValidation": "strict",
+                                                "version": 2
+                                        },
+                                        "conditions": [
+                                                {
+                                                        "id": "7f76b2d5-6c02-451f-9c67-7777b3e92f92",
+                                                        "leftValue": "={{ $json.misbehaviorDetected }}",
+                                                        "rightValue": "",
+                                                        "operator": {
+                                                                "type": "boolean",
+                                                                "operation": "true",
+                                                                "singleValue": true
+                                                        }
+                                                }
+                                        ],
+                                        "combinator": "and"
+                                },
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.if",
+                        "typeVersion": 2.2,
+                        "position": [-3520, -2064],
+                        "id": "1f7e4f05-81eb-4a67-9b60-5da5219fb73d",
+                        "name": "If: Misbehavior?"
+                },
+                {
+                        "parameters": {
+                                "operation": "executeQuery",
+                                "query": "WITH context_data AS (\n  SELECT id, wa_id, context_data\n  FROM user_contexts\n  WHERE wa_id = '{{ $json.wa_id }}'\n  LIMIT 1\n)\nSELECT\n  '{{ $json.wa_id }}'::text AS wa_id,\n  (SELECT row_to_json(context_data) FROM context_data) AS context_record;",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.postgres",
+                        "typeVersion": 2.6,
+                        "position": [-3328, -2064],
+                        "id": "a43fd38f-1a4f-4e4c-b829-3c68c933cf0a",
+                        "name": "Get Misbehavior Context",
+                        "alwaysOutputData": true,
+                        "credentials": {
+                                "postgres": {
+                                        "id": "qyR2OAIR7tUEVcQf",
+                                        "name": "Postgres-neon"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "jsCode": "const detectorData = $('Filter: Misbehavior Detector').item.json;\nconst contextRecord = $json.context_record || null;\n\nconst contextData = contextRecord?.context_data\n  ? JSON.parse(JSON.stringify(contextRecord.context_data))\n  : {};\n\nconst isExisting = Boolean(contextRecord && contextRecord.id);\nconst fallbackName = contextData?.nombre && contextData.nombre.trim() !== ''\n  ? contextData.nombre\n  : '🤖 - Sin Nombre Mal Comportamiento';\n\nconst reasonText = detectorData.misbehaviorReason && detectorData.misbehaviorReason.trim() !== ''\n  ? detectorData.misbehaviorReason\n  : 'Comportamiento indebido detectado automáticamente';\n\nconst matchedWords = detectorData.misbehaviorMatchedWords || [];\nconst originalMessage = detectorData.misbehaviorOriginalMessage || '';\nconst timestamp = new Date().toISOString();\n\nconst historyEntry = {\n  timestamp,\n  mensaje_original: originalMessage,\n  palabras_detectadas: matchedWords,\n  origen: 'auto_filter'\n};\n\nconst existingReasons = Array.isArray(contextData.motivo_rechazo) ? contextData.motivo_rechazo : [];\nconst updatedReasons = [...existingReasons];\nif (!updatedReasons.includes(reasonText)) {\n  updatedReasons.push(reasonText);\n}\n\nconst existingHistory = Array.isArray(contextData.mal_comportamiento_historial)\n  ? contextData.mal_comportamiento_historial\n  : [];\nconst updatedHistory = [...existingHistory, historyEntry];\n\nconst updatedContext = {\n  ...contextData,\n  nombre: fallbackName,\n  status: 'rejected',\n  rechazo_previo: true,\n  motivo_rechazo: updatedReasons,\n  mal_comportamiento_historial: updatedHistory,\n  ultima_interaccion: timestamp\n};\n\nreturn [\n  {\n    json: {\n      ...detectorData,\n      isExistingContext: isExisting,\n      contextId: contextRecord?.id || null,\n      updatedContext,\n      misbehaviorHistoryEntry: historyEntry,\n      api_contact_id: contextData?.api_contact_id || null,\n      needsApiContact: !contextData?.api_contact_id,\n      fallbackName,\n      reasonText\n    }\n  }\n];"
+                        },
+                        "type": "n8n-nodes-base.code",
+                        "typeVersion": 2,
+                        "position": [-3136, -2064],
+                        "id": "8bcb0bba-0caa-4dc6-9bcf-2f283ea8eb69",
+                        "name": "Prepare Misbehavior Context"
+                },
+                {
+                        "parameters": {
+                                "conditions": {
+                                        "options": {
+                                                "caseSensitive": true,
+                                                "leftValue": "",
+                                                "typeValidation": "strict",
+                                                "version": 2
+                                        },
+                                        "conditions": [
+                                                {
+                                                        "id": "b7f0fce5-2736-4c7e-9e09-6c1ce40ec327",
+                                                        "leftValue": "={{ $json.isExistingContext }}",
+                                                        "rightValue": "",
+                                                        "operator": {
+                                                                "type": "boolean",
+                                                                "operation": "true",
+                                                                "singleValue": true
+                                                        }
+                                                }
+                                        ],
+                                        "combinator": "and"
+                                },
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.if",
+                        "typeVersion": 2.2,
+                        "position": [-2944, -2064],
+                        "id": "93f6c3e8-fd1c-486c-90fb-848b1a89f987",
+                        "name": "If: Existing Misbehavior Context"
+                },
+                {
+                        "parameters": {
+                                "operation": "executeQuery",
+                                "query": "UPDATE user_contexts\nSET\n  context_data = '{{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}'::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Prepare Misbehavior Context').item.json.wa_id }}'\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.postgres",
+                        "typeVersion": 2.6,
+                        "position": [-2736, -2208],
+                        "id": "ba7c9f41-31df-4eb2-82a6-841c2b5a7f02",
+                        "name": "Postgres: Update Misbehavior Context",
+                        "credentials": {
+                                "postgres": {
+                                        "id": "qyR2OAIR7tUEVcQf",
+                                        "name": "Postgres-neon"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "conditions": {
+                                        "options": {
+                                                "caseSensitive": true,
+                                                "leftValue": "",
+                                                "typeValidation": "strict",
+                                                "version": 2
+                                        },
+                                        "conditions": [
+                                                {
+                                                        "id": "bb1a2a1c-7d17-4c7b-8c7f-7110223599aa",
+                                                        "leftValue": "={{ !!$json.api_contact_id }}",
+                                                        "rightValue": "",
+                                                        "operator": {
+                                                                "type": "boolean",
+                                                                "operation": "true",
+                                                                "singleValue": true
+                                                        }
+                                                }
+                                        ],
+                                        "combinator": "and"
+                                },
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.if",
+                        "typeVersion": 2.2,
+                        "position": [-2560, -2208],
+                        "id": "6d1a0e49-3779-4f44-b1b9-739e9f7c8a67",
+                        "name": "If: Has API Contact?"
+                },
+                {
+                        "parameters": {
+                                "method": "POST",
+                                "url": "https://vg.g210512.com/api/v1/contactos",
+                                "authentication": "genericCredentialType",
+                                "genericAuthType": "httpHeaderAuth",
+                                "sendBody": true,
+                                "specifyBody": "json",
+                                "jsonBody": "={\n  \"nombre\": \"❌ RECHAZADO - MAL COMPORTAMIENTO\",\n  \"telefono\": \"{{ $('Prepare Misbehavior Context').item.json.wa_id }}\",\n  \"estado\": \"rechazado\",\n  \"fuente\": \"WhatsApp Bot\"\n}",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.httpRequest",
+                        "typeVersion": 4.2,
+                        "position": [-2368, -2208],
+                        "id": "44a37e10-0a6b-4f5d-9b36-172e9a4bbdb1",
+                        "name": "API: Create Rejected Contact",
+                        "credentials": {
+                                "httpHeaderAuth": {
+                                        "id": "rzmCtJN8Vtwv6AO3",
+                                        "name": "API Key Inmuebles"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "operation": "executeQuery",
+                                "query": "UPDATE user_contexts\nSET\n  context_data = jsonb_set(\n    '{{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}'::jsonb,\n    '{api_contact_id}',\n    '{{ $json.data.id }}'::jsonb,\n    true\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Prepare Misbehavior Context').item.json.wa_id }}'\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.postgres",
+                        "typeVersion": 2.6,
+                        "position": [-2176, -2208],
+                        "id": "eeefb26e-097d-4e61-8ebf-5b9d7183762e",
+                        "name": "Postgres: Save API Contact (Existing)",
+                        "credentials": {
+                                "postgres": {
+                                        "id": "qyR2OAIR7tUEVcQf",
+                                        "name": "Postgres-neon"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "operation": "executeQuery",
+                                "query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Prepare Misbehavior Context').item.json.wa_id }}',\n  '{{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}'::jsonb,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = EXCLUDED.context_data,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.postgres",
+                        "typeVersion": 2.6,
+                        "position": [-2736, -1920],
+                        "id": "9d0c5fcb-2b74-4d7b-8c62-e95865c05d07",
+                        "name": "Postgres: Insert Misbehavior Context",
+                        "credentials": {
+                                "postgres": {
+                                        "id": "qyR2OAIR7tUEVcQf",
+                                        "name": "Postgres-neon"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "method": "POST",
+                                "url": "https://vg.g210512.com/api/v1/contactos",
+                                "authentication": "genericCredentialType",
+                                "genericAuthType": "httpHeaderAuth",
+                                "sendBody": true,
+                                "specifyBody": "json",
+                                "jsonBody": "={\n  \"nombre\": \"{{ $('Prepare Misbehavior Context').item.json.fallbackName }}\",\n  \"telefono\": \"{{ $('Prepare Misbehavior Context').item.json.wa_id }}\",\n  \"estado\": \"rechazado\",\n  \"fuente\": \"WhatsApp Bot\"\n}",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.httpRequest",
+                        "typeVersion": 4.2,
+                        "position": [-2560, -1920],
+                        "id": "f4c0d62a-65cf-4f1b-9e18-1da9a1967c61",
+                        "name": "API: Create Misbehavior Contact",
+                        "credentials": {
+                                "httpHeaderAuth": {
+                                        "id": "rzmCtJN8Vtwv6AO3",
+                                        "name": "API Key Inmuebles"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "operation": "executeQuery",
+                                "query": "UPDATE user_contexts\nSET\n  context_data = jsonb_set(\n    '{{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}'::jsonb,\n    '{api_contact_id}',\n    '{{ $json.data.id }}'::jsonb,\n    true\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Prepare Misbehavior Context').item.json.wa_id }}'\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.postgres",
+                        "typeVersion": 2.6,
+                        "position": [-2368, -1920],
+                        "id": "b3d50941-3eb9-4bb4-b4fd-8f629898b2ba",
+                        "name": "Postgres: Save API Contact (New)",
+                        "credentials": {
+                                "postgres": {
+                                        "id": "qyR2OAIR7tUEVcQf",
+                                        "name": "Postgres-neon"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "jsCode": "const prepareData = $('Prepare Misbehavior Context').item.json;\nconst apiContactId = $json.api_contact_id || $json.data?.id;\n\nconst matchedWords = prepareData.misbehaviorMatchedWords || [];\nconst originalMessage = prepareData.misbehaviorOriginalMessage || '';\nconst reasonText = prepareData.reasonText || 'Comportamiento indebido detectado automáticamente';\nconst timestamp = new Date().toISOString();\n\nconst commentLines = [\n  '❌ RECHAZADO - MAL COMPORTAMIENTO',\n  '',\n  `Motivo: ${reasonText}`,\n  matchedWords.length ? `Coincidencias detectadas: ${matchedWords.join(', ')}` : '',\n  originalMessage ? `Mensaje original: \"${originalMessage}\"` : '',\n  `Registrado el: ${timestamp}`\n].filter(Boolean);\n\nconst notificationMessage = 'Detectamos un comportamiento indebido en tu mensaje. Tu contacto ha sido reportado y no podremos continuar con la atención. ❌';\n\nreturn [\n  {\n    json: {\n      api_contact_id: apiContactId,\n      comentario: commentLines.join('\n'),\n      wa_id: prepareData.wa_id,\n      misbehaviorNotification: notificationMessage\n    }\n  }\n];"
+                        },
+                        "type": "n8n-nodes-base.code",
+                        "typeVersion": 2,
+                        "position": [-2112, -2048],
+                        "id": "61da7c11-f9d0-4954-bc29-2d590c0a3d4d",
+                        "name": "Build Misbehavior Comment"
+                },
+                {
+                        "parameters": {
+                                "method": "POST",
+                                "url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact_id }}/comentarios",
+                                "authentication": "genericCredentialType",
+                                "genericAuthType": "httpHeaderAuth",
+                                "sendBody": true,
+                                "specifyBody": "json",
+                                "jsonBody": "={\n  \"comentario\": {{ $json.comentario.toJsonString() }}\n}",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.httpRequest",
+                        "typeVersion": 4.2,
+                        "position": [-1920, -2048],
+                        "id": "51f7f2fd-6cc8-4225-8ee4-10af1f0b0cbf",
+                        "name": "API: Add Misbehavior Comment",
+                        "credentials": {
+                                "httpHeaderAuth": {
+                                        "id": "rzmCtJN8Vtwv6AO3",
+                                        "name": "API Key Inmuebles"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "keepOnlySet": true,
+                                "values": {
+                                        "string": [
+                                                {
+                                                        "name": "notificationMessage",
+                                                        "value": "={{ $('Build Misbehavior Comment').item.json.misbehaviorNotification }}"
+                                                },
+                                                {
+                                                        "name": "wa_id",
+                                                        "value": "={{ $('Prepare Misbehavior Context').item.json.wa_id }}"
+                                                }
+                                        ]
+                                },
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.set",
+                        "typeVersion": 3.4,
+                        "position": [-1728, -2048],
+                        "id": "33ef3a0b-8ed5-4f6d-8321-039f2b5c0b16",
+                        "name": "Set Misbehavior Notification"
+                },
+                {
+                        "parameters": {
+                                "operation": "send",
+                                "phoneNumberId": "812415788624920",
+                                "recipientPhoneNumber": "={{ $json.wa_id }}",
+                                "textBody": "={{ $json.notificationMessage }}",
+                                "additionalFields": {}
+                        },
+                        "type": "n8n-nodes-base.whatsApp",
+                        "typeVersion": 1.1,
+                        "position": [-1536, -2048],
+                        "id": "2b5fdd53-b463-4dd4-90ad-6756bfbfc154",
+                        "name": "Send Misbehavior Notice",
+                        "webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+                        "credentials": {
+                                "whatsAppApi": {
+                                        "id": "DpdLgHZCEJ199330",
+                                        "name": "WhatsApp account"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "rules": {
+                                        "values": [
+                                                {
 							"conditions": {
 								"options": {
 									"caseSensitive": true,
@@ -2395,20 +2722,206 @@
 	],
 	"pinData": {},
 	"connections": {
-		"WhatsApp Trigger": {
-			"main": [
-				[
-					{
-						"node": "Switch",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Switch": {
-			"main": [
-				[
+               "WhatsApp Trigger": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Filter: Misbehavior Detector",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Filter: Misbehavior Detector": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "If: Misbehavior?",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "If: Misbehavior?": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Get Misbehavior Context",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ],
+                               [
+                                       {
+                                               "node": "Switch",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Get Misbehavior Context": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Prepare Misbehavior Context",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Prepare Misbehavior Context": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "If: Existing Misbehavior Context",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "If: Existing Misbehavior Context": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Postgres: Update Misbehavior Context",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ],
+                               [
+                                       {
+                                               "node": "Postgres: Insert Misbehavior Context",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Postgres: Update Misbehavior Context": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "If: Has API Contact?",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "If: Has API Contact?": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Build Misbehavior Comment",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ],
+                               [
+                                       {
+                                               "node": "API: Create Rejected Contact",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "API: Create Rejected Contact": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Postgres: Save API Contact (Existing)",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Postgres: Save API Contact (Existing)": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Build Misbehavior Comment",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Postgres: Insert Misbehavior Context": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "API: Create Misbehavior Contact",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "API: Create Misbehavior Contact": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Postgres: Save API Contact (New)",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Postgres: Save API Contact (New)": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Build Misbehavior Comment",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Build Misbehavior Comment": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "API: Add Misbehavior Comment",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "API: Add Misbehavior Comment": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Set Misbehavior Notification",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Set Misbehavior Notification": {
+                       "main": [
+                               [
+                                       {
+                                               "node": "Send Misbehavior Notice",
+                                               "type": "main",
+                                               "index": 0
+                                       }
+                               ]
+                       ]
+               },
+               "Switch": {
+                       "main": [
+                               [
 					{
 						"node": "Get: Message Info",
 						"type": "main",
