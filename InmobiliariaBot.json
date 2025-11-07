@@ -1,0 +1,3402 @@
+{
+	"name": "InmobiliariaBot",
+	"nodes": [
+		{
+			"parameters": {
+				"updates": ["messages"],
+				"options": {}
+			},
+			"type": "n8n-nodes-base.whatsAppTrigger",
+			"typeVersion": 1,
+			"position": [-3872, -2064],
+			"id": "85eca279-c8b2-4854-8305-4ca1316e8b33",
+			"name": "WhatsApp Trigger",
+			"webhookId": "74594388-e12c-4f20-b583-78678872e5e7",
+			"credentials": {
+				"whatsAppTriggerApi": {
+					"id": "wFOtw7oArsG5zhql",
+					"name": "WhatsApp OAuth account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.messages[0].text.body }}",
+										"rightValue": "",
+										"operator": {
+											"type": "string",
+											"operation": "exists",
+											"singleValue": true
+										},
+										"id": "b564c529-0a34-48cf-beaf-0004336706ef"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "text-message"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "250baf65-d4ac-41ab-a455-eb87a917a514",
+										"leftValue": "={{ $json.messages[0].image }}",
+										"rightValue": "",
+										"operator": {
+											"type": "object",
+											"operation": "exists",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "image-message"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "bf6ad2e8-fe57-43c2-8f6e-1b3381f0dcff",
+										"leftValue": "={{ $json.messages[0].document.mime_type }}",
+										"rightValue": "image/",
+										"operator": {
+											"type": "string",
+											"operation": "contains"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "document-image"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "ad353bff-2299-4372-a4ea-1feadb00dab2",
+										"leftValue": "={{ $json.messages[0].document.mime_type }}",
+										"rightValue": "application/",
+										"operator": {
+											"type": "string",
+											"operation": "contains"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "pdf"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "9c8d220b-1791-4273-bb74-08b2b3f7f319",
+										"leftValue": "={{ $json.messages[0].audio }}",
+										"rightValue": "",
+										"operator": {
+											"type": "object",
+											"operation": "exists",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "audio-message"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-3632, -2112],
+			"id": "c970c419-d581-465c-ae2c-856e91ad2bea",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"content": "## Incoming message",
+				"height": 672,
+				"width": 592,
+				"color": 4
+			},
+			"type": "n8n-nodes-base.stickyNote",
+			"position": [-4000, -2160],
+			"typeVersion": 1,
+			"id": "73a4063e-bd8e-42f3-a565-a93fa82f6eb5",
+			"name": "Sticky Note3"
+		},
+		{
+			"parameters": {
+				"content": "## -> Audio",
+				"height": 224,
+				"width": 608,
+				"color": 6
+			},
+			"type": "n8n-nodes-base.stickyNote",
+			"position": [-3296, -1792],
+			"typeVersion": 1,
+			"id": "0ae6fc98-96e2-443d-9933-de776cd8ede5",
+			"name": "Sticky Note6"
+		},
+		{
+			"parameters": {
+				"resource": "media",
+				"operation": "mediaUrlGet",
+				"mediaGetId": "={{ $json.messages[0].audio.id }}"
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-3248, -1728],
+			"id": "93f1aa68-5980-4755-b1fe-33779db99cc0",
+			"name": "Download media3",
+			"webhookId": "02de1bd7-bb83-49da-baa6-392d89ed4096",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"url": "={{ $json.url }}",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpBearerAuth",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [-3056, -1728],
+			"id": "e57bc728-be9d-4b51-9d7a-ab7206d24a7c",
+			"name": "HTTP Request3",
+			"credentials": {
+				"httpBearerAuth": {
+					"id": "QigdAtAlBxHMmIsD",
+					"name": "WA - Bearer Token"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"resource": "audio",
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"inputType": "binary",
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [-2832, -1728],
+			"id": "6c582e8e-5fc9-4b4f-a633-004dd2c01cd5",
+			"name": "Transcribe: audio",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+				"textBody": "Te recuerdo que este chat solo recibe texto y audio.",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-3840, -1648],
+			"id": "cfa4d99b-e684-43ff-b760-be30e67c1ae7",
+			"name": "Send message2",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"id": "4b195430-ea1d-49ce-84cb-06f1edc71280",
+							"name": "intent",
+							"value": "={{ $json.content.parts[0].text.replace(/^[\"'\\s]+|[\"'\\s]+$/g, '').replace(/\\\\/g, '') }}",
+							"type": "string"
+						},
+						{
+							"id": "8d0c4046-fab8-4adb-b011-92b920f7c4c7",
+							"name": "userPrompt",
+							"value": "={{ $('Get: Message Info').item.json.userPrompt }}",
+							"type": "string"
+						},
+						{
+							"id": "e5dc3f46-71fa-4d48-a8ff-85b0023aa398",
+							"name": "wa_id",
+							"value": "={{ $('Get: Message Info').item.json.wa_id }}",
+							"type": "string"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [-2240, -1584],
+			"id": "e6374d1a-beab-48b7-a1e1-748809b9a48b",
+			"name": "Edit Fields"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT context_data \nFROM user_contexts \nWHERE wa_id = '{{ $json.wa_id }}' \nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-2032, -1584],
+			"id": "69866a52-5168-436d-972d-07e0622fff15",
+			"name": "Execute a SQL query",
+			"alwaysOutputData": true,
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const existingContext = $input.first().json;\n\nlet personaje;\nlet isNew = false;\n\nif (!existingContext.context_data || !existingContext.context_data.personaje) {\n  const personajes = [\"Dany\", \"Ale\", \"Regi\", \"Susy\"];\n  personaje = personajes[Math.floor(Math.random() * personajes.length)];\n  isNew = true;\n} else {\n  personaje = existingContext.context_data.personaje;\n}\n\nreturn {\n  wa_id: $('Edit Fields').item.json.wa_id,\n  userPrompt: $('Edit Fields').item.json.userPrompt,\n  type: $('Edit Fields').item.json.type,\n  intent: $('Edit Fields').item.json.intent,\n  personaje: personaje,\n  isNew: isNew\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-1824, -1584],
+			"id": "6ba3b075-6988-43f6-9b01-899bdba5d10d",
+			"name": "Check and Assign Character"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "0d663079-05a6-411a-bd61-d6e05a5b7bae",
+							"leftValue": "={{ $json.isNew }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [-1616, -1568],
+			"id": "ca317a14-130d-4cbb-8db7-20f7a49964ba",
+			"name": "If: Is New Contact"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $json.wa_id }}',\n  CASE \n    WHEN '{{ $json.intent }}' = 'property_search' THEN\n      '{\"personaje\": \"{{ $json.personaje }}\", \"original_search\": \"{{ $json.userPrompt }}\", \"status\": \"awaiting_data\"}'::jsonb\n    ELSE\n      '{\"personaje\": \"{{ $json.personaje }}\"}'::jsonb\n  END,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) \nDO UPDATE SET \n  context_data = CASE \n    WHEN '{{ $json.intent }}' = 'property_search' THEN\n      jsonb_set(\n        jsonb_set(\n          jsonb_set(\n            user_contexts.context_data,\n            '{personaje}',\n            '\"{{ $json.personaje }}\"'::jsonb\n          ),\n          '{original_search}',\n          '\"{{ $json.userPrompt }}\"'::jsonb\n        ),\n        '{status}',\n        '\"awaiting_data\"'::jsonb\n      )\n    ELSE\n      jsonb_set(\n        user_contexts.context_data,\n        '{personaje}',\n        '\"{{ $json.personaje }}\"'::jsonb\n      )\n    END,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-1344, -1584],
+			"id": "2cdd730b-7eab-4875-997b-b4a77db2c7a5",
+			"name": "Set: New Costumer",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "return {\n  wa_id: $input.first().json.wa_id,\n  userPrompt: $('If: Is New Contact').first().json.userPrompt,\n  intent: $('If: Is New Contact').first().json.intent,\n  personaje: $input.first().json.context_data.personaje,\n  isNew: $('If: Is New Contact').first().json.isNew,\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-1136, -1552],
+			"id": "8af336c3-869a-4562-b96d-e705e7c3d251",
+			"name": "Merge Context Data"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+				"textBody": "=¡Hola! 👋 Soy {{ $json.personaje }}, tu asistente en Inmobiliaria Villanueva García.\n\n¿En qué te puedo ayudar hoy? ",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-2640, -992],
+			"id": "0a44750a-089d-4b7a-971a-4a32f87e7962",
+			"name": "Send message1",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const postgresResult = $json;\nconst previousData = $('Switch: Intent').item.json;\n\nconst contextData = postgresResult.context_data || {};\n\nreturn {\n  wa_id: previousData.wa_id,\n  userPrompt: previousData.userPrompt,\n  type: previousData.type,\n  intent: previousData.intent,\n  personaje: contextData.personaje || previousData.personaje,\n  context_id: postgresResult.id,\n  nombre: contextData.nombre || \"\",\n  telefono: contextData.telefono || \"\",\n  status: contextData.status || \"new\",\n  rechazo_previo: contextData.rechazo_previo || false,\n  motivo_rechazo: contextData.motivo_rechazo || [],\n  inmuebles_consultados:  $input.first().json.context_data.property_found || [],\n  ultima_interaccion: postgresResult.updated_at\n};\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-3040, -1312],
+			"id": "3513673b-37d2-414f-acbe-9de10be180b2",
+			"name": "Parse Context Data"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-3232, -1312],
+			"id": "16dc569d-9ac0-43c7-8557-d336330ee8c6",
+			"name": "Get: User Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\n\nlet missingData = [];\nlet contextStatus = \"\";\n\nif (data.rechazo_previo === true) {\n  contextStatus = \"rejected_before\";\n} else if (!data.nombre || data.nombre === \"\") {\n  missingData.push(\"nombre\");\n  contextStatus = \"incomplete_data\";\n} else if (!data.telefono || data.telefono === \"\") {\n  missingData.push(\"telefono\");\n  contextStatus = \"incomplete_data\";\n} else {\n  contextStatus = \"complete_data\";\n}\n\nreturn {\n  ...data,\n  missingData: missingData,\n  contextStatus: contextStatus\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-2848, -1312],
+			"id": "b85534af-663d-4f85-b6b7-1ec9f5e71215",
+			"name": "Check missing Data"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.contextStatus }}",
+										"rightValue": "rejected_before",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "15548fe7-a59a-44dd-87e0-c87fa85e30fd"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Rejected Before"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "9c138d09-5a25-4eb2-b926-784df2b799d9",
+										"leftValue": "={{ $json.contextStatus }}",
+										"rightValue": "incomplete_data",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Incomplete Data"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "e84bb5cb-d2fd-46a7-983b-6164d386d44e",
+										"leftValue": "={{ $json.contextStatus }}",
+										"rightValue": "complete_data",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Complete Data"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-2640, -1328],
+			"id": "e66be767-dcbc-4f5f-bbf0-4f5d953a9852",
+			"name": "Actual Status"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+				"textBody": "=¡Perfecto! Para ayudarte con la información del inmueble que buscas, necesito que me compartas:\n\n📝 Tu nombre completo\n📱 Tu número de teléfono\n\nPor favor compártelos en un solo mensaje 😊",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-2032, -928],
+			"id": "ab0a2b04-80e8-4b39-9a5c-3ba031583790",
+			"name": "Request Data",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{status}',\n      '\"awaiting_data\"'\n    ),\n    '{original_search}',\n    '\"{{ $('Actual Status').item.json.userPrompt }}\"'\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Actual Status').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-1792, -928],
+			"id": "13172f08-ef58-498b-a8e0-3f62cee2733b",
+			"name": "Update: Status awaiting",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-3040, -2128],
+			"id": "5b8e1858-f178-4f3a-879f-4c7fc57f7ec4",
+			"name": "Check Context Status",
+			"alwaysOutputData": true,
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const postgresResult = $('Check Context Status').first().json;  // ← Referencia directa\nconst previousData = $('Get: Message Info').item.json;\n\nconst contextData = postgresResult.context_data || {};\nconst currentStatus = contextData.status || \"new\";\n\nreturn {\n  ...previousData,\n  context_id: postgresResult.id,\n  personaje: contextData.personaje || \"\",\n  currentStatus: currentStatus,\n  isAwaitingData: currentStatus?.trim().toLowerCase() === \"awaiting_data\"\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-2032, -1840],
+			"id": "a25595f0-522e-4502-97b6-006af760be6d",
+			"name": "Parse: Status"
+		},
+		{
+			"parameters": {
+				"jsCode": "const userPrompt = $json.userPrompt;\n\nlet nombre = \"\";\nlet telefono = \"\";\n\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0].replace(/\\D/g, '');\n  if (telefono.length > 10) {\n    telefono = telefono.slice(-10);\n  }\n}\n\nreturn {\n  ...$json,\n  nombre_extracted: nombre,\n  telefono_extracted: telefono,\n  has_valid_data: nombre !== \"\" && telefono !== \"\"\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-1584, -1856],
+			"id": "49b24159-b5f5-48cd-b1bf-7712efbebe63",
+			"name": "Extract Name & Phone"
+		},
+		{
+			"parameters": {
+				"jsCode": "const postgresResult = $json;\nconst switchData = $('Switch: is Awaiting?').item.json;\n\nconst contextData = postgresResult.context_data;\n\nreturn {\n  wa_id: switchData.wa_id,\n  userPrompt: $input.first().json.context_data.original_search,\n  type: switchData.type,\n  personaje: contextData.personaje,\n  nombre: contextData.nombre,\n  telefono: contextData.telefono,\n  context_id: postgresResult.id,\n  status: contextData.status\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-672, -1664],
+			"id": "334dd271-6f7a-455c-b131-636c81d304bd",
+			"name": "Prepare for Property Search"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [
+						{
+							"content": "={{ $json.userPrompt }}"
+						}
+					]
+				},
+				"jsonOutput": true,
+				"options": {
+					"systemMessage": "=Eres un clasificador de intenciones. Analiza el mensaje del usuario y clasifica en UNA de estas categorías:\n\n- property_search: Busca un inmueble específico (departamento, casa, propiedad)\n- greeting: Saludos iniciales o conversación casual amistosa\n- general_inquiry: Preguntas sobre servicios, áreas, o información general\n- confirmation: Confirmaciones para avanzar (sí, ok, listo, adelante)\n- negotiation: Intenta negociar o pedir excepciones\n- out_of_scope: Cualquier tema no relacionado con inmobiliaria\n\nResponde SOLO con el nombre de la categoría, sin explicaciones."
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [-2560, -1584],
+			"id": "17ee8892-f9d0-4496-985a-8d0ae89c9360",
+			"name": "Detect: Intention",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.has_valid_data }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "dae4488b-95af-4c88-a855-101544196f7a"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "TRUE"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "3225f10b-9880-42ec-8207-af7b7e64a479",
+										"leftValue": "={{ $json.has_valid_data }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "FALSE"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-1312, -1856],
+			"id": "c8c859aa-1828-4cf8-81f1-761e4254187d",
+			"name": "Is Valid Data"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      jsonb_set(\n        context_data,\n        '{nombre}',\n        '\"{{ $json.nombre_extracted }}\"'\n      ),\n      '{telefono}',\n      '\"{{ $json.telefono_extracted }}\"'\n    ),\n    '{status}',\n    '\"in_progress\"'\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-864, -1872],
+			"id": "6e9a783f-6e92-4d00-9d33-59bf9ecdfc44",
+			"name": "Get Context Awating Data",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"description": "Este Workflow busca la informacion de los inmuebles",
+				"workflowId": {
+					"__rl": true,
+					"value": "8JWwPczEyYuP2J3N",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/8JWwPczEyYuP2J3N",
+					"cachedResultName": "InmuebleFinderTool"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"termino": "={{ $('Prepare for Property Search').item.json.userPrompt }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "termino",
+							"displayName": "termino",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": false
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+			"typeVersion": 2.2,
+			"position": [-64, -1488],
+			"id": "18618318-92b2-4672-9d9f-91cd9abde45d",
+			"name": "Call 'InmuebleFinderTool'1"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-3280, -768],
+			"id": "630e5d36-975f-4657-a7d1-932b4b192f9b",
+			"name": "Get Context with Property",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"promptType": "define",
+				"text": "={{ $('Prepare for Property Search').item.json.userPrompt }}",
+				"options": {
+					"systemMessage": "=use the tool **InmuebleFinderTool** w search term: \"{{ $('Prepare for Property Search').item.json.userPrompt }}\".\nYou must respond only with a valid JSON array.\nDo not include Markdown formatting, code fences (`````), explanations, or any text before or after the JSON.\n\nThe JSON must be parsable directly with JSON.parse() in JavaScript.\n\nOutput format required:\n\n[\n  {\n    \"id\": number,\n    \"title\": \"string\",\n    \"slug\": \"string\",\n    \"description\": \"string\",\n    \"ammount\": \"string\",\n    \"colonia\": \"string\",\n    \"municipio\": \"string\",\n    \"estado\": \"string\",\n    \"type\": \"string\",\n    \"operacion\": \"string\",\n    \"estatus\": \"string\",\n    \"rooms\": number,\n    \"baths\": number,\n    \"parkings\": number,\n    \"m2\": \"string\",\n    \"restrictions\": {\n      \"acepta_mascotas\": \"string\",\n      \"acepta_niños\": \"string\",\n      \"acepta_estudiantes\": \"string\",\n      \"acepta_roomies\": \"string\",\n      \"ingresos_minimos\": \"string\",\n      \"precio_poliza\": \"string or null\",\n      \"requiere_comprobantes_ingresos\": boolean,\n      \"observaciones\": \"string\"\n    }\n  }\n]\n\n\n⚠️ Do not wrap your answer inside triple backticks or any markdown block.\n⚠️ Do not include the words “json” or “output” before the array.\n\nJust return the array itself — nothing else."
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.agent",
+			"typeVersion": 2.2,
+			"position": [-224, -1664],
+			"id": "88a70177-2fa6-4483-aa58-0db54522e69f",
+			"name": "AI Agent - Get Property",
+			"alwaysOutputData": true
+		},
+		{
+			"parameters": {
+				"jsCode": "const previousData = $('Prepare for Property Search').item.json;\nlet raw = $json.output;\nlet propertyFound = false;\nlet propertyData = null;\n\ntry {\n  // 🧠 Primer parse: convierte el texto escapado en un objeto/array real\n  const parsed = JSON.parse(raw);\n\n  // ✅ Verificamos que efectivamente sea un array con un objeto\n  if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].slug) {\n    const p = parsed[0];\n    propertyFound = true;\n    propertyData = {\n      id: p.id,\n      slug: p.slug,\n      title: p.title,\n      description: p.description,\n      colonia: p.colonia,\n      municipio: p.municipio,\n      estado: p.estado,\n      operacion: p.operacion,\n      ammount: p.ammount,\n      rooms: p.rooms,\n      baths: p.baths,\n      parkings: p.parkings,\n      m2: p.m2,\n      type: p.type,\n      restrictions: p.restrictions || {},\n    };\n  } else {\n    console.warn('⚠️ No se encontró slug en el resultado parseado.');\n  }\n} catch (err) {\n  console.error('❌ Error parseando propiedad:', err.message);\n  console.log('Contenido RAW:', raw);\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  nombre: previousData.nombre,\n  telefono: previousData.telefono,\n  personaje: previousData.personaje,\n  context_id: previousData.context_id,\n  propertyFound,\n  propertyData,\n};\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [112, -1664],
+			"id": "2c442036-58be-4b4e-a8d5-6e1c1392120d",
+			"name": "Parse: Property Information"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Extract Name & Phone').item.json.wa_id }}",
+				"textBody": "=Lo siento, no pude identificar correctamente tus datos 😅\n\nRecuerda que me tienes que enviar en un solo mensaje:\n\nNombre Completo\nNúmero de teléfono\n\nSigo al pendiente.",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-1136, -1744],
+			"id": "a61f4e9f-a684-4cab-bf3e-d8c79e8a100b",
+			"name": "Message: Wrong Name & Phone",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Extract Name & Phone').item.json.wa_id }}",
+				"textBody": "={{ $json.formatted_message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [768, -1520],
+			"id": "2f875a96-dd19-4781-a4d2-569fd184b1fa",
+			"name": "Send message",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{status}',\n      '\"awaiting_questionnaire\"'\n    ),\n    '{property_found}',\n    '{{ $json.propertyData.toJsonString() }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [304, -1664],
+			"id": "6d09ad94-f99a-4431-950e-127ade5656c6",
+			"name": "Update: Costumer Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "property_search",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "cfe22d84-c2c3-4cb0-8a58-84d4a74ed500"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Property Search"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "fec70547-de3d-40c9-9d97-a73c74f4910b",
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "greeting",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Greeting"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "eb6f2f45-f416-4b8d-b47b-510056a95c53",
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "general_inquiry",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "General Inquiry"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "ff0ba65d-04e2-4f17-93f6-e0635cdb1ec7",
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "confirmation",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Confirmation"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "eae60bfa-ae3e-497b-ad36-53db5e479587",
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "negotiation",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Negotiation"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "7c3fbc8e-f957-4100-bc88-06410ce8dc75",
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "out_of_scope",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Out of scope"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-3952, -1296],
+			"id": "e22dc66d-53af-4155-a71b-6f191156afac",
+			"name": "Switch: Intent"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "7335f5b8-de3b-423a-8519-36394cc79b76",
+							"leftValue": "={{ $json.status }}",
+							"rightValue": "awaiting_questionnaire",
+							"operator": {
+								"type": "string",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [-2368, -720],
+			"id": "dbf59a04-7dad-42f9-9f52-2abfb834145c",
+			"name": "If: Is Awaiting Questionaire"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{questionnaire}',\n      '{{ $json.questions.toJsonString() }}'::jsonb\n    ),\n    '{current_question_index}',\n    '0'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-2080, -736],
+			"id": "b1a92821-1b8d-4897-b6ca-6679b14160e2",
+			"name": "Execute a SQL query1",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "=¡Perfecto, {{ $json.context_data.nombre.split(' ')[0] }}! 😊\n\n{{ $json.context_data.questionnaire[0].question }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-1872, -736],
+			"id": "b2412a88-fe5e-472d-b99c-dd6912b0f134",
+			"name": "Send message5",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const postgresResult = $json;\nconst previousData = $('Get: Message Info').item.json;\n\nconst contextData = postgresResult.context_data || {};\nconst currentStatus = contextData.status || \"new\";\n\nconst isInQuestionnaire = currentStatus === \"awaiting_questionnaire\" && \n                          contextData.questionnaire && \n                          contextData.questionnaire.length > 0;\n\nconst currentIndex = contextData.current_question_index || 0;\nconst totalQuestions = contextData.questionnaire?.length || 0;\n\nreturn {\n  ...previousData,\n  context_id: postgresResult.id,\n  personaje: contextData.personaje || \"\",\n  nombre: contextData.nombre || \"\",\n  currentStatus: currentStatus,\n  isInQuestionnaire: isInQuestionnaire,\n  currentQuestionIndex: currentIndex,\n  totalQuestions: totalQuestions,\n  questionnaire: contextData.questionnaire || [],\n  answers: contextData.answers || {}\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-1296, -2112],
+			"id": "6f434a32-3196-489b-86b8-e8857f827f54",
+			"name": "Check Questionnaire Status"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.isInQuestionnaire }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "40525fe2-fea0-4c92-b128-dc2dc73ebec1"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "TRUE"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "55c5ed97-3768-4d9d-9cb8-7e5dd20346af",
+										"leftValue": "={{ $json.isInQuestionnaire }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "FALSE"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-1104, -2112],
+			"id": "a3938455-c534-44f3-b2a5-a2682e0c7f30",
+			"name": "Is In Questionnaire"
+		},
+		{
+			"parameters": {
+				"jsCode": "const userResponse = $json.userPrompt;\nconst currentIndex = $json.currentQuestionIndex;\nconst questionnaire = $json.questionnaire;\nconst previousAnswers = $json.answers || {};\n\n// Obtener pregunta actual\nconst currentQuestion = questionnaire[currentIndex];\n\n// Guardar respuesta\nconst answers = {\n  ...previousAnswers,\n  [currentQuestion.field]: userResponse\n};\n\n// Verificar si quedan más preguntas\nconst nextIndex = currentIndex + 1;\nconst hasMoreQuestions = nextIndex < questionnaire.length;\n\nreturn {\n  wa_id: $json.wa_id,\n  nombre: $json.nombre,\n  personaje: $json.personaje,\n  context_id: $json.context_id,\n  currentQuestionField: currentQuestion.field,\n  currentAnswer: userResponse,\n  answers: answers,\n  nextQuestionIndex: nextIndex,\n  hasMoreQuestions: hasMoreQuestions,\n  nextQuestion: hasMoreQuestions ? questionnaire[nextIndex] : null,\n  totalQuestions: questionnaire.length,\n  questionnaire: questionnaire\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-784, -2128],
+			"id": "819809c6-4c97-4b33-9d94-501a7bcb5f3e",
+			"name": "Process Answer & Next Question",
+			"alwaysOutputData": false
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{answers}',\n      '{{ $json.answers.toJsonString() }}'::jsonb\n    ),\n    '{current_question_index}',\n    '{{ $json.nextQuestionIndex }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-1120, -2368],
+			"id": "ef31901f-b0ae-4739-ab7a-8a2601329ab5",
+			"name": "Update: Context questions",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.hasMoreQuestions }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "9d1e7db8-76f4-4019-8169-51090760d627"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "TRUE"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "876e9470-34b5-46d9-bdef-92f8de3c819f",
+										"leftValue": "={{ $json.hasMoreQuestions }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "FALSE"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-576, -2128],
+			"id": "c0663136-b57a-4983-a059-a12ab834ddfa",
+			"name": "Has More Questions?"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Extract Name & Phone').item.json.wa_id }}",
+				"textBody": "=Gracias {{ $json.nombre.split(' ')[0] }}, dame por favor un momento, estoy trabajando tu solicitud",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-464, -1664],
+			"id": "e2fd3c77-f262-4aa7-a98e-7d2f5781e34e",
+			"name": "Send message4",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $json.nextQuestion.question }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-848, -2368],
+			"id": "9a060b2b-85ba-4f8c-b813-cd5b6283a89b",
+			"name": "Send message6",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.isApproved }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "d4698e59-8af4-4d53-ae63-9b26b2ed4d2e"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Aprobado"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "2eebac30-5c99-4607-bf96-11199bf84bd6",
+										"leftValue": "={{ $json.isApproved }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Rechazado"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [144, -2112],
+			"id": "7511a5bc-9f05-426d-b1d4-ca2797c05d8e",
+			"name": "Switch1"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      jsonb_set(\n        context_data,\n        '{status}',\n        '\"approved\"'::jsonb\n      ),\n      '{rechazo_previo}',\n      'false'::jsonb\n    ),\n    '{approved_at}',\n    to_jsonb(CURRENT_TIMESTAMP)\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [400, -2320],
+			"id": "b63fdfb2-b73e-4da7-9337-33d8d9368ef0",
+			"name": "Execute a SQL query2",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      jsonb_set(\n        context_data,\n        '{status}',\n        '\"rejected\"'::jsonb\n      ),\n      '{rechazo_previo}',\n      'true'::jsonb\n    ),\n    '{motivo_rechazo}',\n    '{{ $json.rejectionReasons.toJsonString() }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [384, -2096],
+			"id": "c5e60d7c-c020-4475-9910-d1ae9d869a6d",
+			"name": "Execute a SQL query3",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "=¡Excelentes noticias, {{ $json.nombre.split(' ')[0] }}! 🎉\n\nTu perfil cumple con todos los requisitos del arrendador ✅. \n\nNuestro equipo se pondrá en contacto contigo en las próximas 24 horas para coordinar la visita al inmueble.\n\n¡Gracias por tu interés! 😊",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [400, -2528],
+			"id": "4a03c548-e38c-44e9-9082-44c98c88f07f",
+			"name": "Message: Aprobado",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "=Gracias por tu tiempo, {{ $json.context_data.nombre.split(' ')[0] }}.\n\nLamentablemente, en este momento no cumples con todos los requisitos establecidos por el arrendador para este inmueble en particular.\n\nSi tienes alguna duda, con gusto puedes contactarnos.\n\n¡Te deseamos mucho éxito en tu búsqueda! 🏡",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [592, -2096],
+			"id": "e4052a7c-6fa9-4984-8f23-ebc7e62cb1a6",
+			"name": "Message: Rejected",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"promptType": "define",
+				"text": "={{ $json.userPrompt }}",
+				"options": {
+					"systemMessage": "=Tu función será rechazar al contacto, tienes que indicarle que previamente nos contactó por el inmueble ubicado en {{ $json.inmuebles_consultados.colonia }} con un precio de renta de {{ $json.inmuebles_consultados.ammount }}, debes analizar por que se realizó el rechazo con la información que tienes en {{ $json.motivo_rechazo }}.\nSi la persona insiste, tienes que decirle amablemente que no puedes cambiar una decisión tomada previamente."
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.agent",
+			"typeVersion": 2.2,
+			"position": [-2080, -1312],
+			"id": "01aa0465-e1f2-4ba8-af08-74a45924155c",
+			"name": "AI Agent"
+		},
+		{
+			"parameters": {
+				"sessionIdType": "customKey",
+				"sessionKey": "={{ $('Actual Status').item.json.wa_id }}"
+			},
+			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+			"typeVersion": 1.3,
+			"position": [-1872, -1104],
+			"id": "79c4d3bb-dc9a-4754-b34b-778cbbd6f3af",
+			"name": "Simple Memory"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Actual Status').item.json.wa_id }}",
+				"textBody": "={{ $json.output }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-1760, -1312],
+			"id": "5a91a2d5-04ab-4487-b9d8-e31a006762d2",
+			"name": "Message: Reject",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "fF9WMy6NlCBRnQSn",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/fF9WMy6NlCBRnQSn",
+					"cachedResultName": "ContactoFinderTool"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"telefono": "={{ $json.contacts[0].wa_id }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "telefono",
+							"displayName": "telefono",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": false
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+			"typeVersion": 2.2,
+			"position": [-2352, -1936],
+			"id": "51778929-830d-4a24-bdb3-6a3d6bc13208",
+			"name": "Call 'ContactoFinderTool'"
+		},
+		{
+			"parameters": {
+				"jsCode": "const geminiResponse = $json;\nconst whatsappData = $('WhatsApp Trigger').item.json;\n\nlet contactExists = false;\nlet contactData = null;\nlet contactId = null;\nlet hasRejectionHistory = false;\nlet rejectionSummary = \"\";\n\ntry {\n  const textContent = geminiResponse.content.parts[0].text;\n  \n  // Verificar si dice \"Contact not found\"\n  if (textContent.toLowerCase().includes('contact not found') || \n      textContent.toLowerCase().includes('not found')) {\n    contactExists = false;\n  } else {\n    // Limpiar posibles markdown (por si acaso)\n    let cleanedText = textContent.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n    \n    const parsedData = JSON.parse(cleanedText);\n    \n    contactExists = true;\n    contactData = parsedData;\n    contactId = parsedData.phone;\n    \n    // Usar el campo isRejected que viene del JSON\n    hasRejectionHistory = parsedData.isRejected === true;\n    rejectionSummary = parsedData.resumen_interacciones || \"\";\n  }\n} catch (error) {\n  console.log('Error parsing contact response:', error.message);\n  console.log('Raw text:', geminiResponse.content.parts[0].text);\n  contactExists = false;\n}\n\nreturn {\n  wa_id: whatsappData.contacts[0].wa_id,\n  userMessage: whatsappData.messages[0].text.body,\n  contactExists: contactExists,\n  contactId: contactId,\n  contactData: contactData,\n  hasRejectionHistory: hasRejectionHistory,\n  rejectionSummary: rejectionSummary\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-2000, -2144],
+			"id": "68ddefd4-ad73-4632-bfe3-e4ce6327cd5c",
+			"name": "Contact Actions"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Contact Actions').item.json.wa_id }}",
+				"textBody": "={{ $json.content.parts[0].text }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-1808, -2608],
+			"id": "bfaa82d8-a692-4816-bce7-2df754cde938",
+			"name": "Message: Reject1",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [
+						{
+							"content": "={{ $json.contactData.resumen_interacciones }}"
+						}
+					]
+				},
+				"options": {
+					"systemMessage": "=Analiza el resumen de interacciones previas y genera un mensaje profesional pero empático explicando el rechazo.\n\nIMPORTANTE: nunca uses las palabras exactas de rechazo que tenemos en la base de datos\n\nRESUMEN DE INTERACCIÓN PREVIA:\n{{ $json.contactData.resumen_interacciones }}\n\nESTRUCTURA DEL MENSAJE:\n\n1. Saludo cordial (sin usar \"interesado\")\n2. Referencia temporal: \"El día [fecha] nos contactaste...\"\n3. Razón del rechazo (identifica cuál aplica):\n   - Si menciona mascotas: \"los propietarios de el inmueble que te interesó no aceptan mascotas\"\n   - Si menciona niños: \"los propietarios de el inmueble que te interesó no aceptan niños en la propiedad\"\n   - Si menciona estudiantes: \"los propietarios de el inmueble que te interesó no aceptan estudiantes sin tutor\"\n   - Si menciona ingresos: \"no cumples con el requisito de ingresos mínimos comprobables\"\n   - Si menciona comprobantes: \"no cuentas con los comprobantes de ingresos requeridos (recuerda que solo aceptamos *Recibos de nómina timbrados en SAT*, *Estados de cuenta completos*, *Facturas selladas ante SAT y declaraciones fiscales*\"\n   - Si menciona otra razón: usa la razón del rechazo pero nunca uses las palabras exactas de rechazo que tenemos en la base de datos\n\n4. Conclusión clara: \"Por esta razón, no podemos avanzar con tu solicitud en este momento.\"\n5. Cierre empático: \"Te deseamos mucho éxito en tu búsqueda. ✨\"\n\nFORMATO:\n- Usa saltos de línea para mejor lectura\n- Agrega emojis apropiados (⚠️ o 📋 para requisitos)\n- Tono amable pero firme\n- NO inventar información que no esté en el resumen\n- NO ofrecer alternativas ni negociaciones\n- NO usar frases genéricas como \"hola interesado\"\n\nEJEMPLO DEL TONO ESPERADO:\n\"Hola, 👋\n\nTenemos un contacto el día 22 de octubre (fecha legible nunca uses 22/10/2025), pero desafortunadamente, los propietarios del inmueble que te interesa no aceptan mascotas. 🐕\n\nPor esta razón, no podemos avanzar con tu solicitud en este momento.\n\nTe deseamos mucho éxito en tu búsqueda. ✨\""
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [-1552, -2400],
+			"id": "f7e0bb13-a3a9-4a6c-89c5-30b59934e84b",
+			"name": "Reject Message",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const contactData = $('Contact Actions').item.json;\nconst whatsappData = $('WhatsApp Trigger').item.json;\n\n// Preparar datos en el formato que espera el Switch original\nreturn {\n  messages: whatsappData.messages,\n  contacts: whatsappData.contacts,\n  // Datos adicionales del contacto\n  _contactExists: contactData.contactExists,\n  _contactId: contactData.contactId,\n  _contactData: contactData.contactData,\n  _hasRejectionHistory: contactData.hasRejectionHistory\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-1504, -2112],
+			"id": "b81e2edf-a651-4cca-bbde-821fa0816c59",
+			"name": "Prepare Message Data"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [
+						{
+							"content": "=Tu única función es usar ContactFinderTool para buscar si el contacto {{ $('Get: Message Info').item.json.wa_id }} existe en la base de datos y analizar si tiene rechazo previo.\n\nCASO 1: Si NO encuentras el contacto\nResponde EXACTAMENTE así (texto plano):\nContact not found\n\nCASO 2: Si SÍ encuentras el contacto\nAnaliza CUIDADOSAMENTE el campo \"resumen_interacciones\" y \"comentario\" de las interacciones.\n\nMarca isRejected como TRUE si encuentras CUALQUIERA de estas frases o conceptos:\n- \"no cumple\"\n- \"no cumplen\"\n- \"rechazo\" / \"rechazado\" / \"rechazada\"\n- \"no acepta\" / \"no aceptan\"\n- \"no puede\" / \"no pueden\"\n- \"desafortunadamente no\"\n- \"lamentablemente no\"\n- \"no tiene\" (cuando se refiere a requisitos)\n- \"falta de\" / \"sin\" (comprobantes, documentos, etc.)\n- \"basura de contacto\"\n- \"perdida de tiempo\"\n- \"muy pendejo\"\n- Cualquier lenguaje negativo sobre el contacto o sus requisitos\n\nMarca isRejected como FALSE SOLO si:\n- El resumen describe interés genuino sin mencionar rechazo\n- No hay indicios de incumplimiento de requisitos\n- Es un seguimiento normal\n\nResponde con un JSON válido:\n\n{\n  \"id\": número_id_del_contacto,\n  \"name\": \"nombre del contacto\",\n  \"phone\": \"teléfono\",\n  \"total_interactions\": número,\n  \"resumen_interacciones\": \"texto completo del resumen\",\n  \"isRejected\": true o false,\n  \"interactions\": [array de interacciones]\n}\n\nCRÍTICO:\n- El campo \"id\" es OBLIGATORIO (número)\n- isRejected debe ser TRUE si hay CUALQUIER indicio de rechazo\n- En caso de duda, marca como TRUE (mejor prevenir)\n- NO agregues markdown (```json)\n- NO agregues explicaciones adicionales"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [-2320, -2144],
+			"id": "af951e06-7085-4919-b5d9-11eebe0f9939",
+			"name": "Contact Finder",
+			"alwaysOutputData": true,
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Actual status of contact').item.json.contactData.id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n\"comentario\":{{ $json.body.comentario.toJsonString() }}\n}\n",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [-992, -2608],
+			"id": "47449a89-7a34-419b-a503-178b0bd8ca84",
+			"name": "Update: Contact Comments",
+			"credentials": {
+				"httpBearerAuth": {
+					"id": "QigdAtAlBxHMmIsD",
+					"name": "WA - Bearer Token"
+				},
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const aiResponse = $input.first().json;\nconst contactId = $('Contact Actions').item.json.contactId;\n\nconsole.log('AI Response completo:', JSON.stringify(aiResponse, null, 2));\n\n// Intentar diferentes rutas donde puede estar el output\nlet summary = aiResponse.output || \n              aiResponse.content?.parts?.[0]?.text || \n              aiResponse.text ||\n              aiResponse;\n\nconsole.log('Summary extraído:', summary);\n\nreturn {\n  contactId: contactId,\n  body: {\n    comentario: summary,\n    created_at: new Date().toISOString()\n  }\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-1216, -2608],
+			"id": "8591811e-d847-49e4-b6e6-120953eb7717",
+			"name": "Code in JavaScript"
+		},
+		{
+			"parameters": {
+				"model": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "gpt-5-nano"
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+			"typeVersion": 1.2,
+			"position": [-272, -1472],
+			"id": "4af2f203-9821-4020-a980-765d908de00f",
+			"name": "OpenAI Chat Model1",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"model": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "gpt-5-nano"
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+			"typeVersion": 1.2,
+			"position": [-2080, -1104],
+			"id": "16a1475b-5aa0-4921-b7e3-dbb29fa92f10",
+			"name": "OpenAI Chat Model2",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.isAwaitingData }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "911b08be-9c60-4621-ac3e-8c0316f75792"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Is Awaiting"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "da44f585-3b7c-4a21-a1e5-b4ed16282b49",
+										"leftValue": "={{ $json.isAwaitingData }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "NOT"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-1840, -1840],
+			"id": "53eb2090-c243-485c-ad97-e8a12026a338",
+			"name": "Switch: is Awaiting?"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "https://vg.g210512.com/api/v1/contactos",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"nombre\": \"🤖 - {{ $('Extract Name & Phone').item.json.nombre_extracted }}\",\n  \"telefono\": \"{{ $('Extract Name & Phone').item.json.telefono_extracted }}\",\n  \"estado\": \"nuevo\",\n  \"fuente\": \"WhatsApp Bot\"\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [-560, -1872],
+			"id": "2d0b1723-c554-4fa8-964e-8f0843dae880",
+			"name": "API: Set new costumer",
+			"retryOnFail": true,
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.context_data.api_contact_id }}/intereses",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"inmueble_id\": {{ $('Parse: Property Information').item.json.propertyData.id }}\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [560, -1728],
+			"id": "87166903-5a89-4abd-acd6-755343fc6f84",
+			"name": "Add Property Interest",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{api_contact_id}',\n    '{{ $json.data.id }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Get Context Awating Data').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-320, -1872],
+			"id": "453e87c1-451c-4e97-b64c-51361d869ada",
+			"name": "Update API Contact ID",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [{}]
+				},
+				"options": {
+					"systemMessage": "=Eres un validador de respuestas para un cuestionario de renta inmobiliaria.\n\nTienes el cuestionario completo con todas las preguntas y respuestas del usuario.\n\nCUESTIONARIO:\n{{ $json.questionnaire.toJsonString() }}\n\nRESPUESTAS DEL USUARIO:\n{{ $json.answers.toJsonString() }}\n\nREGLAS DE VALIDACIÓN:\n\nPara preguntas tipo \"boolean\":\n- Si expected = false: el usuario debe decir \"no\", \"ninguno\", \"no tengo\"\n  - Si dice \"sí\", \"tengo\", \"claro\", números positivos → NO CUMPLE\n  - Si es evasivo \"quién sabe\", \"qué te importa\" → NO CUMPLE (asumir que sí tiene)\n\n- Si expected = true: el usuario debe decir \"sí\", \"tengo\", \"claro\"\n  - Si dice \"no\", \"ninguno\" → NO CUMPLE\n\nPara preguntas tipo \"number_minimum\":\n- Extrae el número de la respuesta del usuario\n- Compara si es >= al expected\n- Ejemplos: \"gano 32000\" → 32000, \"35 mil\" → 35000\n\nRESPONDE CON UN JSON ARRAY con esta estructura:\n\n[\n  {\n    \"campo\": \"mascotas\",\n    \"pregunta\": \"¿Tienes mascotas?\",\n    \"respuesta_usuario\": \"Si tengo un westie\",\n    \"expected\": false,\n    \"valor_interpretado\": true,\n    \"cumple\": false,\n    \"razon\": \"Se esperaba NO tener mascotas, pero el usuario tiene un perro\"\n  },\n  {\n    \"campo\": \"ingresos\",\n    \"pregunta\": \"¿Cuál es tu ingreso mensual?\",\n    \"respuesta_usuario\": \"Gano 32000\",\n    \"expected\": 30000,\n    \"valor_interpretado\": 32000,\n    \"cumple\": true,\n    \"razon\": \"Ingresos de $32,000 superan el mínimo de $30,000\"\n  }\n]\n\nIMPORTANTE:\n- NO uses markdown (```json)\n- Analiza TODOS los campos del cuestionario\n- Sé estricto con los requisitos"
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [-368, -2112],
+			"id": "8ec73a38-62f2-4c93-ab15-781b96e149de",
+			"name": "Message a model1",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const isAudio = $input.item.json.messages ? false : true;\n\nif (isAudio) {\n  return {\n    userPrompt: $json.content.parts[0].text,\n    type: \"audio\",\n    ai: \"\",\n    wa_id: $('WhatsApp Trigger').item.json.contacts[0].wa_id\n  };\n} else {\n  return {\n    userPrompt: $json.messages[0].text.body,\n    type: $json.messages[0].type,\n    ai: \"\",\n    wa_id: $json.contacts[0].wa_id\n  };\n}"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-3264, -2128],
+			"id": "caae3a2c-8d32-4530-b880-c5159c5dce1a",
+			"name": "Get: Message Info"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.hasRejectionHistory }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "9cd9e84b-29b5-4b88-a16c-b4ab8f71d3d1"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Rejection"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "6b1f1f79-9885-4085-b360-d943b9948656",
+										"leftValue": "={{ $json.contactExists }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Exists"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "dce569ae-ec35-4393-8d21-b231b955d11a",
+										"leftValue": "={{ $json.contactExists }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "New"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-1776, -2160],
+			"id": "cc043830-a716-4a6b-9c83-fbb8722b7cd5",
+			"name": "Actual status of contact"
+		},
+		{
+			"parameters": {
+				"jsCode": "const postgresResult = $json;\nconst previousData = $('Get: Message Info').item.json;\n\n// Si hay un ID en Postgres, significa que ya tenemos contexto\nconst hasContext = postgresResult && postgresResult.id;\n\nreturn {\n  ...previousData,\n  ...postgresResult, \n  hasPostgresContext: hasContext,  // ← Este campo faltaba en el output\n  postgresContextId: postgresResult.id || null\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-2816, -2128],
+			"id": "aa26fa87-ace9-4478-9e92-873e87771948",
+			"name": "Has Postgres Context?"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.postgresContextId }}",
+										"rightValue": "",
+										"operator": {
+											"type": "number",
+											"operation": "notExists",
+											"singleValue": true
+										},
+										"id": "7200cba5-e9be-48ed-8051-a6193620c86a"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Need Check"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "c77aa4d5-afc8-4b56-943b-1d8bc9f762f8",
+										"leftValue": "={{ $json.postgresContextId }}",
+										"rightValue": "",
+										"operator": {
+											"type": "number",
+											"operation": "exists",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Skip Check"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-2576, -2128],
+			"id": "103c5f02-bdb1-47f3-afe8-11569867a6d3",
+			"name": "Need Contact Check?"
+		},
+		{
+			"parameters": {
+				"jsCode": "const geminiResponse = $json.content.parts[0].text;\nconst previousData = $('Has More Questions?').item.json;\n\n// Parsear el JSON que viene como texto\nlet validationResults = [];\ntry {\n  validationResults = JSON.parse(geminiResponse);\n} catch (error) {\n  console.error('Error parseando validación:', error);\n}\n\n// Determinar si está aprobado\nconst isApproved = validationResults.every(item => item.cumple === true);\nconst rejectionReasons = validationResults\n  .filter(item => !item.cumple)\n  .map(item => item.razon);\n\nreturn {\n  wa_id: previousData.wa_id,\n  nombre: previousData.nombre,\n  personaje: previousData.personaje,\n  context_id: previousData.context_id,\n  isApproved: isApproved,\n  rejectionReasons: rejectionReasons,\n  validationResults: validationResults,\n  answers: previousData.answers\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-48, -2112],
+			"id": "2374d1cc-ad42-4a8d-a213-cd1578f1690b",
+			"name": "Parse Gemini Validation"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [{}]
+				},
+				"options": {
+					"systemMessage": "=Genera un resumen ejecutivo de la interacción para el equipo de la inmobiliaria.\n\nDATOS DE LA INTERACCIÓN:\n{{ $('Execute a SQL query2').item.json.context_data.toJsonString() }}\n\nFORMATO REQUERIDO:\n- APROBADO - 🎉\n\n**Contacto:** {{ $('Execute a SQL query2').item.json.context_data.nombre }}\n**Teléfono:** {{ $('Execute a SQL query2').item.json.context_data.telefono }}\n**Personaje atendió:** {{ $('Execute a SQL query2').item.json.context_data.personaje }}\n\n**📍 Propiedad de Interés:**\n- {{ $('Execute a SQL query2').item.json.context_data.property_found.title }}\n- {{ $('Execute a SQL query2').item.json.context_data.property_found.colonia }}, {{ $('Execute a SQL query2').item.json.context_data.property_found.municipio }}\n- Renta: {{ $('Execute a SQL query2').item.json.context_data.property_found.ammount }}\n\n**✅ Validación del Perfil:**\nEl contacto cumplió con TODOS los requisitos:\n- Sin mascotas ✅\n- Sin niños ✅\n- No es estudiante sin tutor ✅\n- No vivirá con roomies ✅\n- Ingresos comprobables: ${{ $('Execute a SQL query2').item.json.context_data.answers.ingresos }} (superior al mínimo de ${{ $('Execute a SQL query2').item.json.context_data.property_found.restrictions.ingresos_minimos }}) ✅\n- Cuenta con comprobantes válidos ✅\n\n**📋 Próximos Pasos:**\n1. Contactar al cliente en las próximas 24 horas\n2. Coordinar visita al inmueble\n3. Preparar documentación requerida\n\n**Estado:** APROBADO para continuar proceso de renta 🏡"
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [576, -2320],
+			"id": "6a017c95-133a-43c2-a536-d2bf5096cd7e",
+			"name": "Generate Resume",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const aiResponse = $json.content.parts[0].text;\nconst contextData = $('Execute a SQL query2').first().json.context_data;\n\nreturn {\n  contactId: contextData.api_contact_id,\n  body: {\n    comentario: aiResponse,\n    created_at: new Date().toISOString()\n  }\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [896, -2320],
+			"id": "e70d9d6c-fc0d-4f31-a8fb-4dfc7761b0d8",
+			"name": "Parse Resume"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.contactId }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"comentario\": {{ $json.body.comentario.toJsonString() }}\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1120, -2320],
+			"id": "70f36224-4c4f-4c03-83e4-f7a59517bb7f",
+			"name": "HTTP Request",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [{}]
+				},
+				"options": {
+					"systemMessage": "=\nGenera un resumen ejecutivo de la interacción para el equipo de la inmobiliaria.\n\nIMPORTANTE AGREGAR AL INICIO DEL RESUMEN: ❌ RECHAZADO\n\nCONTEXTO DEL CONTACTO:\nNombre: {{ $('Contact Actions').item.json.contactData.name }}\nTeléfono: {{ $('Contact Actions').item.json.contactData.phone }}\nHistorial previo: {{ $('Contact Actions').item.json.contactData.resumen_interacciones }}\n\nINTERACCIÓN ACTUAL:\nEl contacto escribió: \"{{ $('Contact Actions').item.json.userMessage }}\"\n\nRespuesta del bot: {{ $('Reject Message').item.json.content.parts[0].text }}\n\nFORMATO REQUERIDO:\n🤖 **BOT WhatsApp** - {{ $now.format('dd/MM/yyyy HH:mm') }}\n\n📱 **Contacto escribió:**\n[mensaje del usuario]\n\n🔍 **Detección automática:**\nSe identificó que este contacto tiene un rechazo previo por: [razón específica del rechazo]\n\n📤 **Bot respondió:**\n[resumen del mensaje enviado en 2-3 líneas]\n\n📋 **Resultado:**\nContacto rechazado automáticamente. No se continuó con el flujo de atención.\n\nINSTRUCCIONES:\n- Sé conciso pero informativo\n- Usa emojis para mejor escaneo visual\n- Menciona la razón específica del rechazo previo\n- Máximo 150 palabras\n- Formato markdown para mejor lectura"
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [-1552, -2608],
+			"id": "2d7be856-f124-49f2-b0c1-e834de0e2732",
+			"name": "Resume Generator",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-3344, -320],
+			"id": "457ffb2d-3f49-4668-ae24-83ef2150136f",
+			"name": "Get: User Context1",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"model": {
+					"__rl": true,
+					"mode": "list",
+					"value": "gpt-4.1-mini"
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+			"typeVersion": 1.2,
+			"position": [-3216, -112],
+			"id": "a794b125-6592-49ed-8655-a068ca0f78ae",
+			"name": "OpenAI Chat Model",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"promptType": "define",
+				"text": "={{ $json.wa_id }}",
+				"options": {
+					"systemMessage": "=Tu función es analizar el mensaje del cliente y determinar su requerimiento de manera estructurada, siempre devolviendo un JSON limpio.\n\n## ENTRADAS\n- Mensaje del cliente: {{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n- Context data: {{ $('Get: User Context1').item.json.context_data.toJsonString() }}\n\n## INSTRUCCIONES\n\n1. Analiza el mensaje y el contexto para descubrir el requerimiento real del cliente.\n\n2. Si el mensaje contiene alguna **grosería, agresión, palabra profana o acoso**, debes:\n   - Generar un JSON donde:\n     - `message` sea un aviso al cliente indicando que su comportamiento ha sido reportado y no podrás continuar la atención.\n     - `contexto` describa el mensaje ofensivo detectado.\n     - `requiereAtencion` sea `false`.\n\n3. Si el **context data** contiene un estado de **rechazo** (`status = \"rejected\"`, `rechazo_previo = true` o motivo de rechazo presente):\n   - Envía un mensaje al cliente indicando amablemente que, **debido al motivo de rechazo previo**, no es posible continuar la atención.\n   - Incluye en `contexto` el motivo de rechazo.\n   - `requiereAtencion` debe ser `false`.\n\n4. Si **no hay información previa en context data**, o el prospecto no está identificado:\n   - Envía un mensaje breve, amable y coherente, indicando que **solo puedes atender solicitudes relacionadas con Inmobiliaria Villanueva García**.\n   - `requiereAtencion` debe ser `false`.\n\n5. Si **el contexto previo está aprobado** (`status = \"approved\"` o similar):\n   - Interpreta el mensaje actual para descubrir qué requiere (por ejemplo: confirmar cita, pedir seguimiento, solicitar información adicional, etc.).\n   - Genera una respuesta empática, **sin preguntas abiertas**, simplemente informando al cliente que su solicitud ya fue notificada al equipo correspondiente para pronta atención.\n   - Ejemplo de tono correcto:  \n     👉 \"Muchas gracias por tu mensaje, {{ $('Get: User Context1').item.json.context_data.nombre.split(' ')[0] }}, te confirmo que en este momento he notificado nuevamente tu solicitud al equipo para su pronta atención.\"  \n   - Ejemplo de tono incorrecto:  \n     🚫 \"¿Podrías confirmarme a qué cita te refieres?\"  \n   - `requiereAtencion` será `true`.\n\n6. En todos los casos, **la salida DEBE SER EXCLUSIVAMENTE** un arreglo JSON con este formato exacto (sin explicaciones, sin markdown):\n\n[\n  {\n    \"message\": \"mensaje coherente y amable para enviar al cliente\",\n    \"contexto\": \"breve descripción del requerimiento o motivo de respuesta\",\n    \"requiereAtencion\": true o false,\n    \"timestamp\": \"{{ $now.toISO() }}\"\n  }\n]\n\n## REGLAS DE FORMATO\n- No incluyas texto antes ni después del JSON.\n- No uses comillas triples, markdown, ni explicaciones.\n- Asegúrate de que el JSON sea válido y pueda parsearse directamente con JSON.parse().\n- Evita cualquier pregunta o frase abierta. El tono debe ser profesional, informativo y cerrado."
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.agent",
+			"typeVersion": 2.2,
+			"position": [-3136, -320],
+			"id": "11208718-a8e0-4310-80e5-68fd6fc5e6be",
+			"name": "AI General Inq or Out Scope"
+		},
+		{
+			"parameters": {
+				"sessionIdType": "customKey",
+				"sessionKey": "={{ $json.wa_id }}"
+			},
+			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+			"typeVersion": 1.3,
+			"position": [-3040, -112],
+			"id": "9b4bcb76-c4b6-49f6-8e25-6925b049242a",
+			"name": "Simple Memory1"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Get: User Context1').item.json.wa_id }}",
+				"textBody": "={{ $json.message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-2560, -320],
+			"id": "2f5b7e17-01e3-429b-839e-3b7c55beba49",
+			"name": "Message: General Inq or Out Scope",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// ===================================================\n// NODE: Parse AI JSON\n// ===================================================\n// Este nodo toma la respuesta cruda de la IA (por ejemplo, del nodo \"AI Agent\")\n// y la convierte en datos estructurados.\n// Espera un JSON en formato:\n// [\n//   {\n//     \"message\": \"...\",\n//     \"contexto\": \"...\",\n//     \"requiereAtencion\": true,\n//     \"timestamp\": \"2025-11-06T22:13:00Z\"\n//   }\n// ]\n// ===================================================\n\nconst raw = $json.output || $json.text || $json.message || '';\n\nlet parsed = [];\n\ntry {\n  // El modelo a veces devuelve texto con espacios o saltos de línea,\n  // así que limpiamos y detectamos el bloque JSON.\n  const jsonMatch = raw.match(/\\[.*\\]/s);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No se encontró un arreglo JSON válido en la respuesta.');\n  }\n} catch (err) {\n  return [\n    {\n      json: {\n        error: true,\n        message: 'Error al parsear la salida de la IA',\n        detalle: err.message,\n        raw_output: raw,\n      },\n    },\n  ];\n}\n\n// Si todo salió bien, devolvemos cada elemento del arreglo como un item nuevo\nreturn parsed.map(entry => ({\n  json: {\n    message: entry.message || '',\n    contexto: entry.contexto || '',\n    requiereAtencion: entry.requiereAtencion ?? false,\n    timestamp: entry.timestamp || new Date().toISOString(),\n  },\n}));\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-2784, -320],
+			"id": "abd735d2-35a9-49e3-9c80-af306f3cce3e",
+			"name": "Parse: AI Response"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Get: User Context1').item.json.context_data.api_contact_id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"comentario\": \"🤖 - El contacto escribió: {{ $('WhatsApp Trigger').item.json.messages[0].text.body }} // Respuesta: {{ $('Parse: AI Response').item.json.message }}\"\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [-2144, -320],
+			"id": "69f2173e-cf8c-4882-ae8e-2bb12375ce24",
+			"name": "HTTP Request1",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{status}',\n      '\"requiere_atention\"'\n    ),\n    '{last_query}',\n    to_jsonb('{{ $('WhatsApp Trigger').item.json.messages[0].text.body }}'::text)\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [-1920, -320],
+			"id": "15eb7d34-686b-4d7c-b92e-451eebd53c72",
+			"name": "Update: Status awaiting1",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"authentication": "webhook",
+				"content": "=📢 **ATENCIÓN PENDIENTE**\n\n🧍‍♂️ **Prospecto:** *{{ $('Get: User Context1').item.json.context_data.nombre }}*  \n📱 **Teléfono:**   {{ $('Get: User Context1').item.json.wa_id }}\n🏡 **Origen:** *🤖 - AI WhatsApp*  \n🕐 **Hora:** {{ new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }) }}  \n\n💬 **Último mensaje del cliente:**  \n> {{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n\n📌 **Situacíon Actual:**  \n> {{ $json.contexto || 'Solicita atención o confirmación de cita.' }}\n\n---\n\n⚡ **Acción sugerida:**  \nEl prospecto ya fue **notificado** que su solicitud está siendo atendida.  \nPor favor, **asigna un asesor o confirma seguimiento** en los próximos minutos.  \n",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.discord",
+			"typeVersion": 2,
+			"position": [-2352, -320],
+			"id": "c4584135-70a2-4df0-94f5-2a54e2219f6a",
+			"name": "Discord: Attention Message",
+			"webhookId": "d0a56f58-550a-46fa-bb94-26037d82b649",
+			"credentials": {
+				"discordWebhookApi": {
+					"id": "T5xO2IcTLSwkGbFt",
+					"name": "Discord Webhook account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"authentication": "webhook",
+				"content": "=📢 **NUEVO CONTACTO FILTRADO**\n\n🧍‍♂️ **Prospecto:** *{{ $('Switch1').item.json.nombre }}*  \n📱 **Teléfono:**   {{ $json.contacts[0].wa_id.substring(3) }}\n🏡 **Origen:** *🤖 - AI WhatsApp*  \n🕐 **Hora:** {{ new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }) }}  \n\n📌 **Situacíon Actual:**  \n> Contacto cumple con requisitos\n\n---\n\n⚡ **Acción sugerida:**  \nEl prospecto ya fue **APROBADO** por nuestros estándares, contáctalo.  \n",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.discord",
+			"typeVersion": 2,
+			"position": [592, -2528],
+			"id": "b0453ae7-527b-4632-9cd1-370c7fe5d4c3",
+			"name": "Discord: Approved Message",
+			"webhookId": "d0a56f58-550a-46fa-bb94-26037d82b649",
+			"credentials": {
+				"discordWebhookApi": {
+					"id": "T5xO2IcTLSwkGbFt",
+					"name": "Discord Webhook account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const propertyData = $('Parse: Property Information').item.json.propertyData;\nconst contextData = $json.context_data.property_found;\nconst nombre = $('Parse: Property Information').item.json.nombre.split(' ')[0];\n\n// Formatear montos a moneda mexicana\nconst formatCurrency = (amount) => {\n  if (!amount || amount === 'null' || amount === null) return 'No aplica';\n  const numAmount = parseFloat(amount);\n  return new Intl.NumberFormat('es-MX', {\n    style: 'currency',\n    currency: 'MXN'\n  }).format(numAmount);\n};\n\n// Formatear restricciones\nconst restrictions = propertyData.restrictions;\n\nconst formatRestriction = (field, label) => {\n  const value = restrictions[field];\n  if (value === 'si' || value === 'yes' || value === true) {\n    return '✅ ' + label;\n  } else if (value === 'no' || value === false) {\n    return '❌ No se aceptan ' + label.toLowerCase();\n  } else {\n    return '⚠️ ' + label + ': ' + value;\n  }\n};\n\n// Caso especial para mascotas\nlet mascotasText = '';\nif (restrictions.acepta_mascotas === 'no' || restrictions.acepta_mascotas === false) {\n  mascotasText = '❌ No se aceptan mascotas';\n} else if (restrictions.acepta_mascotas === 'si' || restrictions.acepta_mascotas === true) {\n  mascotasText = '✅ Solo se acepta una mascota pequeña (perro o gato pequeño)';\n} else {\n  mascotasText = '⚠️ Mascotas: ' + restrictions.acepta_mascotas;\n}\n\n// Construir mensaje - usando concatenación en lugar de template strings\nconst mensaje = '¡Listo ' + nombre + '! 🙌\\n\\n' +\n'Aquí tienes la información del inmueble que buscas 🏡✨\\n\\n' +\n'📍 ' + contextData.title + '\\n' +\n'🏘️ ' + contextData.colonia + ', ' + contextData.municipio + '\\n' +\n'💰 ' + contextData.operacion + ': ' + contextData.ammount + '\\n' +\n'🛏️ ' + contextData.rooms + ' recámaras | 🚿 ' + contextData.baths + ' baños | 🚗 ' + contextData.parkings + ' estacionamientos\\n' +\n'📐 ' + contextData.m2 + ' m² construidos\\n\\n' +\n  \n'Para continuar con el proceso, necesito hacerte unas breves preguntas para confirmar que cumples con los requisitos del arrendador. ¿Estás listo/a? 😊';\n\nreturn {\n  ...$json,\n  formatted_message: mensaje\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [560, -1520],
+			"id": "e5706d0a-ce41-408a-b351-4052625ab04b",
+			"name": "Parse: Message w Property Info"
+		},
+		{
+			"parameters": {
+				"jsCode": "const geminiResponse = $input.first().json.output;  // ← Usar la variable correcta\nconst previousData = $('Get Context with Property').item.json;\n\nlet questions = [];\n\ntry {\n  // Limpiar y parsear\n  const cleanedText = geminiResponse\n    .replace(/```json\\n?/g, '')\n    .replace(/```\\n?/g, '')\n    .trim();\n  \n  questions = JSON.parse(cleanedText);\n} catch (error) {\n  console.error('Error parseando cuestionario:', error);\n  console.error('Contenido recibido:', geminiResponse);\n  \n  // Fallback a preguntas básicas si falla\n  questions = [\n    {\n      field: \"mascotas\",\n      question: \"¿Tienes mascotas? 🐕🐈\",\n      type: \"boolean\",\n      expected: false\n    }\n  ];\n}\n\nreturn {\n  status: $('Get Context with Property').first().json.context_data.status,\n  wa_id: previousData.wa_id,\n  nombre: previousData.context_data.nombre,\n  personaje: previousData.context_data.personaje,\n  context_id: previousData.id,\n  questions: questions,\n  totalQuestions: questions.length\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-2720, -720],
+			"id": "be1ea864-0121-4c62-b7b7-75403cbd3917",
+			"name": "Parse AI Questionnaire"
+		},
+		{
+			"parameters": {
+				"model": {
+					"__rl": true,
+					"value": "gpt-5",
+					"mode": "list",
+					"cachedResultName": "gpt-5"
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+			"typeVersion": 1.2,
+			"position": [-3136, -592],
+			"id": "3236e42c-6a90-47bb-ab92-035197ddeb6d",
+			"name": "OpenAI Chat Model3",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"sessionIdType": "customKey",
+				"sessionKey": "={{ $json.wa_id }}",
+				"contextWindowLength": 10
+			},
+			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+			"typeVersion": 1.3,
+			"position": [-2976, -592],
+			"id": "562bed65-1956-4fa7-9914-22feefdf7612",
+			"name": "Simple Memory2"
+		},
+		{
+			"parameters": {
+				"promptType": "define",
+				"text": "={{ $json.wa_id }}",
+				"options": {
+					"systemMessage": "=Eres un asistente conversacional de una inmobiliaria. Tu tarea es generar un cuestionario personalizado y natural basado en las características y restricciones de un inmueble específico.\n\nDATOS DEL INMUEBLE:\n{{ $json.context_data.property_found.toJsonString() }}\n\nRESTRICCIONES DEL ARRENDADOR:\n{{ $json.context_data.property_found.restrictions.toJsonString() }}\n\nINSTRUCCIONES:\n\n1. **Genera preguntas conversacionales** siguiendo estos principios:\n   - NUNCA saludes, no pongas palabras como hola, que tal, etc, se supone que tu ya vienes trabajando con el contacto\n   - Primero da contexto o explica la restricción\n   - Luego pregunta de forma natural\n   - Usa tono amigable y mexicano\n   - Incluye emojis apropiados\n\n2. **Tipos de preguntas a generar:**\n\n   A) **Si NO acepta mascotas** (acepta_mascotas = \"no\"):\n      - Ejemplo: \"¿Tienes mascotas? 🐕🐈\"\n      - field: \"mascotas\"\n      - type: \"boolean\"\n      - expected: false\n\n   B) **Si NO acepta niños** (acepta_niños = \"no\"):\n      - Ejemplo: \"Platícame, ¿cuántas personas habitarán el inmueble? ¿Habrá niños? 👶\"\n      - field: \"ninos\"\n      - type: \"boolean\"\n      - expected: false\n\n   C) **Si NO acepta estudiantes sin tutor** (acepta_estudiantes = \"no\"):\n      - Ejemplo: \"Muy bien, platícame ¿cuál es tu ocupación actual? 📚\"\n      - field: \"estudiantes\"\n      - type: \"boolean\"\n      - expected: false\n\n   D) **Si NO acepta roomies** (acepta_roomies = \"no\"):\n      - Ejemplo: \"Cuéntame, ¿cómo será tu forma de vivir? ¿Solo(a) o con roomies? 👥\"\n      - field: \"roomies\"\n      - type: \"boolean\"\n      - expected: false\n\n   E) **Ingresos mínimos** (si existe y > 0):\n      - Ejemplo: \"Una pregunta importante: ¿cuál es tu ingreso mensual comprobable? 💵 (El mínimo requerido es $XX,XXX)\"\n      - field: \"ingresos\"\n      - type: \"number_minimum\"\n      - expected: [valor numérico]\n\n   F) **Comprobantes de ingresos** (si requiere_comprobantes_ingresos = true):\n      - Ejemplo: \"¿Cuentas con recibos de nómina, estados de cuenta o facturas que comprueben tus ingresos mensuales? 📋\"\n      - field: \"comprobantes\"\n      - type: \"boolean\"\n      - expected: true\n\n3. **Agrega preguntas adicionales basadas en características del inmueble:**\n\n   - **Si parkings = 0**: \"Te comento que el inmueble no cuenta con estacionamiento 🚗 ¿Estás de acuerdo con eso?\"\n   - **Si tiene más de 3 pisos y no menciona elevador**: \"El depa está en el [X] piso y no tiene elevador 🏢 ¿Tienes algún inconveniente?\"\n   - Cualquier otra característica relevante que valga la pena preguntar\n\nFORMATO DE SALIDA (JSON ARRAY):\n\n[\n  {\n    \"field\": \"mascotas\",\n    \"question\": \"¿Tienes mascotas? 🐕🐈\",\n    \"type\": \"boolean\",\n    \"expected\": false\n  },\n  {\n    \"field\": \"estacionamiento\",\n    \"question\": \"Te comento que el inmueble no cuenta con estacionamiento 🚗\\n¿Estás de acuerdo con eso?\",\n    \"type\": \"boolean\",\n    \"expected\": true\n  }\n]\n\nIMPORTANTE:\n- NO uses markdown (```json)\n- NO agregues explicaciones\n- Responde SOLO con el JSON array\n- Mantén el tono conversacional y natural"
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.agent",
+			"typeVersion": 2.2,
+			"position": [-3072, -768],
+			"id": "56b0f39e-e3bd-4032-bfff-af6a55de0b9d",
+			"name": "AI Generate Dynamic Questionnaire"
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"WhatsApp Trigger": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "Get: Message Info",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send message2",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send message2",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send message2",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Download media3",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Download media3": {
+			"main": [
+				[
+					{
+						"node": "HTTP Request3",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"HTTP Request3": {
+			"main": [
+				[
+					{
+						"node": "Transcribe: audio",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Transcribe: audio": {
+			"main": [
+				[
+					{
+						"node": "Get: Message Info",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Edit Fields": {
+			"main": [
+				[
+					{
+						"node": "Execute a SQL query",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query": {
+			"main": [
+				[
+					{
+						"node": "Check and Assign Character",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check and Assign Character": {
+			"main": [
+				[
+					{
+						"node": "If: Is New Contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Is New Contact": {
+			"main": [
+				[
+					{
+						"node": "Set: New Costumer",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Switch: Intent",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Set: New Costumer": {
+			"main": [
+				[
+					{
+						"node": "Merge Context Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Merge Context Data": {
+			"main": [
+				[
+					{
+						"node": "Switch: Intent",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get: User Context": {
+			"main": [
+				[
+					{
+						"node": "Parse Context Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Context Data": {
+			"main": [
+				[
+					{
+						"node": "Check missing Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check missing Data": {
+			"main": [
+				[
+					{
+						"node": "Actual Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Actual Status": {
+			"main": [
+				[
+					{
+						"node": "AI Agent",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Request Data",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[]
+			]
+		},
+		"Request Data": {
+			"main": [
+				[
+					{
+						"node": "Update: Status awaiting",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Context Status": {
+			"main": [
+				[
+					{
+						"node": "Has Postgres Context?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: Status": {
+			"main": [
+				[
+					{
+						"node": "Switch: is Awaiting?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Extract Name & Phone": {
+			"main": [
+				[
+					{
+						"node": "Is Valid Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Detect: Intention": {
+			"main": [
+				[
+					{
+						"node": "Edit Fields",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is Valid Data": {
+			"main": [
+				[
+					{
+						"node": "Get Context Awating Data",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Message: Wrong Name & Phone",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get Context Awating Data": {
+			"main": [
+				[
+					{
+						"node": "Prepare for Property Search",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "API: Set new costumer",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare for Property Search": {
+			"main": [
+				[
+					{
+						"node": "Send message4",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call 'InmuebleFinderTool'1": {
+			"ai_tool": [
+				[
+					{
+						"node": "AI Agent - Get Property",
+						"type": "ai_tool",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get Context with Property": {
+			"main": [
+				[
+					{
+						"node": "AI Generate Dynamic Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI Agent - Get Property": {
+			"main": [
+				[
+					{
+						"node": "Parse: Property Information",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: Property Information": {
+			"main": [
+				[
+					{
+						"node": "Update: Costumer Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update: Costumer Context": {
+			"main": [
+				[
+					{
+						"node": "Add Property Interest",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Parse: Message w Property Info",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch: Intent": {
+			"main": [
+				[
+					{
+						"node": "Get: User Context",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send message1",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Get: User Context1",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Get Context with Property",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[],
+				[
+					{
+						"node": "Get: User Context1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Is Awaiting Questionaire": {
+			"main": [
+				[
+					{
+						"node": "Execute a SQL query1",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send message1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query1": {
+			"main": [
+				[
+					{
+						"node": "Send message5",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Questionnaire Status": {
+			"main": [
+				[
+					{
+						"node": "Is In Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is In Questionnaire": {
+			"main": [
+				[
+					{
+						"node": "Process Answer & Next Question",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Parse: Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Process Answer & Next Question": {
+			"main": [
+				[
+					{
+						"node": "Update: Context questions",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Has More Questions?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update: Context questions": {
+			"main": [[]]
+		},
+		"Has More Questions?": {
+			"main": [
+				[
+					{
+						"node": "Send message6",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Message a model1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch1": {
+			"main": [
+				[
+					{
+						"node": "Execute a SQL query2",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Message: Aprobado",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Execute a SQL query3",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query2": {
+			"main": [
+				[
+					{
+						"node": "Generate Resume",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query3": {
+			"main": [
+				[
+					{
+						"node": "Message: Rejected",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Simple Memory": {
+			"ai_memory": [
+				[
+					{
+						"node": "AI Agent",
+						"type": "ai_memory",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI Agent": {
+			"main": [
+				[
+					{
+						"node": "Message: Reject",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call 'ContactoFinderTool'": {
+			"ai_tool": [
+				[
+					{
+						"node": "Contact Finder",
+						"type": "ai_tool",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Contact Actions": {
+			"main": [
+				[
+					{
+						"node": "Actual status of contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Reject Message": {
+			"main": [
+				[
+					{
+						"node": "Message: Reject1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Message Data": {
+			"main": [
+				[
+					{
+						"node": "Check Questionnaire Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Contact Finder": {
+			"main": [
+				[
+					{
+						"node": "Contact Actions",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message: Reject1": {
+			"main": [
+				[
+					{
+						"node": "Resume Generator",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Code in JavaScript": {
+			"main": [
+				[
+					{
+						"node": "Update: Contact Comments",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"OpenAI Chat Model1": {
+			"ai_languageModel": [
+				[
+					{
+						"node": "AI Agent - Get Property",
+						"type": "ai_languageModel",
+						"index": 0
+					}
+				]
+			]
+		},
+		"OpenAI Chat Model2": {
+			"ai_languageModel": [
+				[
+					{
+						"node": "AI Agent",
+						"type": "ai_languageModel",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch: is Awaiting?": {
+			"main": [
+				[
+					{
+						"node": "Extract Name & Phone",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Detect: Intention",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Set new costumer": {
+			"main": [
+				[
+					{
+						"node": "Update API Contact ID",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message a model1": {
+			"main": [
+				[
+					{
+						"node": "Parse Gemini Validation",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get: Message Info": {
+			"main": [
+				[
+					{
+						"node": "Check Context Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Actual status of contact": {
+			"main": [
+				[
+					{
+						"node": "Reject Message",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Prepare Message Data",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Prepare Message Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Has Postgres Context?": {
+			"main": [
+				[
+					{
+						"node": "Need Contact Check?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Need Contact Check?": {
+			"main": [
+				[
+					{
+						"node": "Contact Finder",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Check Questionnaire Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Gemini Validation": {
+			"main": [
+				[
+					{
+						"node": "Switch1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message: Aprobado": {
+			"main": [
+				[
+					{
+						"node": "Discord: Approved Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Generate Resume": {
+			"main": [
+				[
+					{
+						"node": "Parse Resume",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Resume": {
+			"main": [
+				[
+					{
+						"node": "HTTP Request",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Resume Generator": {
+			"main": [
+				[
+					{
+						"node": "Code in JavaScript",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update: Contact Comments": {
+			"main": [[]]
+		},
+		"Send message6": {
+			"main": [[]]
+		},
+		"Message: Wrong Name & Phone": {
+			"main": [[]]
+		},
+		"Get: User Context1": {
+			"main": [
+				[
+					{
+						"node": "AI General Inq or Out Scope",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"OpenAI Chat Model": {
+			"ai_languageModel": [
+				[
+					{
+						"node": "AI General Inq or Out Scope",
+						"type": "ai_languageModel",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Simple Memory1": {
+			"ai_memory": [
+				[
+					{
+						"node": "AI General Inq or Out Scope",
+						"type": "ai_memory",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI General Inq or Out Scope": {
+			"main": [
+				[
+					{
+						"node": "Parse: AI Response",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: AI Response": {
+			"main": [
+				[
+					{
+						"node": "Message: General Inq or Out Scope",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message: General Inq or Out Scope": {
+			"main": [
+				[
+					{
+						"node": "Discord: Attention Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"HTTP Request1": {
+			"main": [
+				[
+					{
+						"node": "Update: Status awaiting1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send message4": {
+			"main": [
+				[
+					{
+						"node": "AI Agent - Get Property",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Discord: Attention Message": {
+			"main": [
+				[
+					{
+						"node": "HTTP Request1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: Message w Property Info": {
+			"main": [
+				[
+					{
+						"node": "Send message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse AI Questionnaire": {
+			"main": [
+				[
+					{
+						"node": "If: Is Awaiting Questionaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"OpenAI Chat Model3": {
+			"ai_languageModel": [
+				[
+					{
+						"node": "AI Generate Dynamic Questionnaire",
+						"type": "ai_languageModel",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Simple Memory2": {
+			"ai_memory": [
+				[
+					{
+						"node": "AI Generate Dynamic Questionnaire",
+						"type": "ai_memory",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI Generate Dynamic Questionnaire": {
+			"main": [
+				[
+					{
+						"node": "Parse AI Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "77ae23f9-6a86-4bdf-ba38-50328120c1fa",
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	},
+	"id": "uG6DS3d1ouumrTYO",
+	"tags": []
+}
