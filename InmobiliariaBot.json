@@ -62,7 +62,7 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "WITH context_data AS (\n  SELECT id, wa_id, context_data\n  FROM user_contexts\n  WHERE wa_id = '{{ $json.wa_id }}'\n  LIMIT 1\n)\nSELECT\n  '{{ $json.wa_id }}'::text AS wa_id,\n  (SELECT row_to_json(context_data) FROM context_data) AS context_record;",
+				"query": "WITH context_data AS (\n  SELECT id, wa_id, context_data\n  FROM user_contexts\n  WHERE wa_id = '{{ $json.wa_id }}'\n  LIMIT 1\n)\nSELECT\n  '{{ $json.wa_id }}'::text AS wa_id,\n    (\n    SELECT row_to_json(context_row)\n    FROM context_data AS context_row\n  ) AS context_record;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
