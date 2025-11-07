@@ -2160,7 +2160,7 @@
 			"typeVersion": 2.6,
 			"position": [-3344, -320],
 			"id": "457ffb2d-3f49-4668-ae24-83ef2150136f",
-			"name": "Get: User Context1",
+			"name": "Get: User Context General Inq or Out Scope",
 			"credentials": {
 				"postgres": {
 					"id": "qyR2OAIR7tUEVcQf",
@@ -2194,7 +2194,7 @@
 				"promptType": "define",
 				"text": "={{ $json.wa_id }}",
 				"options": {
-					"systemMessage": "=Tu función es analizar el mensaje del cliente y determinar su requerimiento de manera estructurada, siempre devolviendo un JSON limpio.\n\n## ENTRADAS\n- Mensaje del cliente: {{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n- Context data: {{ $('Get: User Context1').item.json.context_data.toJsonString() }}\n\n## INSTRUCCIONES\n\n1. Analiza el mensaje y el contexto para descubrir el requerimiento real del cliente.\n\n2. Si el mensaje contiene alguna **grosería, agresión, palabra profana o acoso**, debes:\n   - Generar un JSON donde:\n     - `message` sea un aviso al cliente indicando que su comportamiento ha sido reportado y no podrás continuar la atención.\n     - `contexto` describa el mensaje ofensivo detectado.\n     - `requiereAtencion` sea `false`.\n\n3. Si el **context data** contiene un estado de **rechazo** (`status = \"rejected\"`, `rechazo_previo = true` o motivo de rechazo presente):\n   - Envía un mensaje al cliente indicando amablemente que, **debido al motivo de rechazo previo**, no es posible continuar la atención.\n   - Incluye en `contexto` el motivo de rechazo.\n   - `requiereAtencion` debe ser `false`.\n\n4. Si **no hay información previa en context data**, o el prospecto no está identificado:\n   - Envía un mensaje breve, amable y coherente, indicando que **solo puedes atender solicitudes relacionadas con Inmobiliaria Villanueva García**.\n   - `requiereAtencion` debe ser `false`.\n\n5. Si **el contexto previo está aprobado** (`status = \"approved\"` o similar):\n   - Interpreta el mensaje actual para descubrir qué requiere (por ejemplo: confirmar cita, pedir seguimiento, solicitar información adicional, etc.).\n   - Genera una respuesta empática, **sin preguntas abiertas**, simplemente informando al cliente que su solicitud ya fue notificada al equipo correspondiente para pronta atención.\n   - Ejemplo de tono correcto:  \n     👉 \"Muchas gracias por tu mensaje, {{ $('Get: User Context1').item.json.context_data.nombre.split(' ')[0] }}, te confirmo que en este momento he notificado nuevamente tu solicitud al equipo para su pronta atención.\"  \n   - Ejemplo de tono incorrecto:  \n     🚫 \"¿Podrías confirmarme a qué cita te refieres?\"  \n   - `requiereAtencion` será `true`.\n\n6. En todos los casos, **la salida DEBE SER EXCLUSIVAMENTE** un arreglo JSON con este formato exacto (sin explicaciones, sin markdown):\n\n[\n  {\n    \"message\": \"mensaje coherente y amable para enviar al cliente\",\n    \"contexto\": \"breve descripción del requerimiento o motivo de respuesta\",\n    \"requiereAtencion\": true o false,\n    \"timestamp\": \"{{ $now.toISO() }}\"\n  }\n]\n\n## REGLAS DE FORMATO\n- No incluyas texto antes ni después del JSON.\n- No uses comillas triples, markdown, ni explicaciones.\n- Asegúrate de que el JSON sea válido y pueda parsearse directamente con JSON.parse().\n- Evita cualquier pregunta o frase abierta. El tono debe ser profesional, informativo y cerrado."
+					"systemMessage": "=Tu función es analizar el mensaje del cliente y determinar su requerimiento de manera estructurada, siempre devolviendo un JSON limpio.\n\n## ENTRADAS\n- Mensaje del cliente: {{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n- Context data: {{ $('Get: User Context General Inq or Out Scope').item.json.context_data.toJsonString() }}\n\n## INSTRUCCIONES\n\n1. Analiza el mensaje y el contexto para descubrir el requerimiento real del cliente.\n\n2. Si el mensaje contiene alguna **grosería, agresión, palabra profana o acoso**, debes:\n   - Generar un JSON donde:\n     - `message` sea un aviso al cliente indicando que su comportamiento ha sido reportado y no podrás continuar la atención.\n     - `contexto` describa el mensaje ofensivo detectado.\n     - `requiereAtencion` sea `false`.\n\n3. Si el **context data** contiene un estado de **rechazo** (`status = \"rejected\"`, `rechazo_previo = true` o motivo de rechazo presente):\n   - Envía un mensaje al cliente indicando amablemente que, **debido al motivo de rechazo previo**, no es posible continuar la atención.\n   - Incluye en `contexto` el motivo de rechazo.\n   - `requiereAtencion` debe ser `false`.\n\n4. Si **no hay información previa en context data**, o el prospecto no está identificado:\n   - Envía un mensaje breve, amable y coherente, indicando que **solo puedes atender solicitudes relacionadas con Inmobiliaria Villanueva García**.\n   - `requiereAtencion` debe ser `false`.\n\n5. Si **el contexto previo está aprobado o requiere seguimiento activo** (`status` = \"approved\", \"requiere_atention\", \"requires_attention\" o similar, o `approved_at` existe sin un rechazo posterior):\n   - Interpreta el mensaje actual para descubrir qué requiere (por ejemplo: confirmar cita, pedir seguimiento, solicitar información adicional, etc.).\n   - Genera una respuesta empática, **sin preguntas abiertas**, simplemente informando al cliente que su solicitud ya fue notificada al equipo correspondiente para pronta atención.\n   - Refuerza que se dará seguimiento y evita redirigir al bot.\n   - Ejemplo de tono correcto:  \n     👉 \"Muchas gracias por tu mensaje, {{ $('Get: User Context General Inq or Out Scope').item.json.context_data.nombre.split(' ')[0] }}, te confirmo que en este momento he notificado nuevamente tu solicitud al equipo para su pronta atención.\"  \n   - Ejemplo de tono incorrecto:  \n     🚫 \"¿Podrías confirmarme a qué cita te refieres?\"  \n   - `requiereAtencion` debe ser `true`.\n\n6. En todos los casos, **la salida DEBE SER EXCLUSIVAMENTE** un arreglo JSON con este formato exacto (sin explicaciones, sin markdown):\n\n[\n  {\n    \"message\": \"mensaje coherente y amable para enviar al cliente\",\n    \"contexto\": \"breve descripción del requerimiento o motivo de respuesta\",\n    \"requiereAtencion\": true o false,\n    \"timestamp\": \"{{ $now.toISO() }}\"\n  }\n]\n\n## REGLAS DE FORMATO\n- No incluyas texto antes ni después del JSON.\n- No uses comillas triples, markdown, ni explicaciones.\n- Asegúrate de que el JSON sea válido y pueda parsearse directamente con JSON.parse().\n- Evita cualquier pregunta o frase abierta. El tono debe ser profesional, informativo y cerrado."
 				}
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
@@ -2218,7 +2218,7 @@
 			"parameters": {
 				"operation": "send",
 				"phoneNumberId": "812415788624920",
-				"recipientPhoneNumber": "={{ $('Get: User Context1').item.json.wa_id }}",
+				"recipientPhoneNumber": "={{ $('Get: User Context General Inq or Out Scope').item.json.wa_id }}",
 				"textBody": "={{ $json.message }}",
 				"additionalFields": {}
 			},
@@ -2248,7 +2248,7 @@
 		{
 			"parameters": {
 				"method": "POST",
-				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Get: User Context1').item.json.context_data.api_contact_id }}/comentarios",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Get: User Context General Inq or Out Scope').item.json.context_data.api_contact_id }}/comentarios",
 				"authentication": "genericCredentialType",
 				"genericAuthType": "httpHeaderAuth",
 				"sendBody": true,
@@ -2289,7 +2289,7 @@
 		{
 			"parameters": {
 				"authentication": "webhook",
-				"content": "=📢 **ATENCIÓN PENDIENTE**\n\n🧍‍♂️ **Prospecto:** *{{ $('Get: User Context1').item.json.context_data.nombre }}*  \n📱 **Teléfono:**   {{ $('Get: User Context1').item.json.wa_id }}\n🏡 **Origen:** *🤖 - AI WhatsApp*  \n🕐 **Hora:** {{ new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }) }}  \n\n💬 **Último mensaje del cliente:**  \n> {{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n\n📌 **Situacíon Actual:**  \n> {{ $json.contexto || 'Solicita atención o confirmación de cita.' }}\n\n---\n\n⚡ **Acción sugerida:**  \nEl prospecto ya fue **notificado** que su solicitud está siendo atendida.  \nPor favor, **asigna un asesor o confirma seguimiento** en los próximos minutos.  \n",
+				"content": "=📢 **ATENCIÓN PENDIENTE**\n\n🧍‍♂️ **Prospecto:** *{{ $('Get: User Context General Inq or Out Scope').item.json.context_data.nombre }}*  \n📱 **Teléfono:**   {{ $('Get: User Context General Inq or Out Scope').item.json.wa_id }}\n🏡 **Origen:** *🤖 - AI WhatsApp*  \n🕐 **Hora:** {{ new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }) }}  \n\n💬 **Último mensaje del cliente:**  \n> {{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\n\n📌 **Situacíon Actual:**  \n> {{ $json.contexto || 'Solicita atención o confirmación de cita.' }}\n\n---\n\n⚡ **Acción sugerida:**  \nEl prospecto ya fue **notificado** que su solicitud está siendo atendida.  \nPor favor, **asigna un asesor o confirma seguimiento** en los próximos minutos.  \n",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.discord",
@@ -2781,7 +2781,7 @@
 				],
 				[
 					{
-						"node": "Get: User Context1",
+						"node": "Get: User Context General Inq or Out Scope",
 						"type": "main",
 						"index": 0
 					}
@@ -2796,7 +2796,7 @@
 				[],
 				[
 					{
-						"node": "Get: User Context1",
+						"node": "Get: User Context General Inq or Out Scope",
 						"type": "main",
 						"index": 0
 					}
@@ -3233,7 +3233,7 @@
 		"Message: Wrong Name & Phone": {
 			"main": [[]]
 		},
-		"Get: User Context1": {
+		"Get: User Context General Inq or Out Scope": {
 			"main": [
 				[
 					{
