@@ -596,7 +596,7 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [160, 1168],
+			"position": [80, 1168],
 			"id": "4ba1e63d-fe61-4599-b0be-758b8c3b19a4",
 			"name": "Edit Fields"
 		},
@@ -608,7 +608,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [368, 1168],
+			"position": [240, 1168],
 			"id": "6563184c-8068-40b5-96b4-8bb2c3aedf7b",
 			"name": "Execute a SQL query",
 			"alwaysOutputData": true,
@@ -625,7 +625,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [576, 1168],
+			"position": [752, 1184],
 			"id": "092dac48-84ec-4367-a038-6dce72429467",
 			"name": "Check and Assign Character"
 		},
@@ -656,7 +656,7 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [784, 1184],
+			"position": [960, 1184],
 			"id": "fb067768-13ee-4da2-bd52-e2a65d3b44ba",
 			"name": "If: Is New Contact"
 		},
@@ -668,7 +668,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1056, 1168],
+			"position": [1200, 1200],
 			"id": "a097576c-276a-4afe-bc4c-884a22f4f323",
 			"name": "Set: New Costumer",
 			"credentials": {
@@ -684,7 +684,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1264, 1200],
+			"position": [1472, 1200],
 			"id": "3d2d7b1a-70c9-48c5-a4a3-ecf031565839",
 			"name": "Merge Context Data"
 		},
@@ -845,7 +845,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [368, 1824],
+			"position": [784, 1824],
 			"id": "5d2ae2b1-cb36-4148-884b-49285706fb47",
 			"name": "Request Data",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
@@ -864,7 +864,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [608, 1824],
+			"position": [1024, 1824],
 			"id": "35c47d40-e7ce-40de-a91c-8a6cd0f06bdd",
 			"name": "Update: Status awaiting",
 			"credentials": {
@@ -882,7 +882,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1392, 880],
+			"position": [-1392, 656],
 			"id": "f306046d-c48a-48e1-863d-0a35ee2416b3",
 			"name": "Check Context Status",
 			"alwaysOutputData": true,
@@ -945,7 +945,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-160, 1168],
+			"position": [-224, 1168],
 			"id": "d5856b9f-770a-4b4e-8a5d-fd9f15d97c25",
 			"name": "Detect: Intention",
 			"credentials": {
@@ -1379,7 +1379,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [320, 2016],
+			"position": [736, 2016],
 			"id": "bd138572-542f-43da-a173-b481a560894a",
 			"name": "Execute a SQL query1",
 			"credentials": {
@@ -1399,7 +1399,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [528, 2016],
+			"position": [944, 2016],
 			"id": "7a982230-1f06-4141-9cbd-e58ecba928be",
 			"name": "Send message5",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
@@ -1416,7 +1416,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1104, 640],
+			"position": [1104, 688],
 			"id": "ffdb847b-68ce-4f6a-8e65-a5ba03b5b6ea",
 			"name": "Check Questionnaire Status"
 		},
@@ -1771,7 +1771,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [320, 1440],
+			"position": [736, 1440],
 			"id": "362ee88f-c458-4299-b735-6784872ac6df",
 			"name": "AI Agent"
 		},
@@ -1782,7 +1782,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [528, 1648],
+			"position": [944, 1648],
 			"id": "319e701c-b40a-4537-96f3-c68bb0fa0ad7",
 			"name": "Simple Memory"
 		},
@@ -1796,7 +1796,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [640, 1440],
+			"position": [1056, 1440],
 			"id": "d43b6b46-da60-413e-9f55-662908ba585e",
 			"name": "Message: Reject",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
@@ -1864,7 +1864,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [592, 144],
+			"position": [-176, 64],
 			"id": "43fcfe6b-ebb1-42b2-8283-51c819620637",
 			"name": "Message: Reject1",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
@@ -1896,7 +1896,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [848, 352],
+			"position": [80, 272],
 			"id": "3c85c36b-7508-4cbb-9b2c-98006205babf",
 			"name": "Reject Message",
 			"credentials": {
@@ -1912,7 +1912,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [896, 640],
+			"position": [880, 592],
 			"id": "822c3d2f-403e-4772-9c16-54e91fd044e0",
 			"name": "Prepare Message Data"
 		},
@@ -1959,7 +1959,7 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [1408, 144],
+			"position": [640, 64],
 			"id": "0cf3c0e8-5c5f-4083-bfd8-76b4b879edbe",
 			"name": "Update: Contact Comments",
 			"credentials": {
@@ -1979,7 +1979,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1184, 144],
+			"position": [416, 64],
 			"id": "557931bc-b97c-43cd-88bd-d72e13b6fa24",
 			"name": "Code in JavaScript"
 		},
@@ -2017,7 +2017,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [320, 1648],
+			"position": [736, 1648],
 			"id": "25a933a6-df7e-49a2-a882-1845ceaa5a39",
 			"name": "OpenAI Chat Model2",
 			"credentials": {
@@ -2278,7 +2278,7 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [624, 592],
+			"position": [608, 560],
 			"id": "b40b9ae4-b8b7-4380-ba29-4dded3e73ceb",
 			"name": "Actual status of contact"
 		},
@@ -2288,7 +2288,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1168, 880],
+			"position": [-1168, 656],
 			"id": "8c15476e-aadd-4ed3-a8d6-27f8685289a4",
 			"name": "Has Postgres Context?"
 		},
@@ -2352,7 +2352,7 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-176, 624],
+			"position": [-176, 672],
 			"id": "48a88d5a-d2f1-411d-9260-cc1d7f35249e",
 			"name": "Need Contact Check?"
 		},
@@ -2443,7 +2443,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [848, 144],
+			"position": [80, 64],
 			"id": "64ea42dc-7deb-47a9-b3c1-901d9e0ef685",
 			"name": "Resume Generator",
 			"credentials": {
@@ -2561,7 +2561,7 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [256, 2432],
+			"position": [672, 2432],
 			"id": "a42cf1f6-04dd-4889-ac0c-84582b2ce0fe",
 			"name": "HTTP Request1",
 			"credentials": {
@@ -2579,7 +2579,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [480, 2432],
+			"position": [896, 2432],
 			"id": "c2cb50bf-f0fe-42ac-8e53-c9c27dbf7de7",
 			"name": "Update: Status awaiting1",
 			"credentials": {
@@ -2736,6 +2736,184 @@
 					"name": "OpenAi account"
 				}
 			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "8b83aa35-ef33-4786-a195-3a03ce566f4c",
+							"leftValue": "={{ $json.context_data.status }}",
+							"rightValue": "rejected",
+							"operator": {
+								"type": "string",
+								"operation": "equals",
+								"name": "filter.operator.equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [448, 1168],
+			"id": "b4ba5f6e-dac9-400e-b22c-ca714f88f947",
+			"name": "If"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+				"textBody": "={{ $json.content.parts[0].text }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1520, 1568],
+			"id": "19e7371d-ee97-4800-a39b-83e8eba216ec",
+			"name": "Message: Reject2",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [
+						{
+							"content": "={{ $json.context_data.toJsonString() }}"
+						}
+					]
+				},
+				"options": {
+					"systemMessage": "=Tu función es analizar el contenido de {{ $json.context_data.mal_comportamiento_historial.toJsonString() }} para identificar el motivo del rechazo (por ejemplo: lenguaje ofensivo, actitud inapropiada, insistencia indebida o falta de respeto).\n\nSiempre debes mencionar que el rechazo es por faltas de respeto o comportamiento inapropiado en previas interacciones\n\nCon base en ello, redacta un mensaje breve, claro y profesional que:\n1. Indique que la interacción ha sido rechazada.\n2. Informe que el contacto ha sido bloqueado por comportamiento inapropiado.\n3. Mantenga un tono amable, empático y sin agresividad.\n4. Termine con un cierre cordial (por ejemplo: deseando éxito o buen día).\n\nEjemplo de estilo esperado:\n\"Ups 😕, derivado de tu faltas de respeto en interacciones previas hemos rechazado y bloqueado tu contacto, ya que no se permiten faltas de respeto ni conductas inapropiadas. Te deseamos mucho éxito en tu búsqueda.\"\n\nEvita repetir el texto del ejemplo; genera una versión coherente y natural adaptada al contexto del comentario recibido.\n"
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [1776, 1808],
+			"id": "c1defdf0-55ee-484b-b381-6e0b0c181e81",
+			"name": "Reject Message1",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Actual status of contact').item.json.contactData.id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n\"comentario\":{{ $json.body.comentario.toJsonString() }}\n}\n",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [2336, 1568],
+			"id": "bce5e08b-b407-40a7-ab8a-60ad59993679",
+			"name": "Update: Contact Comments1",
+			"credentials": {
+				"httpBearerAuth": {
+					"id": "QigdAtAlBxHMmIsD",
+					"name": "WA - Bearer Token"
+				},
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const aiResponse = $input.first().json;\nconst contactId = $('Contact Actions').item.json.contactId;\n\nconsole.log('AI Response completo:', JSON.stringify(aiResponse, null, 2));\n\n// Intentar diferentes rutas donde puede estar el output\nlet summary = aiResponse.output || \n              aiResponse.content?.parts?.[0]?.text || \n              aiResponse.text ||\n              aiResponse;\n\nconsole.log('Summary extraído:', summary);\n\nreturn {\n  contactId: contactId,\n  body: {\n    comentario: summary,\n    created_at: new Date().toISOString()\n  }\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [2112, 1568],
+			"id": "6517a568-c5ed-4312-9067-b66f918b803d",
+			"name": "Code in JavaScript1"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [{}]
+				},
+				"options": {
+					"systemMessage": "=\nGenera un resumen ejecutivo de la interacción para el equipo de la inmobiliaria.\n\nIMPORTANTE AGREGAR AL INICIO DEL RESUMEN: ❌ RECHAZADO\n\nCONTEXTO DEL CONTACTO:\nNombre: {{ $('Check Context Status').item.json.context_data.nombre }}\nTeléfono: {{ $('Check Context Status').item.json.context_data.telefono }}\nHistorial previo: {{ $('Check Context Status').item.json.context_data.mal_comportamiento_historial.toJsonString() }}\n\nINTERACCIÓN ACTUAL:\nEl contacto escribió: \"{{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\"\n\nRespuesta del bot: {{ $('Reject Message1').item.json.content.parts[0].text }}\n\nFORMATO REQUERIDO:\n🤖 **BOT WhatsApp** - {{ $now.format('dd/MM/yyyy HH:mm') }}\n\n📱 **Contacto escribió:**\n[mensaje del usuario]\n\n🔍 **Detección automática:**\nSe identificó que este contacto tiene un rechazo previo por: [razón específica del rechazo]\n\n📤 **Bot respondió:**\n[resumen del mensaje enviado en 2-3 líneas]\n\n📋 **Resultado:**\nContacto rechazado automáticamente. No se continuó con el flujo de atención.\n\nINSTRUCCIONES:\n- Sé conciso pero informativo\n- Usa emojis para mejor escaneo visual\n- Menciona la razón específica del rechazo previo\n- Máximo 150 palabras\n- Formato markdown para mejor lectura"
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [1776, 1568],
+			"id": "d7036279-1207-4def-a017-44e53166a441",
+			"name": "Resume Generator1",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "1e69597f-1129-43ff-966b-aed0d12e2a65",
+							"leftValue": "={{ $json.context_data.status }}",
+							"rightValue": "rejected",
+							"operator": {
+								"type": "string",
+								"operation": "equals",
+								"name": "filter.operator.equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [-960, 656],
+			"id": "62816506-348a-4399-a0b2-845739defa41",
+			"name": "If1"
 		}
 	],
 	"connections": {
@@ -3012,7 +3190,7 @@
 			"main": [
 				[
 					{
-						"node": "Check and Assign Character",
+						"node": "If",
 						"type": "main",
 						"index": 0
 					}
@@ -3681,7 +3859,7 @@
 			"main": [
 				[
 					{
-						"node": "Need Contact Check?",
+						"node": "If1",
 						"type": "main",
 						"index": 0
 					}
@@ -3898,6 +4076,80 @@
 				[
 					{
 						"node": "Send Misbehavior Notice",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If": {
+			"main": [
+				[
+					{
+						"node": "Reject Message1",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Check and Assign Character",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message: Reject2": {
+			"main": [
+				[
+					{
+						"node": "Resume Generator1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Reject Message1": {
+			"main": [
+				[
+					{
+						"node": "Message: Reject2",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Code in JavaScript1": {
+			"main": [
+				[
+					{
+						"node": "Update: Contact Comments1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Resume Generator1": {
+			"main": [
+				[
+					{
+						"node": "Code in JavaScript1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If1": {
+			"main": [
+				[],
+				[
+					{
+						"node": "Need Contact Check?",
 						"type": "main",
 						"index": 0
 					}
