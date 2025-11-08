@@ -28,11 +28,11 @@
 			"id": "7e2acedd-1a87-41c2-904b-7546b4a87fda",
 			"name": "Filter: Misbehavior Detector"
 		},
-		{
-			"parameters": {
-				"conditions": {
-					"options": {
-						"caseSensitive": true,
+                {
+                        "parameters": {
+                                "conditions": {
+                                        "options": {
+                                                "caseSensitive": true,
 						"leftValue": "",
 						"typeValidation": "strict",
 						"version": 2
@@ -2909,13 +2909,75 @@
 				},
 				"options": {}
 			},
-			"type": "n8n-nodes-base.if",
-			"typeVersion": 2.2,
-			"position": [-960, 656],
-			"id": "62816506-348a-4399-a0b2-845739defa41",
-			"name": "If1"
-		}
-	],
+                        "type": "n8n-nodes-base.if",
+                        "typeVersion": 2.2,
+                        "position": [-960, 656],
+                        "id": "62816506-348a-4399-a0b2-845739defa41",
+                        "name": "If1"
+                },
+                {
+                        "parameters": {
+                                "mode": "append"
+                        },
+                        "type": "n8n-nodes-base.merge",
+                        "typeVersion": 2.1,
+                        "position": [-736, 656],
+                        "id": "3ef8c6bb-1b55-4d0f-9ad1-4f5e6cd07e33",
+                        "name": "Merge Rejection Sources"
+                },
+                {
+                        "parameters": {
+                                "assignments": {
+                                        "assignments": [
+                                                {
+                                                        "id": "1f2fb1b0-9b10-4f2a-9f1e-2c1a6d0bcd70",
+                                                        "name": "wa_id",
+                                                        "value": "={{ $json.wa_id || $('Has Postgres Context?').item.json.wa_id || $('Contact Actions').item.json.wa_id || $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+                                                        "type": "string"
+                                                },
+                                                {
+                                                        "id": "5a75b457-4b78-4f37-9e9d-4314f38fe0fd",
+                                                        "name": "context_data",
+                                                        "value": "={{ Object.assign({}, $('Check Context Status').item.json.context_data || {}, $json.context_data || {}) }}",
+                                                        "type": "json"
+                                                },
+                                                {
+                                                        "id": "d8db9700-84d2-4e4f-aeb8-1d0f8d49fd1b",
+                                                        "name": "rejectionSummary",
+                                                        "value": "={{ $json.rejectionSummary || '' }}",
+                                                        "type": "string"
+                                                },
+                                                {
+                                                        "id": "0d439b03-31c2-4ac5-b5df-2fa467db1749",
+                                                        "name": "contactData",
+                                                        "value": "={{ $json.contactData || null }}",
+                                                        "type": "json"
+                                                },
+                                                {
+                                                        "id": "6f9dc637-1ab7-4ce8-8f16-2ca36d5e1d5a",
+                                                        "name": "misbehaviorHistoryEntry",
+                                                        "value": "={{ $json.misbehaviorHistoryEntry || null }}",
+                                                        "type": "json"
+                                                },
+                                                {
+                                                        "id": "a3d969a0-9434-4986-8d30-2a1523cba4a5",
+                                                        "name": "rejectionSource",
+                                                        "value": "={{ $json.rejectionSummary ? 'actual_status' : 'context_status' }}",
+                                                        "type": "string"
+                                                }
+                                        ]
+                                },
+                                "options": {
+                                        "keepOnlySet": true
+                                }
+                        },
+                        "type": "n8n-nodes-base.set",
+                        "typeVersion": 3.4,
+                        "position": [-480, 656],
+                        "id": "ad3f3187-12cd-4a80-8134-0fcd3992a86c",
+                        "name": "Set: Rejection Payload"
+                }
+        ],
 	"connections": {
 		"WhatsApp Trigger": {
 			"main": [
@@ -3830,31 +3892,53 @@
 				]
 			]
 		},
-		"Actual status of contact": {
-			"main": [
-				[
-					{
-						"node": "Reject Message",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Prepare Message Data",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Prepare Message Data",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
+                "Actual status of contact": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "Merge Rejection Sources",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ],
+                                [
+                                        {
+                                                "node": "Prepare Message Data",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ],
+                                [
+                                        {
+                                                "node": "Prepare Message Data",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                },
+                "Merge Rejection Sources": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "Set: Rejection Payload",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                },
+                "Set: Rejection Payload": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "Reject Message1",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                },
 		"Has Postgres Context?": {
 			"main": [
 				[
@@ -4144,15 +4228,21 @@
 				]
 			]
 		},
-		"If1": {
-			"main": [
-				[],
-				[
-					{
-						"node": "Need Contact Check?",
-						"type": "main",
-						"index": 0
-					}
+                "If1": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "Merge Rejection Sources",
+                                                "type": "main",
+                                                "index": 1
+                                        }
+                                ],
+                                [
+                                        {
+                                                "node": "Need Contact Check?",
+                                                "type": "main",
+                                                "index": 0
+                                        }
 				]
 			]
 		}
