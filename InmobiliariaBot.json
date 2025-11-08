@@ -2681,13 +2681,12 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const aiResponse = $input.first().json;\nconst contactId = $('Contact Actions').item.json.contactId;\n\nconsole.log('AI Response completo:', JSON.stringify(aiResponse, null, 2));\n\n// Intentar diferentes rutas donde puede estar el output\nlet summary = aiResponse.output || \n              aiResponse.content?.parts?.[0]?.text || \n              aiResponse.text ||\n              aiResponse;\n\nconsole.log('Summary extraído:', summary);\n\nreturn {\n  contactId: contactId,\n  body: {\n    comentario: summary,\n    created_at: new Date().toISOString()\n  }\n};"
-			},
+				"jsCode": "const aiResponse = $input.first().json;\n\nconst getNodeJson = (nodeName, extractor) => {\n  try {\n    const nodeData = $(nodeName);\n    const item = nodeData?.first?.();\n    if (!item) return undefined;\n    return extractor ? extractor(item) : item.json;\n  } catch (error) {\n    return undefined;\n  }\n};\n\nconst contactId =\n  getNodeJson('Contact Actions', (item) => item.json?.contactId) ??\n  getNodeJson('Actual status of contact', (item) => item.json?.contactData?.id) ??\n  getNodeJson('Has Postgres Context?', (item) => item.json?.api_contact_id) ??\n  getNodeJson('Check Context Status', (item) => item.json?.context_data?.api_contact_id) ??\n  aiResponse?.contactId ??\n  null;\n\nif (!contactId) {\n  throw new Error('No se pudo obtener el contactId para el comentario de rechazo.');\n}\n\nconsole.log('AI Response completo:', JSON.stringify(aiResponse, null, 2));\n\nlet summary = aiResponse?.output ??\n              aiResponse?.content?.parts?.[0]?.text ??\n              aiResponse?.text ??\n              aiResponse;\n\nif (typeof summary === 'object') {\n  summary = JSON.stringify(summary);\n}\n\nif (typeof summary === 'string') {\n  summary = summary.trim();\n}\n\nconsole.log('Summary extraído:', summary);\n\nreturn {\n  contactId,\n  body: {\n    comentario: summary,\n    created_at: new Date().toISOString()\n  }\n};"			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
 			"position": [-1616, -1808],
 			"id": "9e1111fd-fffb-4644-b591-418963fa124a",
-			"name": "Code in JavaScript1"
+			"name": "Format Reject Comment Payload"
 		},
 		{
 			"parameters": {
@@ -3998,7 +3997,7 @@
 				]
 			]
 		},
-		"Code in JavaScript1": {
+		"Format Reject Comment Payload": {
 			"main": [
 				[
 					{
@@ -4075,7 +4074,7 @@
 			"main": [
 				[
 					{
-						"node": "Code in JavaScript1",
+						"node": "Format Reject Comment Payload",
 						"type": "main",
 						"index": 0
 					}
