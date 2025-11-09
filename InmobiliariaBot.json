@@ -3045,19 +3045,71 @@
 			"id": "be24fd8f-a9c6-4fcc-864c-39e38eb0c51f",
 			"name": "No Operation, do nothing1"
 		},
-		{
-			"parameters": {},
-			"type": "n8n-nodes-base.noOp",
-			"typeVersion": 1,
-			"position": [160, 32],
-			"id": "c7c6f7f5-273f-4080-ab98-a05f76b867fd",
-			"name": "No Operation, do nothing2"
-		},
-		{
-			"parameters": {
-				"conditions": {
-					"options": {
-						"caseSensitive": true,
+                {
+                        "parameters": {},
+                        "type": "n8n-nodes-base.noOp",
+                        "typeVersion": 1,
+                        "position": [160, 32],
+                        "id": "c7c6f7f5-273f-4080-ab98-a05f76b867fd",
+                        "name": "No Operation, do nothing2"
+                },
+                {
+                        "parameters": {
+                                "jsCode": "const input = $input.first().json || {};\nconst contextData = input.context_data ? JSON.parse(JSON.stringify(input.context_data)) : {};\n\nconst reasonRaw = input.misbehaviorReason;\nconst reasonText = typeof reasonRaw === 'string' && reasonRaw.trim() !== ''\n  ? reasonRaw.trim()\n  : 'Comportamiento indebido detectado automáticamente';\n\nconst matchedWords = Array.isArray(input.misbehaviorMatchedWords)\n  ? input.misbehaviorMatchedWords.filter(Boolean)\n  : [];\nconst originalMessage = typeof input.userPrompt === 'string' ? input.userPrompt.trim() : '';\nconst timestamp = new Date().toISOString();\n\nconst historyEntry = {\n  timestamp,\n  mensaje_original: originalMessage,\n  palabras_detectadas: matchedWords,\n  origen: 'auto_filter'\n};\n\nconst existingHistory = Array.isArray(contextData.mal_comportamiento_historial)\n  ? [...contextData.mal_comportamiento_historial]\n  : [];\nexistingHistory.push(historyEntry);\n\nconst existingReasons = Array.isArray(contextData.motivo_rechazo)\n  ? [...contextData.motivo_rechazo]\n  : [];\nif (!existingReasons.includes(reasonText)) {\n  existingReasons.push(reasonText);\n}\n\nconst updatedContext = {\n  ...contextData,\n  status: 'blocked',\n  rechazo_previo: true,\n  motivo_rechazo: existingReasons,\n  mal_comportamiento_historial: existingHistory,\n  ultima_interaccion: timestamp\n};\n\nif (!updatedContext.api_contact_id && contextData.api_contact_id) {\n  updatedContext.api_contact_id = contextData.api_contact_id;\n}\n\nconst commentLines = [\n  '🚨 BLOQUEADO - MAL COMPORTAMIENTO',\n  ` Motivo: ${reasonText}`,
+  matchedWords.length ? ` Coincidencias: ${matchedWords.join(', ')}` : '',\n  originalMessage ? ` Mensaje original: "${originalMessage}"` : '',\n  ` Registrado el: ${timestamp}`\n].filter((line) => line && line.trim() !== '');\n\nconst apiContactId = updatedContext.api_contact_id;\n\nif (!apiContactId) {\n  throw new Error('No se encontró api_contact_id en el contexto para registrar el comentario.');\n}\n\nreturn [{\n  json: {\n    wa_id: input.wa_id,\n    api_contact_id: apiContactId,\n    commentPayload: {\n      comentario: commentLines.join('\n')\n    },\n    updatedContext,\n    historyEntry\n  }\n}];"
+                        },
+                        "type": "n8n-nodes-base.code",
+                        "typeVersion": 2,
+                        "position": [336, 80],
+                        "id": "22ce9d5f-4371-46b7-8a9e-c6d544e27f15",
+                        "name": "Build Blocked Comment Payload"
+                },
+                {
+                        "parameters": {
+                                "method": "POST",
+                                "url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact_id }}/comentarios",
+                                "authentication": "genericCredentialType",
+                                "genericAuthType": "httpHeaderAuth",
+                                "sendBody": true,
+                                "specifyBody": "json",
+                                "jsonBody": "={{ $json.commentPayload.toJsonString() }}",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.httpRequest",
+                        "typeVersion": 4.2,
+                        "position": [560, 80],
+                        "id": "b4d77f94-ff7f-4d91-9a6e-950ec368c942",
+                        "name": "API: Add Blocked Comment",
+                        "credentials": {
+                                "httpHeaderAuth": {
+                                        "id": "rzmCtJN8Vtwv6AO3",
+                                        "name": "API Key Inmuebles"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "operation": "executeQuery",
+                                "query": "UPDATE user_contexts\nSET\n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}';",
+                                "options": {}
+                        },
+                        "type": "n8n-nodes-base.postgres",
+                        "typeVersion": 2.6,
+                        "position": [800, 80],
+                        "id": "8a7f1aa1-4d51-46c5-8a1e-1a3a23516546",
+                        "name": "Postgres: Update Blocked Context",
+                        "credentials": {
+                                "postgres": {
+                                        "id": "qyR2OAIR7tUEVcQf",
+                                        "name": "Postgres-neon"
+                                }
+                        }
+                },
+                {
+                        "parameters": {
+                                "conditions": {
+                                        "options": {
+                                                "caseSensitive": true,
 						"leftValue": "",
 						"typeValidation": "strict",
 						"version": 2
@@ -4374,25 +4426,58 @@
 				]
 			]
 		},
-		"Is Blocked?": {
-			"main": [
-				[
-					{
-						"node": "No Operation, do nothing2",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Get API Contact",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		}
-	},
+                "Is Blocked?": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "Build Blocked Comment Payload",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ],
+                                [
+                                        {
+                                                "node": "Get API Contact",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                },
+                "Build Blocked Comment Payload": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "API: Add Blocked Comment",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                },
+                "API: Add Blocked Comment": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "Postgres: Update Blocked Context",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                },
+                "Postgres: Update Blocked Context": {
+                        "main": [
+                                [
+                                        {
+                                                "node": "No Operation, do nothing2",
+                                                "type": "main",
+                                                "index": 0
+                                        }
+                                ]
+                        ]
+                }
+        },
 	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
