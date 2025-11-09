@@ -271,7 +271,7 @@
 		{
 			"parameters": {
 				"method": "POST",
-				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Get API Contact').item.json.data[0].id }}/comentarios",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact_id }}/comentarios",
 				"authentication": "genericCredentialType",
 				"genericAuthType": "httpHeaderAuth",
 				"sendBody": true,
