@@ -7,8 +7,8 @@
 			},
 			"type": "n8n-nodes-base.whatsAppTrigger",
 			"typeVersion": 1,
-			"position": [-6304, -2352],
-			"id": "786964ec-6de0-4771-ac14-05a4a1bbea0b",
+			"position": [-560, 864],
+			"id": "cd17c1b9-06dc-4ff2-b112-9376e90a8e1f",
 			"name": "WhatsApp Trigger",
 			"webhookId": "74594388-e12c-4f20-b583-78678872e5e7",
 			"credentials": {
@@ -45,8 +45,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-5776, -2688],
-			"id": "fdb40e92-7381-49c7-97af-830d58f99a94",
+			"position": [-32, 528],
+			"id": "b62c6321-23f8-49d4-ad25-e26307f51226",
 			"name": "If: Misbehavior?"
 		},
 		{
@@ -57,8 +57,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-4960, -3072],
-			"id": "def06be0-668b-4052-834f-61a4e34df770",
+			"position": [784, 144],
+			"id": "a1523440-7d9e-44bd-9fd2-d883f1db79e8",
 			"name": "Get Misbehavior Context",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -74,8 +74,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-4752, -3072],
-			"id": "efd1a27b-20a3-494c-a78d-52acc6e55a0e",
+			"position": [992, 144],
+			"id": "5fe90062-f1ac-45ad-b00c-ca9d0cbbb868",
 			"name": "Prepare Misbehavior Context"
 		},
 		{
@@ -105,8 +105,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-4560, -3072],
-			"id": "5513d305-9dfc-4417-93a4-40bcc4dd0f27",
+			"position": [1184, 144],
+			"id": "ec3ffa37-aa0d-4dd0-aa9e-72a6ebe5ce6d",
 			"name": "If: Existing Misbehavior Context"
 		},
 		{
@@ -117,8 +117,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-4304, -3088],
-			"id": "5a58160c-b5cb-4928-af2e-212d1dabd394",
+			"position": [1440, 128],
+			"id": "4c68e45d-0a67-4f66-8cc5-b7cd7732edf0",
 			"name": "Postgres: Update Misbehavior Context",
 			"credentials": {
 				"postgres": {
@@ -154,8 +154,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-4064, -3088],
-			"id": "d790f931-6708-4518-b211-90f38a084de8",
+			"position": [1680, 128],
+			"id": "c593ebb5-357b-4338-8505-3669e17af488",
 			"name": "If: Has API Contact?"
 		},
 		{
@@ -171,8 +171,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-3872, -3072],
-			"id": "5404f373-343c-4d6c-aa38-330e1579313b",
+			"position": [1872, 144],
+			"id": "e6ac3f12-4cb9-4260-a43e-2efa7164eeef",
 			"name": "API: Create Rejected Contact",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -189,8 +189,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-3632, -3072],
-			"id": "f72372fb-c14a-4776-9904-e6a27d5833ce",
+			"position": [2112, 144],
+			"id": "43cda7a9-fd76-49bf-8176-35809d3148db",
 			"name": "Postgres: Save API Contact (Existing)",
 			"credentials": {
 				"postgres": {
@@ -202,13 +202,13 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Prepare Misbehavior Context').item.json.wa_id }}',\n  '{{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}'::jsonb,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = EXCLUDED.context_data,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $json.wa_id }}',\n  $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = EXCLUDED.context_data,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-5104, -2864],
-			"id": "d60767bc-aa98-4730-b43e-abb167a4a364",
+			"position": [640, 352],
+			"id": "e83c6d3f-6969-479f-ba6c-8133d785db6b",
 			"name": "Postgres: Insert Misbehavior Context",
 			"credentials": {
 				"postgres": {
@@ -230,8 +230,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-4848, -2864],
-			"id": "526bc3f3-7adb-4457-b9ad-ed35c64358b2",
+			"position": [896, 352],
+			"id": "1f5ff255-b0ed-4697-8aad-486b64237509",
 			"name": "API: Create Misbehavior Contact",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -243,13 +243,13 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts\nSET\n  context_data = jsonb_set(\n    '{{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}'::jsonb,\n    '{api_contact_id}',\n    '{{ $json.data.id }}'::jsonb,\n    true\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Prepare Misbehavior Context').item.json.wa_id }}'\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
+				"query": "UPDATE user_contexts\nSET\n  context_data = jsonb_set(\n    $${{ $('Prepare Misbehavior Context').item.json.updatedContext.toJsonString() }}$$::jsonb,\n    '{api_contact_id}',\n    '{{ $json.data.id }}'::jsonb,\n    true\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Prepare Misbehavior Context').item.json.wa_id }}'\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-4640, -2864],
-			"id": "54790870-1b98-4ff9-82c0-423ed4005548",
+			"position": [1104, 352],
+			"id": "72e67756-9f6b-449b-a690-7d59475dbd38",
 			"name": "Postgres: Save API Contact (New)",
 			"credentials": {
 				"postgres": {
@@ -264,8 +264,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-4352, -2864],
-			"id": "dcbd78b1-7253-4448-b0df-ae30aca08fd3",
+			"position": [1392, 352],
+			"id": "67f29c6f-3639-4cf2-9f00-0cf4f7efe702",
 			"name": "Build Misbehavior Comment"
 		},
 		{
@@ -281,8 +281,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-4112, -2864],
-			"id": "da558782-f734-4743-a0e8-7dbfa0bc6fd9",
+			"position": [1632, 352],
+			"id": "45a4bf15-2ff7-42b5-b38f-0b30069a137d",
 			"name": "API: Add Misbehavior Comment",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -301,8 +301,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-3584, -2864],
-			"id": "c980cd07-e0ab-4bd3-9dbf-4e1a201435f9",
+			"position": [2160, 352],
+			"id": "975558b3-5159-44a2-85fc-3faee4d29fe1",
 			"name": "Send Misbehavior Notice",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -445,8 +445,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-6112, -2416],
-			"id": "9e9a673f-7a65-4fdf-b286-fff0d073663a",
+			"position": [-368, 800],
+			"id": "846ee81e-c310-45e7-920f-7fe856689379",
 			"name": "Switch",
 			"onError": "continueErrorOutput"
 		},
@@ -458,9 +458,9 @@
 				"color": 4
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-4896, -1568],
+			"position": [848, 1648],
 			"typeVersion": 1,
-			"id": "ade52da6-b72a-4788-a620-37366c2c34b0",
+			"id": "78088ebe-fcf3-4f66-8e44-472c2925be31",
 			"name": "Sticky Note3"
 		},
 		{
@@ -471,9 +471,9 @@
 				"color": 6
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-5824, -2192],
+			"position": [-80, 1024],
 			"typeVersion": 1,
-			"id": "8bcbf77d-abd2-469c-b5de-46d28dc93b8f",
+			"id": "4200cc86-eb62-441c-8b44-1bc52445ad39",
 			"name": "Sticky Note6"
 		},
 		{
@@ -484,8 +484,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-5776, -2128],
-			"id": "28171b7d-dc01-4329-bd49-1542da6849dc",
+			"position": [-32, 1088],
+			"id": "03dd7746-f963-4c27-bed0-d0e625a9af21",
 			"name": "Download media3",
 			"webhookId": "02de1bd7-bb83-49da-baa6-392d89ed4096",
 			"credentials": {
@@ -504,8 +504,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-5584, -2128],
-			"id": "c7ff3829-a11a-42d4-bc02-235dcfbc1f98",
+			"position": [160, 1088],
+			"id": "8ab98b81-8016-4a59-8f1b-25211760f896",
 			"name": "HTTP Request3",
 			"credentials": {
 				"httpBearerAuth": {
@@ -528,8 +528,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-5360, -2128],
-			"id": "828c1dba-0d38-42c3-8b3f-33f699e312b5",
+			"position": [384, 1088],
+			"id": "c6a72aa5-c2cd-44c3-887e-123e731220f6",
 			"name": "Transcribe: audio",
 			"credentials": {
 				"googlePalmApi": {
@@ -548,8 +548,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-6304, -2016],
-			"id": "3271002b-cbf1-4a39-97c5-167cd70f90ac",
+			"position": [-560, 1200],
+			"id": "80927914-171e-4dbc-b0de-567eb0114be7",
 			"name": "Send message2",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -587,8 +587,8 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [-2512, -976],
-			"id": "944d1488-c312-4025-8b26-0ee52dd7b058",
+			"position": [3232, 2240],
+			"id": "9194ab04-e7c3-4323-99c2-c97fe18a7cde",
 			"name": "Edit Fields"
 		},
 		{
@@ -599,8 +599,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-2352, -976],
-			"id": "a735015f-73bf-4d21-b310-ff91da26e01a",
+			"position": [3392, 2240],
+			"id": "c0f0e821-5b9b-4019-9df3-d823443cf07d",
 			"name": "Execute a SQL query",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -616,8 +616,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1840, -960],
-			"id": "2632c145-ba66-46be-8ed7-df23288f5a23",
+			"position": [3904, 2256],
+			"id": "e5ffb675-c43b-46b8-9d20-8f2285687936",
 			"name": "Check and Assign Character"
 		},
 		{
@@ -647,8 +647,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-1632, -960],
-			"id": "bd3bbd6d-ee8a-4e4c-b72c-e9c5ddd1e6d2",
+			"position": [4112, 2256],
+			"id": "7c5674fc-3447-471f-9bf7-b27b88e6f08f",
 			"name": "If: Is New Contact"
 		},
 		{
@@ -659,8 +659,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1392, -944],
-			"id": "ef50ccd3-3895-4a73-b619-61097f736d7f",
+			"position": [4352, 2272],
+			"id": "4e7d89aa-0f08-474c-b6e5-329cca3157fa",
 			"name": "Set: New Costumer",
 			"credentials": {
 				"postgres": {
@@ -675,8 +675,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1120, -944],
-			"id": "d24120f9-dc1a-4cc7-ab91-8b4ae8726c85",
+			"position": [4624, 2272],
+			"id": "2a1b4f3d-518a-468e-856e-475cefb70cc2",
 			"name": "Merge Context Data"
 		},
 		{
@@ -689,8 +689,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-2832, -384],
-			"id": "955b2e85-d293-4255-b95e-a563f8e35b7d",
+			"position": [2912, 2832],
+			"id": "b8421617-12ef-4dea-82f5-acb05d66f2d0",
 			"name": "Send message1",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -706,8 +706,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-3232, -704],
-			"id": "84b8ebc0-a5b8-46a6-883b-4d9c22d5f400",
+			"position": [2512, 2512],
+			"id": "0502186a-2c99-425c-831e-0d18bba7f675",
 			"name": "Parse Context Data"
 		},
 		{
@@ -718,8 +718,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-3424, -704],
-			"id": "8ce04272-9f1a-41b8-9815-4650ce9ddb2c",
+			"position": [2320, 2512],
+			"id": "0c013c31-9c99-4ffd-a46c-0c2ba1abb70d",
 			"name": "Get: User Context",
 			"credentials": {
 				"postgres": {
@@ -734,8 +734,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-3040, -704],
-			"id": "2924af93-825a-49af-b63d-7ea0bf0002c6",
+			"position": [2704, 2512],
+			"id": "e8aface9-415e-4540-af06-47f46d96c721",
 			"name": "Check missing Data"
 		},
 		{
@@ -822,8 +822,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-2832, -720],
-			"id": "810f1c4c-157f-4046-863f-bf263073ffcd",
+			"position": [2912, 2496],
+			"id": "5d861c8a-fe2d-4c09-a4ea-9198cfcc4202",
 			"name": "Actual Status"
 		},
 		{
@@ -836,8 +836,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-1808, -320],
-			"id": "d7b3f116-a456-4808-bb6b-4c90bb4bc62e",
+			"position": [3936, 2896],
+			"id": "02227ede-fa7c-496d-b2c2-a41bb2d8b268",
 			"name": "Request Data",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -855,8 +855,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1568, -320],
-			"id": "366a24c3-d143-4d7d-9bec-3a6c176817a4",
+			"position": [4176, 2896],
+			"id": "4a272453-62da-4be8-b3f3-3cde7687d030",
 			"name": "Update: Status awaiting",
 			"credentials": {
 				"postgres": {
@@ -873,8 +873,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-5600, -2432],
-			"id": "2be527ae-175b-4f86-b2e3-b63a7058eb3f",
+			"position": [144, 784],
+			"id": "6f012a2c-054d-4890-8ffa-e417a1d95717",
 			"name": "Check Context Status",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -890,8 +890,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-2224, -1232],
-			"id": "a4d25f26-3787-4ca5-9f93-2ac7633abecc",
+			"position": [3520, 1984],
+			"id": "123843c9-c94b-4be5-bb47-4d97c8099e8c",
 			"name": "Parse: Status"
 		},
 		{
@@ -900,8 +900,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1776, -1248],
-			"id": "cbe9f6ac-412d-4e2f-9681-41a8bfdacaab",
+			"position": [3968, 1968],
+			"id": "bae59b44-ab90-4550-9699-88824e5ab5b9",
 			"name": "Extract Name & Phone"
 		},
 		{
@@ -910,8 +910,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-864, -1056],
-			"id": "9f6a3775-661a-486e-9dc6-f1b63e4bd041",
+			"position": [4880, 2160],
+			"id": "479ba88a-668e-4747-b2f0-fbbe66bea1c4",
 			"name": "Prepare for Property Search"
 		},
 		{
@@ -936,8 +936,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-2816, -976],
-			"id": "7e4125bf-5a6f-4974-87fe-510839ef8c3a",
+			"position": [2928, 2240],
+			"id": "0517ea4c-84df-4d75-bca9-53f4fdfc6ecd",
 			"name": "Detect: Intention",
 			"credentials": {
 				"googlePalmApi": {
@@ -1006,8 +1006,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-1504, -1248],
-			"id": "eec43059-98a0-4c02-8907-f03ae179f77b",
+			"position": [4240, 1968],
+			"id": "5f338355-406f-4208-88ce-e25db620ff45",
 			"name": "Is Valid Data"
 		},
 		{
@@ -1018,8 +1018,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1056, -1264],
-			"id": "67ba7ac1-63e4-4bcd-8d70-fe29aacda1ad",
+			"position": [4688, 1952],
+			"id": "480348ab-79e6-4dd5-aaff-95f42eeebaa3",
 			"name": "Get Context Awating Data",
 			"credentials": {
 				"postgres": {
@@ -1062,8 +1062,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
 			"typeVersion": 2.2,
-			"position": [-256, -880],
-			"id": "df9ff599-cdb3-49f4-b028-d5306c6896a6",
+			"position": [5488, 2336],
+			"id": "fe1433d9-9573-4c1d-bbaf-599d1a7e0834",
 			"name": "Call 'InmuebleFinderTool'1"
 		},
 		{
@@ -1074,8 +1074,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-3472, -160],
-			"id": "f5980a6f-ff28-465b-ba05-ce0a4f735536",
+			"position": [2272, 3056],
+			"id": "b59e2393-ae36-466e-bd8b-459fa51a3758",
 			"name": "Get Context with Property",
 			"credentials": {
 				"postgres": {
@@ -1094,8 +1094,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [-416, -1056],
-			"id": "a49ed0ed-9e61-498d-a634-1086142ab2f3",
+			"position": [5328, 2160],
+			"id": "0c194615-80dc-473e-8346-ec3993cd4837",
 			"name": "AI Agent - Get Property",
 			"alwaysOutputData": true
 		},
@@ -1105,8 +1105,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-80, -1056],
-			"id": "545587d6-304b-4780-acd1-913d74ac1e09",
+			"position": [5664, 2160],
+			"id": "9ace08bd-4f7b-4569-bf26-c1710dd13402",
 			"name": "Parse: Property Information"
 		},
 		{
@@ -1119,8 +1119,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-1328, -1136],
-			"id": "be60e4c9-a653-48af-ba2f-a5bc74c93ddd",
+			"position": [4416, 2080],
+			"id": "3512d9c2-6acf-44a1-bbd0-d665ca09fa3e",
 			"name": "Message: Wrong Name & Phone",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1140,8 +1140,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [576, -912],
-			"id": "353c2a1f-0ae9-4f15-be15-6ba520a94dcc",
+			"position": [6320, 2304],
+			"id": "f256d4ad-fd9c-4fe9-899c-8d50482f06dd",
 			"name": "Send message",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1159,8 +1159,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [112, -1056],
-			"id": "9e624afa-828d-4f8d-876f-4c585b20476f",
+			"position": [5856, 2160],
+			"id": "b4c7c980-605e-42c4-9229-97fd748b10d8",
 			"name": "Update: Costumer Context",
 			"credentials": {
 				"postgres": {
@@ -1328,8 +1328,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-4144, -688],
-			"id": "dae3062f-9598-4c1b-a719-246897af70fd",
+			"position": [1600, 2528],
+			"id": "f8cfb3de-23bf-42bf-af8c-f692530029ac",
 			"name": "Switch: Intent"
 		},
 		{
@@ -1358,8 +1358,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-2560, -112],
-			"id": "8d151c8f-07b0-431e-8d8b-744d01e9ea7c",
+			"position": [3184, 3104],
+			"id": "7b519e2e-0a73-461c-9db4-fcc268225359",
 			"name": "If: Is Awaiting Questionaire"
 		},
 		{
@@ -1370,8 +1370,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1856, -128],
-			"id": "8e82d5ba-1f6c-471a-94b4-073cab0f4698",
+			"position": [3888, 3088],
+			"id": "852f79ad-ef14-4e16-928b-1ea82ec95563",
 			"name": "Execute a SQL query1",
 			"credentials": {
 				"postgres": {
@@ -1390,8 +1390,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-1648, -128],
-			"id": "7486193d-9e6e-472b-ad71-316a28ceb101",
+			"position": [4096, 3088],
+			"id": "ca427f4a-b8b6-4847-9033-118a2b6948a3",
 			"name": "Send message5",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1407,8 +1407,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-5472, -1264],
-			"id": "5fba611a-da9e-431c-a7fa-6478387eed36",
+			"position": [272, 1952],
+			"id": "a96c2745-07ee-4430-95ef-4e91a31e9433",
 			"name": "Check Questionnaire Status"
 		},
 		{
@@ -1471,8 +1471,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-1296, -1504],
-			"id": "e3824b5d-9f00-49f8-84b0-eef14fd69df9",
+			"position": [4448, 1712],
+			"id": "aaee1687-db01-4a9d-b509-9ff1ff34e2a5",
 			"name": "Is In Questionnaire"
 		},
 		{
@@ -1481,8 +1481,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-976, -1520],
-			"id": "c902ed47-5ba4-425b-b2c0-a51664251967",
+			"position": [4768, 1696],
+			"id": "4602b523-82bd-49c8-b455-c93c2ad987b6",
 			"name": "Process Answer & Next Question",
 			"alwaysOutputData": false
 		},
@@ -1494,8 +1494,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1312, -1760],
-			"id": "78dab7e0-556d-4829-9a1f-67250901f226",
+			"position": [4432, 1456],
+			"id": "0716bd3f-5cfa-4492-aaba-2d0e3fa4adac",
 			"name": "Update: Context questions",
 			"credentials": {
 				"postgres": {
@@ -1564,8 +1564,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-768, -1520],
-			"id": "db446e25-997e-4b6d-b864-bb1626d5478e",
+			"position": [4976, 1696],
+			"id": "a6731211-eb27-4ef0-bcd9-7c9aa4757e71",
 			"name": "Has More Questions?"
 		},
 		{
@@ -1578,8 +1578,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-656, -1056],
-			"id": "5c3bb0f1-f3b3-4f1d-8d8d-83fff1d268c6",
+			"position": [5088, 2160],
+			"id": "c4322920-15be-437d-8456-54d3b62df4dd",
 			"name": "Send message4",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1599,8 +1599,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-1040, -1760],
-			"id": "74d1057f-4be6-4660-b47f-bd507b6f30c2",
+			"position": [4704, 1456],
+			"id": "f0ce22c4-522b-41ee-9ead-baba052d4fda",
 			"name": "Send message6",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1670,8 +1670,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-48, -1504],
-			"id": "faa04b8d-4a90-49cd-be45-d565211f8ed8",
+			"position": [5696, 1712],
+			"id": "6a40c0b2-9a66-4705-b6fa-514203a88880",
 			"name": "Switch1"
 		},
 		{
@@ -1682,8 +1682,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [208, -1712],
-			"id": "44e51679-199d-4a78-b688-440b3a0834dc",
+			"position": [5952, 1504],
+			"id": "e233c3ff-59f9-463a-8222-1e239fed4a0e",
 			"name": "Execute a SQL query2",
 			"credentials": {
 				"postgres": {
@@ -1700,8 +1700,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [192, -1488],
-			"id": "25eca84a-c480-4928-b31f-7f438905de2e",
+			"position": [5936, 1728],
+			"id": "091277d9-b911-43b3-8d63-be56dfde30a5",
 			"name": "Execute a SQL query3",
 			"credentials": {
 				"postgres": {
@@ -1720,8 +1720,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [208, -1920],
-			"id": "81031b6f-f7e5-47b7-9442-4f83e0a1a354",
+			"position": [5952, 1296],
+			"id": "59eb7db1-0a58-4a3c-a2da-13f8666315d4",
 			"name": "Message: Aprobado",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1741,8 +1741,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [400, -1488],
-			"id": "faec6fa4-7d70-4555-923d-d5a8be0f83d1",
+			"position": [6144, 1728],
+			"id": "893a100d-d9b6-41b3-a52e-ed65860461c3",
 			"name": "Message: Rejected",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1762,8 +1762,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [-1856, -704],
-			"id": "8d10f58a-925b-43a3-a43a-ce89e4667c14",
+			"position": [3888, 2512],
+			"id": "28a7eea8-a020-406f-8bfa-82c9ea85c1fe",
 			"name": "AI Agent"
 		},
 		{
@@ -1773,8 +1773,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [-1648, -496],
-			"id": "724ba991-2e24-46c7-9eb7-dffe15f20d0e",
+			"position": [4096, 2720],
+			"id": "db1ca204-d821-405e-8bfb-be0777dc2b66",
 			"name": "Simple Memory"
 		},
 		{
@@ -1787,8 +1787,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-1536, -704],
-			"id": "dafcbec1-9a05-4606-89c9-05128680c1e8",
+			"position": [4208, 2512],
+			"id": "95f3a754-1497-4c0a-a512-19b03fab095c",
 			"name": "Message: Reject",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1831,8 +1831,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
 			"typeVersion": 2.2,
-			"position": [-3696, -1984],
-			"id": "c16080d8-d42a-4f01-8278-627f47770e6a",
+			"position": [2048, 1232],
+			"id": "d4b77686-3198-4ba2-9ef0-16fae668583a",
 			"name": "Call 'ContactoFinderTool'"
 		},
 		{
@@ -1841,8 +1841,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-3424, -2096],
-			"id": "6ef2285f-a57f-43fe-99c9-eca4180c6f4c",
+			"position": [2320, 1120],
+			"id": "b2bef261-febc-47fc-84ad-22c0400cccdd",
 			"name": "Contact Actions"
 		},
 		{
@@ -1851,8 +1851,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-2480, -1904],
-			"id": "6784ba80-04a1-43d1-a107-81c11682250c",
+			"position": [3264, 1312],
+			"id": "def6cbf8-6dc7-4cc1-addd-7e4a68a83df4",
 			"name": "Prepare Message Data"
 		},
 		{
@@ -1874,8 +1874,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-3904, -2144],
-			"id": "8ff42ed2-4411-43d2-b2e8-f628cf08073b",
+			"position": [1840, 1072],
+			"id": "15fef59c-2da6-4df1-a6e5-fdeb42b7ac7d",
 			"name": "Contact Finder",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -1897,8 +1897,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [-464, -864],
-			"id": "6ef14a22-f18b-42d6-9332-12c3cb22a254",
+			"position": [5280, 2352],
+			"id": "06a0de93-4cef-4f96-acfb-5321758e83e0",
 			"name": "OpenAI Chat Model1",
 			"credentials": {
 				"openAiApi": {
@@ -1919,8 +1919,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [-1856, -496],
-			"id": "86f4e4ec-ac2a-4010-9b39-c8769ba0c907",
+			"position": [3888, 2720],
+			"id": "51ee7910-39b4-4f4f-b0d7-0f1f79a0ff02",
 			"name": "OpenAI Chat Model2",
 			"credentials": {
 				"openAiApi": {
@@ -1989,8 +1989,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-2032, -1232],
-			"id": "4e771a55-252d-4d2d-92c7-86f35667413b",
+			"position": [3712, 1984],
+			"id": "2cd37a56-1c41-4f73-8bc0-0e7e59806cc3",
 			"name": "Switch: is Awaiting?"
 		},
 		{
@@ -2006,8 +2006,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-752, -1264],
-			"id": "5e2d6882-27d2-4041-8b59-a8467ff71af7",
+			"position": [4992, 1952],
+			"id": "1e535fa0-e700-426d-b849-34cc061d91d5",
 			"name": "API: Set new costumer",
 			"retryOnFail": true,
 			"credentials": {
@@ -2030,8 +2030,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [368, -1120],
-			"id": "afed5dad-d136-414d-991c-868ad712c3ae",
+			"position": [6112, 2096],
+			"id": "078690be-6cbf-4156-b418-cedc8e6e9d3b",
 			"name": "Add Property Interest",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -2048,8 +2048,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-512, -1264],
-			"id": "b0a7ab05-b440-4ddf-aa1d-4b557a663807",
+			"position": [5232, 1952],
+			"id": "f3cb284f-486a-4638-9d6f-357204cfabd5",
 			"name": "Update API Contact ID",
 			"credentials": {
 				"postgres": {
@@ -2075,8 +2075,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-560, -1504],
-			"id": "abc2a5d2-991b-49da-be65-98c227bd2e8d",
+			"position": [5184, 1712],
+			"id": "65a58e05-2f04-490d-afe9-39864e7d218e",
 			"name": "Message a model1",
 			"credentials": {
 				"googlePalmApi": {
@@ -2091,8 +2091,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-5808, -2432],
-			"id": "b2dd1ea4-0653-4d46-9a52-9f7f8ce391bf",
+			"position": [-64, 784],
+			"id": "299a090f-4902-4237-879d-7b213cd9f4cd",
 			"name": "Get: Message Info"
 		},
 		{
@@ -2180,8 +2180,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-3056, -1952],
-			"id": "d9e5c093-2dbc-4ec8-81b1-5dc7a6cc255d",
+			"position": [2688, 1264],
+			"id": "0635e5af-c867-4e54-8c4b-c8b6663487a8",
 			"name": "Actual status of contact"
 		},
 		{
@@ -2190,8 +2190,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-5376, -2432],
-			"id": "30072b7b-2578-4905-8418-5b2dbcdb9c71",
+			"position": [368, 784],
+			"id": "12c658e3-8eed-4ce1-93e0-744e74086cd2",
 			"name": "Has Postgres Context?"
 		},
 		{
@@ -2254,8 +2254,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-4384, -2128],
-			"id": "afc122e7-8f16-4ac4-8cb4-88628d1c02ee",
+			"position": [1360, 1088],
+			"id": "09e05cfa-e6b8-4920-b45b-21583eae907d",
 			"name": "Need Contact Check?"
 		},
 		{
@@ -2264,8 +2264,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-240, -1504],
-			"id": "aacbeeb5-22bd-44de-9e4a-9bc832e755e4",
+			"position": [5504, 1712],
+			"id": "ae40fcb4-14d0-4154-9fdd-9820b8da10cb",
 			"name": "Parse Gemini Validation"
 		},
 		{
@@ -2285,8 +2285,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [384, -1712],
-			"id": "89551b81-6f85-4269-a966-51b6f17ea346",
+			"position": [6128, 1504],
+			"id": "9a888a0f-ae65-4bda-b7b2-8e8f02b82909",
 			"name": "Generate Resume",
 			"credentials": {
 				"googlePalmApi": {
@@ -2301,8 +2301,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [704, -1712],
-			"id": "69794292-20cf-49be-80d0-7e242dde1abf",
+			"position": [6448, 1504],
+			"id": "1eb77274-d9e0-4a22-8fcb-783273cc33a4",
 			"name": "Parse Resume"
 		},
 		{
@@ -2318,8 +2318,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [928, -1712],
-			"id": "f346ebc5-7f3d-49c7-babd-8f8d9fc32815",
+			"position": [6672, 1504],
+			"id": "b96c2114-14b2-45ed-b47b-2221e3a7f907",
 			"name": "HTTP Request",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -2336,8 +2336,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-3536, 288],
-			"id": "ef3d4682-6e15-451a-b341-76b04a9c3311",
+			"position": [2208, 3504],
+			"id": "8d24bcac-b48f-4ae2-b967-04358620f65f",
 			"name": "Get: User Context General Inq or Out Scope",
 			"credentials": {
 				"postgres": {
@@ -2357,8 +2357,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [-3408, 496],
-			"id": "ce2ff646-6540-41d4-8039-f9e76f9c0936",
+			"position": [2336, 3712],
+			"id": "1a4ffdd7-81ef-40e3-8e52-8283dfba8710",
 			"name": "OpenAI Chat Model",
 			"credentials": {
 				"openAiApi": {
@@ -2377,8 +2377,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [-3328, 288],
-			"id": "23b62f75-1fbe-4fb6-9ead-bcb855396837",
+			"position": [2416, 3504],
+			"id": "6bf40bcc-eb8b-4177-aede-1c027a59235d",
 			"name": "AI General Inq or Out Scope"
 		},
 		{
@@ -2388,8 +2388,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [-3232, 496],
-			"id": "aefa354c-66ff-4fe2-a7a1-6295c76b41ae",
+			"position": [2512, 3712],
+			"id": "5a0719f9-7320-445e-88e8-d6d49e7a5b79",
 			"name": "Simple Memory1"
 		},
 		{
@@ -2402,8 +2402,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-2752, 288],
-			"id": "951ddb07-f5e8-4609-913a-85b50823edb0",
+			"position": [2992, 3504],
+			"id": "7e51d66f-0f28-4801-9645-a308b3410aef",
 			"name": "Message: General Inq or Out Scope",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2419,8 +2419,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-2976, 288],
-			"id": "894bbd54-0cf6-4d18-accb-e7b21a64f6c1",
+			"position": [2768, 3504],
+			"id": "af65c806-cfcd-43d4-9f27-fc92c07b8d78",
 			"name": "Parse: AI Response"
 		},
 		{
@@ -2436,8 +2436,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-1920, 288],
-			"id": "6d67e2c1-3d92-47e1-b3e1-a5491e759546",
+			"position": [3824, 3504],
+			"id": "81e4eafa-eb95-4afb-a5d8-41709559cb8e",
 			"name": "HTTP Request1",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -2454,8 +2454,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1696, 288],
-			"id": "05c6abf9-6390-4477-b654-acf0c2cbe0a4",
+			"position": [4048, 3504],
+			"id": "2163c1c0-c1f1-4baf-9ccf-fb2b8914bfad",
 			"name": "Update: Status awaiting1",
 			"credentials": {
 				"postgres": {
@@ -2472,8 +2472,8 @@
 			},
 			"type": "n8n-nodes-base.discord",
 			"typeVersion": 2,
-			"position": [-2544, 288],
-			"id": "e9cd2836-282e-48f6-9820-7fa1e4939076",
+			"position": [3200, 3504],
+			"id": "f32ce6d6-2559-4d86-bd31-edce94f76946",
 			"name": "Discord: Attention Message",
 			"webhookId": "d0a56f58-550a-46fa-bb94-26037d82b649",
 			"credentials": {
@@ -2491,8 +2491,8 @@
 			},
 			"type": "n8n-nodes-base.discord",
 			"typeVersion": 2,
-			"position": [400, -1920],
-			"id": "d17f3dc2-d9bc-41c9-9adf-389a6ce550c5",
+			"position": [6144, 1296],
+			"id": "44296ca1-b894-4457-98d0-4ecdb5625c7e",
 			"name": "Discord: Approved Message",
 			"webhookId": "d0a56f58-550a-46fa-bb94-26037d82b649",
 			"credentials": {
@@ -2508,8 +2508,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [368, -912],
-			"id": "9207bcc4-0da1-4147-b353-f4ea8f211b0d",
+			"position": [6112, 2304],
+			"id": "85961adf-adec-4994-9e04-1836f42c659f",
 			"name": "Parse: Message w Property Info"
 		},
 		{
@@ -2518,8 +2518,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-2912, -112],
-			"id": "5173d68e-6d24-4752-8761-764a8b09c7e0",
+			"position": [2832, 3104],
+			"id": "ba2d4d2c-77c3-4105-aa97-60698a8cdef8",
 			"name": "Parse AI Questionnaire"
 		},
 		{
@@ -2534,8 +2534,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [-3328, 16],
-			"id": "44cee770-d8c9-4162-8109-25d650061369",
+			"position": [2416, 3232],
+			"id": "bbfa238f-42f9-468d-8dc1-5f8a35287166",
 			"name": "OpenAI Chat Model3",
 			"credentials": {
 				"openAiApi": {
@@ -2552,8 +2552,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [-3168, 16],
-			"id": "0ac2c838-0dda-4d44-83c9-5a7cf2b94e90",
+			"position": [2576, 3232],
+			"id": "9108dfd3-e234-46a2-8db3-25df6579f99b",
 			"name": "Simple Memory2"
 		},
 		{
@@ -2566,20 +2566,20 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [-3264, -160],
-			"id": "0b2190ee-60b8-4fff-8c0a-66c8663881b5",
+			"position": [2480, 3056],
+			"id": "021d865b-2d94-41ff-b8b2-95abe68aa3b2",
 			"name": "AI Generate Dynamic Questionnaire"
 		},
 		{
 			"parameters": {
 				"content": "## ---> Misbehavior",
 				"height": 496,
-				"width": 1728
+				"width": 2160
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-5344, -3168],
+			"position": [400, 48],
 			"typeVersion": 1,
-			"id": "ee6cd727-4a78-495e-9b6e-00c4654ddffb",
+			"id": "f0af10f3-d247-4852-a3af-b76737386806",
 			"name": "Sticky Note"
 		},
 		{
@@ -2602,8 +2602,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.openAi",
 			"typeVersion": 1.8,
-			"position": [-3920, -2864],
-			"id": "8b8c7a3f-7826-464d-b89a-52af44c29011",
+			"position": [1824, 352],
+			"id": "b16ad500-32d6-4c2a-9cd3-3c70376d4769",
 			"name": "Message a model",
 			"credentials": {
 				"openAiApi": {
@@ -2639,8 +2639,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-2144, -976],
-			"id": "2adeb3b9-04c4-46b5-a765-2ffbbcd5d686",
+			"position": [3600, 2240],
+			"id": "e4f7d094-7490-4aef-9481-09d52e6951b0",
 			"name": "If"
 		},
 		{
@@ -2656,8 +2656,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-2688, -2240],
-			"id": "bc873779-742c-42b1-9b41-bb2d32a17bca",
+			"position": [3056, 976],
+			"id": "9417230c-3e51-44a9-8ca7-9949c6fd29c6",
 			"name": "Update: Contact Comments1",
 			"credentials": {
 				"httpBearerAuth": {
@@ -2676,16 +2676,16 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-2960, -2384],
-			"id": "0f40dfec-7547-4087-b3e0-36b24220ba18",
+			"position": [2784, 832],
+			"id": "a2995d21-5ab6-4bd1-b029-a34f51149d23",
 			"name": "Format Reject Comment Payload"
 		},
 		{
 			"parameters": {},
 			"type": "n8n-nodes-base.merge",
 			"typeVersion": 2.1,
-			"position": [-4416, -2384],
-			"id": "55b3ab04-4a98-404f-8d61-c5d961a4f216",
+			"position": [1328, 832],
+			"id": "5bbfaa6d-a9b3-41e5-b3aa-e8ef45cfacf3",
 			"name": "Merge Rejection Sources"
 		},
 		{
@@ -2734,8 +2734,8 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [-4208, -2384],
-			"id": "1013c599-fbf9-414e-b688-b93e05fd4cde",
+			"position": [1536, 832],
+			"id": "a1448265-9ca2-4c64-b27c-939850c0325d",
 			"name": "Set: Rejection Payload"
 		},
 		{
@@ -2759,8 +2759,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-3920, -2384],
-			"id": "af12c389-a3c3-4121-a6ed-aa5d809bf152",
+			"position": [1824, 832],
+			"id": "474ab2b0-a476-40ff-bd23-fd702a8a7efe",
 			"name": "AI: Create Reject Message",
 			"credentials": {
 				"googlePalmApi": {
@@ -2779,8 +2779,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-3536, -2384],
-			"id": "bab11583-f556-4b17-a35e-095fa148d04e",
+			"position": [2208, 832],
+			"id": "8a16ddeb-cfc3-4bfd-a599-91f684d8a780",
 			"name": "Message: Reject 2",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2807,8 +2807,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-3296, -2384],
-			"id": "39d86499-55ff-4d33-a6b2-fd9ba0592ec0",
+			"position": [2448, 832],
+			"id": "8917b744-1935-4f82-9339-e882ffb86b0e",
 			"name": "AI: Create Reject Resume",
 			"credentials": {
 				"googlePalmApi": {
@@ -2825,8 +2825,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-2384, -2208],
-			"id": "692a8130-b16f-402c-a33b-6a3ba3ff59e6",
+			"position": [3360, 1008],
+			"id": "9b357df8-96ed-41e1-8f4e-3c20d92c8422",
 			"name": "Execute a SQL query4",
 			"credentials": {
 				"postgres": {
@@ -2944,16 +2944,16 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-4768, -2528],
-			"id": "4fe2408c-e5f8-4778-a5c2-31fb50526b80",
+			"position": [976, 688],
+			"id": "e28a6eff-6ea3-49e9-966e-a83e1d12f6a1",
 			"name": "Switch2"
 		},
 		{
 			"parameters": {},
 			"type": "n8n-nodes-base.noOp",
 			"typeVersion": 1,
-			"position": [-4864, -2144],
-			"id": "ce0fc7c0-60c4-497e-b1ad-08308663599b",
+			"position": [880, 1072],
+			"id": "668ef763-feb3-46c0-a52c-d6e2af26e1e0",
 			"name": "No Operation, do nothing"
 		},
 		{
@@ -2966,8 +2966,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-6064, -2016],
-			"id": "5ce3b3bc-f3e9-41dd-953f-e82ac916f6e8",
+			"position": [-320, 1200],
+			"id": "377fc479-7ede-40a4-84b8-a778b6387331",
 			"name": "Error Message",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2983,8 +2983,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-5952, -2688],
-			"id": "a0dbe46b-a65e-484a-b8b5-5dce0b95245b",
+			"position": [-208, 528],
+			"id": "4fda9630-621c-4a76-8aa3-e1963093ad30",
 			"name": "Parse Misbehavior"
 		},
 		{
@@ -3007,8 +3007,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.openAi",
 			"typeVersion": 1.8,
-			"position": [-6272, -2688],
-			"id": "76821808-8840-497a-bcd3-13876fac27eb",
+			"position": [-528, 528],
+			"id": "e2f70da9-8363-4c62-b31f-d4d89e4a9223",
 			"name": "AI Misbehavior Detector",
 			"credentials": {
 				"openAiApi": {
@@ -3026,8 +3026,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-5280, -3072],
-			"id": "c7eccab8-c602-4b99-ab52-fb8a6b734454",
+			"position": [464, 144],
+			"id": "f492ccac-92f7-4c32-8de5-d1210ea1d223",
 			"name": "Get API Contact",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -3041,9 +3041,17 @@
 			"parameters": {},
 			"type": "n8n-nodes-base.noOp",
 			"typeVersion": 1,
-			"position": [-3376, -2864],
-			"id": "5f15d0ff-ddd1-470a-9253-ab08555c34cc",
+			"position": [2368, 352],
+			"id": "be24fd8f-a9c6-4fcc-864c-39e38eb0c51f",
 			"name": "No Operation, do nothing1"
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [160, 32],
+			"id": "c7c6f7f5-273f-4080-ab98-a05f76b867fd",
+			"name": "No Operation, do nothing2"
 		},
 		{
 			"parameters": {
@@ -3072,17 +3080,9 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-5568, -2784],
-			"id": "0b4c6dea-e113-4339-8421-01d72dbe4141",
-			"name": "If1"
-		},
-		{
-			"parameters": {},
-			"type": "n8n-nodes-base.noOp",
-			"typeVersion": 1,
-			"position": [-5584, -3056],
-			"id": "e6f01d29-547a-4140-89bf-7adcb521b56f",
-			"name": "No Operation, do nothing2"
+			"position": [160, 304],
+			"id": "da5e03b4-2e5f-479c-8739-e0bff3cbc9a0",
+			"name": "Is Blocked?"
 		}
 	],
 	"connections": {
@@ -3101,7 +3101,7 @@
 			"main": [
 				[
 					{
-						"node": "If1",
+						"node": "Is Blocked?",
 						"type": "main",
 						"index": 0
 					}
@@ -4374,7 +4374,7 @@
 				]
 			]
 		},
-		"If1": {
+		"Is Blocked?": {
 			"main": [
 				[
 					{
