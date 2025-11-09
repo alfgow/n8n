@@ -3055,7 +3055,124 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const input = $input.first().json || {};\nconst contextData = input.context_data ? JSON.parse(JSON.stringify(input.context_data)) : {};\n\nconst reasonRaw = input.misbehaviorReason;\nconst reasonText = typeof reasonRaw === 'string' && reasonRaw.trim() !== ''\n  ? reasonRaw.trim()\n  : 'Comportamiento indebido detectado automáticamente';\n\nconst matchedWords = Array.isArray(input.misbehaviorMatchedWords)\n  ? input.misbehaviorMatchedWords.filter(Boolean)\n  : [];\nconst originalMessage = typeof input.userPrompt === 'string' ? input.userPrompt.trim() : '';\nconst timestamp = new Date().toISOString();\n\nconst historyEntry = {\n  timestamp,\n  mensaje_original: originalMessage,\n  palabras_detectadas: matchedWords,\n  origen: 'auto_filter'\n};\n\nconst existingHistory = Array.isArray(contextData.mal_comportamiento_historial)\n  ? [...contextData.mal_comportamiento_historial]\n  : [];\nexistingHistory.push(historyEntry);\n\nconst existingReasons = Array.isArray(contextData.motivo_rechazo)\n  ? [...contextData.motivo_rechazo]\n  : [];\nif (!existingReasons.includes(reasonText)) {\n  existingReasons.push(reasonText);\n}\n\nconst updatedContext = {\n  ...contextData,\n  status: 'blocked',\n  rechazo_previo: true,\n  motivo_rechazo: existingReasons,\n  mal_comportamiento_historial: existingHistory,\n  ultima_interaccion: timestamp\n};\n\nif (!updatedContext.api_contact_id && contextData.api_contact_id) {\n  updatedContext.api_contact_id = $('Get API Contact1').first().json.data[0].id;\n}\n\nconst commentLines = [\n  '🚫 IGNORADO POR BLOQUEO 🚫',\n  ` Motivo: ${reasonText}`,\n  matchedWords.length ? ` Coincidencias: ${matchedWords.join(', ')}` : '',\n  originalMessage ? ` Mensaje original: \"${originalMessage}\"` : '',\n  ` Registrado el: ${timestamp}`\n].filter((line) => line && line.trim() !== '');\n\nconst apiContactId = updatedContext.api_contact_id;\n\nif (!apiContactId) {\n  throw new Error('No se encontró api_contact_id en el contexto para registrar el comentario.');\n}\n\nreturn [{\n  json: {\n    wa_id: input.wa_id,\n    api_contact_id: apiContactId,\n    commentPayload: {\n      comentario: commentLines.join('\\n')\n    },\n    updatedContext,\n    historyEntry\n  }\n}];"
+				"jsCode": "const source = $input.first()?.json ?? {};
+const clone = (data) => JSON.parse(JSON.stringify(data ?? {}));
+const contextData = clone(source.context_data);
+
+const cleanString = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const reasonText =
+  cleanString(source.misbehaviorReason) ||
+  cleanString(source.reasonText) ||
+  'Comportamiento indebido detectado automáticamente';
+
+const matchedWords = Array.isArray(source.misbehaviorMatchedWords)
+  ? source.misbehaviorMatchedWords.filter((word) => cleanString(word))
+  : [];
+
+const originalMessage =
+  cleanString(source.misbehaviorOriginalMessage) ||
+  cleanString(source.userPrompt) ||
+  cleanString(source.originalMessage) ||
+  '';
+
+const timestamp = new Date().toISOString();
+
+const historyEntry = {
+  timestamp,
+  mensaje_original: originalMessage,
+  palabras_detectadas: matchedWords,
+  origen: 'auto_filter'
+};
+
+const history = Array.isArray(contextData.mal_comportamiento_historial)
+  ? [...contextData.mal_comportamiento_historial, historyEntry]
+  : [historyEntry];
+
+const reasons = Array.isArray(contextData.motivo_rechazo)
+  ? [...contextData.motivo_rechazo]
+  : [];
+if (!reasons.includes(reasonText)) {
+  reasons.push(reasonText);
+}
+
+const contactLookups = [];
+
+try {
+  const apiData = $('Get API Contact1')?.first()?.json?.data;
+  if (Array.isArray(apiData) && apiData.length) {
+    contactLookups.push(apiData[0]);
+  }
+} catch (error) {}
+
+try {
+  const apiData = $('Get API Contact')?.first()?.json?.data;
+  if (Array.isArray(apiData) && apiData.length) {
+    contactLookups.push(apiData[0]);
+  }
+} catch (error) {}
+
+const apiContactId =
+  source.api_contact_id ??
+  contextData.api_contact_id ??
+  contactLookups.find((contact) => contact?.id)?.id ??
+  null;
+
+if (!apiContactId) {
+  throw new Error('No se encontró api_contact_id en el contexto para registrar el comentario de bloqueo.');
+}
+
+const fallbackName =
+  cleanString(source.fallbackName) ||
+  cleanString(source.contactName) ||
+  cleanString(contextData.nombre) ||
+  contactLookups.map((contact) => cleanString(contact?.nombre)).find(Boolean) ||
+  '🤖 - Contacto Bloqueado';
+
+const commentLines = [
+  '🚫 CONTACTO BLOQUEADO AUTOMÁTICAMENTE 🚫',
+  `Motivo: ${reasonText}`,
+  matchedWords.length ? `Coincidencias: ${matchedWords.join(', ')}` : '',
+  originalMessage ? `Mensaje original: "${originalMessage}"` : '',
+  `Registrado el: ${timestamp}`
+].filter((line) => cleanString(line));
+
+const waId =
+  cleanString(source.wa_id) ||
+  cleanString(contextData.wa_id) ||
+  cleanString($('Has Postgres Context?')?.first()?.json?.wa_id) ||
+  cleanString($('Get: Message Info')?.first()?.json?.wa_id) ||
+  cleanString($('WhatsApp Trigger')?.first()?.json?.contacts?.[0]?.wa_id) ||
+  null;
+
+const updatedContext = {
+  ...contextData,
+  nombre: fallbackName,
+  status: 'blocked',
+  rechazo_previo: true,
+  motivo_rechazo: reasons,
+  mal_comportamiento_historial: history,
+  ultima_interaccion: timestamp,
+  api_contact_id: apiContactId
+};
+
+return [
+  {
+    json: {
+      wa_id: waId,
+      api_contact_id: apiContactId,
+      commentPayload: {
+        comentario: commentLines.join('\n')
+      },
+      updatedContext,
+      historyEntry,
+      reasonText,
+      matchedWords,
+      originalMessage,
+      timestamp
+    }
+  }
+];
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
@@ -3089,7 +3206,7 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts\nSET\n  context_data = jsonb_set(\n    context_data,\n    '{motivo_bloqueo}',\n    to_jsonb('{{ $json.data.comentario.replaceAll(\"'\", \"''\") }}'::text),\n    true\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $(\"Build Blocked Comment Payload\").item.json.wa_id }}';\n\n",
+				"query": "UPDATE user_contexts\nSET\n  context_data = '{{ $(\"Build Blocked Comment Payload\").item.json.updatedContext.toJsonString() }}'::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $(\"Build Blocked Comment Payload\").item.json.wa_id }}'\nRETURNING\n  id,\n  wa_id,\n  context_data,\n  context_data->>'api_contact_id' AS api_contact_id;\n\n
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
