@@ -7,8 +7,8 @@
 			},
 			"type": "n8n-nodes-base.whatsAppTrigger",
 			"typeVersion": 1,
-			"position": [-2096, -320],
-			"id": "67b5a00e-84a1-42d4-b513-1ebc439d10f0",
+			"position": [144, -384],
+			"id": "4191100a-7fc3-425f-b553-9f0790b30f0e",
 			"name": "WhatsApp Trigger",
 			"webhookId": "74594388-e12c-4f20-b583-78678872e5e7",
 			"credentials": {
@@ -45,8 +45,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [-144, -528],
-			"id": "2241029a-a4f7-4594-b215-a520ce22f4fa",
+			"position": [2096, -592],
+			"id": "e5c823d9-d1fe-4603-9066-7adf67f89d86",
 			"name": "If: Misbehavior?"
 		},
 		{
@@ -57,8 +57,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1360, -864],
-			"id": "bfe5c3d6-e4e6-417f-96b4-92707abc40f0",
+			"position": [880, -928],
+			"id": "19bd3407-224e-4482-aa08-7a2405c37173",
 			"name": "Get Misbehavior Context",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -74,8 +74,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1152, -864],
-			"id": "5241cafa-79af-4290-803c-f0ac26a3f42e",
+			"position": [1088, -928],
+			"id": "46733aab-98ae-4d6c-b27c-3d2e17bde102",
 			"name": "Prepare Misbehavior Context"
 		},
 		{
@@ -86,8 +86,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-960, -864],
-			"id": "8a558efa-5ba5-43e5-bb27-d27a4ba9a418",
+			"position": [1280, -928],
+			"id": "c3fc2963-1972-4d1e-9767-80bde8e4214d",
 			"name": "Postgres: Insert Misbehavior Context",
 			"credentials": {
 				"postgres": {
@@ -109,8 +109,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-736, -864],
-			"id": "59b2cbc2-c0d7-43be-bbfe-580542489126",
+			"position": [1504, -928],
+			"id": "311775a4-770a-40b2-b2fa-7d2fa4c27f16",
 			"name": "API: Create Misbehavior Contact",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -127,8 +127,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-528, -864],
-			"id": "e4a23ae4-3f1b-42b9-84bf-6c02fb57bf60",
+			"position": [1712, -928],
+			"id": "351d0f1d-1fbd-4ad2-9f54-6508ee570665",
 			"name": "Postgres: Save API Contact (New)",
 			"credentials": {
 				"postgres": {
@@ -143,8 +143,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-352, -864],
-			"id": "1a04eb51-e125-4279-8d3f-bc1cde3c0238",
+			"position": [1888, -928],
+			"id": "7722ea16-e2c5-4acb-a4b7-0e87c98a0801",
 			"name": "Build Misbehavior Comment"
 		},
 		{
@@ -160,8 +160,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-176, -864],
-			"id": "e1694b35-c484-4595-bb9c-85f16bbd3560",
+			"position": [2064, -928],
+			"id": "c6d4dea9-3e4a-4162-8cbd-0b3ea2d85d28",
 			"name": "API: Add Misbehavior Comment",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -180,8 +180,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [288, -864],
-			"id": "57ec8ae1-8bdf-42fe-a047-0074c78e31da",
+			"position": [2528, -928],
+			"id": "5aa31be1-55cc-47ae-a94b-321a8b226897",
 			"name": "Send Misbehavior Notice",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -199,9 +199,9 @@
 				"color": 6
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-1984, -1152],
+			"position": [256, -1216],
 			"typeVersion": 1,
-			"id": "c997ce18-007b-44c1-8f17-b00969ac1ada",
+			"id": "d6d04cd9-f8fb-49d2-a26f-d1eba6dffa88",
 			"name": "Sticky Note6"
 		},
 		{
@@ -212,8 +212,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-1920, -1072],
-			"id": "f586769a-0ba8-4885-b8e2-090ee323451c",
+			"position": [320, -1136],
+			"id": "7c2e95c9-19aa-4e64-87e9-c3aed8a7730b",
 			"name": "Download media3",
 			"webhookId": "02de1bd7-bb83-49da-baa6-392d89ed4096",
 			"credentials": {
@@ -232,8 +232,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-1872, -816],
-			"id": "84e521b8-9122-4750-9668-a10618e41e61",
+			"position": [368, -880],
+			"id": "6c2f7e0e-73ad-4849-bb54-b62caf6e6285",
 			"name": "HTTP Request3",
 			"credentials": {
 				"httpBearerAuth": {
@@ -256,8 +256,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [-1888, -592],
-			"id": "1a62cf9b-1409-43be-be15-f9c57d852889",
+			"position": [352, -656],
+			"id": "2fcfacfd-f0ce-4e67-aa7a-47affd52c5cd",
 			"name": "Transcribe: audio",
 			"credentials": {
 				"googlePalmApi": {
@@ -294,8 +294,8 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [1520, 64],
-			"id": "c830b002-efa3-49db-8ecd-f3bb18828907",
+			"position": [3760, 0],
+			"id": "0c786bbc-ea0d-4c3a-a1a5-cf91333b6418",
 			"name": "Edit Fields"
 		},
 		{
@@ -306,8 +306,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1696, 64],
-			"id": "927bc01f-297c-49d4-916e-cb670db316d8",
+			"position": [3936, 0],
+			"id": "569a8a95-5750-424f-a492-e60cba942732",
 			"name": "Execute a SQL query",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -323,8 +323,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2112, 80],
-			"id": "11dbd811-c231-4989-aac3-5b1c9c9fce56",
+			"position": [4352, 16],
+			"id": "2a1c7e8c-bc98-4506-b5f5-8e47d01bd894",
 			"name": "Check and Assign Character"
 		},
 		{
@@ -354,8 +354,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [2320, 80],
-			"id": "fe8fab5c-ca0c-4903-9386-ce82e77fa1da",
+			"position": [4560, 16],
+			"id": "cbab16fb-3e0e-4485-8c1a-33c8dc723d9a",
 			"name": "If: Is New Contact"
 		},
 		{
@@ -366,8 +366,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [2528, 64],
-			"id": "79360f5d-3118-4bdd-b4a2-721b03078144",
+			"position": [4768, 0],
+			"id": "fd7b16a0-d4f7-4193-a8fa-12a60d8b7b8d",
 			"name": "Set: New Costumer",
 			"credentials": {
 				"postgres": {
@@ -382,8 +382,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2720, 64],
-			"id": "4fa9aa55-d31e-4be6-8c9a-edaf87b3c0b9",
+			"position": [4960, 0],
+			"id": "ff23479f-34b2-4b30-a1b8-5a384e70211a",
 			"name": "Merge Context Data"
 		},
 		{
@@ -396,8 +396,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [3424, 64],
-			"id": "e5598b5f-7bbf-4db1-bfa1-d10e974c41f1",
+			"position": [5664, 0],
+			"id": "f8ee6d29-5b26-4bc6-874c-9f1f69c3ba23",
 			"name": "Send message1",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -413,8 +413,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [3888, 0],
-			"id": "41cf63ce-f21c-4ca9-9c6f-f6d99e6b89b2",
+			"position": [6128, -64],
+			"id": "dcee7574-265e-426c-9d85-9452b7c2f43e",
 			"name": "Parse Context Data"
 		},
 		{
@@ -425,8 +425,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [3680, 0],
-			"id": "5853ddaf-59d1-43ff-a193-dcdef82850b7",
+			"position": [5920, -64],
+			"id": "363e8883-2227-48e8-b838-e30f596482c7",
 			"name": "Get: User Context",
 			"credentials": {
 				"postgres": {
@@ -441,8 +441,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [4080, 0],
-			"id": "5f054540-f39b-4570-936f-d6499acbeb59",
+			"position": [6320, -64],
+			"id": "bf274c1a-1708-41aa-bb52-fb069a94c13a",
 			"name": "Check missing Data"
 		},
 		{
@@ -529,8 +529,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [4320, -16],
-			"id": "f8f89501-0518-483b-a248-b245389d6ef9",
+			"position": [6560, -80],
+			"id": "9233494a-98e9-4b3f-b746-a9ac6954b709",
 			"name": "Actual Status"
 		},
 		{
@@ -543,8 +543,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [3664, 256],
-			"id": "8c7fd874-d3f6-4b6d-abeb-88ddf6740118",
+			"position": [5904, 192],
+			"id": "05c10306-73d9-404f-b27d-d15cff2aae4e",
 			"name": "Request Data",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -562,8 +562,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [3888, 256],
-			"id": "a1bd9ac5-bec5-4ea8-9995-efcac93c088b",
+			"position": [6128, 192],
+			"id": "685703c4-4672-4fc2-b828-127d549ad363",
 			"name": "Update: Status awaiting",
 			"credentials": {
 				"postgres": {
@@ -580,8 +580,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1200, -560],
-			"id": "42682f8a-1548-42b0-a47a-2a4aa098e326",
+			"position": [1040, -624],
+			"id": "27ef77a8-1836-427a-8c5b-8e87be3e818c",
 			"name": "Check Context Status",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -597,8 +597,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-2224, 80],
-			"id": "b8003b2c-726a-405a-b9ef-f967573550d7",
+			"position": [16, 16],
+			"id": "c2910143-aaea-45cb-ac06-5d2d3dae2dd6",
 			"name": "Parse: Status"
 		},
 		{
@@ -607,8 +607,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1824, 64],
-			"id": "f66558e7-234d-4914-92d4-382f87147830",
+			"position": [416, 0],
+			"id": "0a5093fe-afb7-4fae-b862-34911941d8f6",
 			"name": "Extract Name & Phone"
 		},
 		{
@@ -617,8 +617,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-672, 64],
-			"id": "b8cb9e6f-3126-4f6c-b995-eb3a160258a9",
+			"position": [1568, 0],
+			"id": "94490036-8345-45d3-b6b3-9d393c002e88",
 			"name": "Prepare for Property Search"
 		},
 		{
@@ -643,8 +643,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [1200, 64],
-			"id": "fe5a4e81-fdfd-40ac-85d7-db29c87f997e",
+			"position": [3440, 0],
+			"id": "e3ed2262-36af-42ff-baeb-9f214ecd4623",
 			"name": "Detect: Intention",
 			"credentials": {
 				"googlePalmApi": {
@@ -713,8 +713,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-1616, 64],
-			"id": "9ef14ce4-ce5a-423a-8cc8-6b44fc23d953",
+			"position": [624, 0],
+			"id": "8f546e6f-48d1-466c-8f16-83e883f51c1f",
 			"name": "Is Valid Data"
 		},
 		{
@@ -725,8 +725,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1360, 48],
-			"id": "db96165d-e6d3-4b5e-97dc-623d20415c49",
+			"position": [880, -16],
+			"id": "28f0e023-fe12-4975-9782-97e7bcc69260",
 			"name": "Get Context Awating Data",
 			"credentials": {
 				"postgres": {
@@ -769,8 +769,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
 			"typeVersion": 2.2,
-			"position": [-128, 272],
-			"id": "ed553503-500c-4987-800a-74566b85e208",
+			"position": [2112, 208],
+			"id": "64f95358-afa3-44dc-96bb-55c9a4c0846e",
 			"name": "Call 'InmuebleFinderTool'1"
 		},
 		{
@@ -781,8 +781,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [3664, 464],
-			"id": "827c2e6a-8696-4708-a44c-b816024b3ad5",
+			"position": [5904, 400],
+			"id": "96c458c7-1fb7-4277-90e4-f671fba7192f",
 			"name": "Get Context with Property",
 			"credentials": {
 				"postgres": {
@@ -801,8 +801,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [-304, 64],
-			"id": "48696077-14e7-4f86-9ad5-1f57888a0cb6",
+			"position": [1936, 0],
+			"id": "0e383aba-9b5a-4416-9819-62fab1501038",
 			"name": "AI Agent - Get Property",
 			"alwaysOutputData": true
 		},
@@ -812,8 +812,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [48, 64],
-			"id": "280a5809-d55b-420c-9655-505ba9a504df",
+			"position": [2288, 0],
+			"id": "33483aba-47f5-4136-96cb-b359c01964e3",
 			"name": "Parse: Property Information"
 		},
 		{
@@ -826,8 +826,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-2224, -1008],
-			"id": "4ccebe18-f496-4d3b-bcac-d2dbe88ebea1",
+			"position": [16, -1072],
+			"id": "13c151e0-c267-4506-895b-dfb78037052f",
 			"name": "Message: Wrong Name & Phone",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -847,8 +847,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [928, 64],
-			"id": "be0f615c-4c17-49e8-a3b7-8c629c801191",
+			"position": [3168, 0],
+			"id": "39ea02f6-c0cb-43d2-8111-3b77f107ed44",
 			"name": "Send message",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -866,8 +866,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [240, 64],
-			"id": "f431618a-8424-4797-86e7-18e62d61e4c4",
+			"position": [2480, 0],
+			"id": "965d8fc9-0ff6-4c7c-9411-06f00990eaf5",
 			"name": "Update: Costumer Context",
 			"credentials": {
 				"postgres": {
@@ -1035,8 +1035,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [3120, 16],
-			"id": "e64761fc-117a-416c-b9ff-ae9ace781389",
+			"position": [5360, -48],
+			"id": "79448ec5-c96d-46bb-9c41-5de00473dfd0",
 			"name": "Switch: Intent"
 		},
 		{
@@ -1065,8 +1065,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [4464, 464],
-			"id": "9b8b80d9-e1ba-4d67-8558-8af92ae79ae3",
+			"position": [6704, 400],
+			"id": "71952e44-6286-4fc6-8674-3b8157591346",
 			"name": "If: Is Awaiting Questionaire"
 		},
 		{
@@ -1077,8 +1077,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [4656, 448],
-			"id": "a1540948-3325-497f-b31b-a5885b51a2d3",
+			"position": [6896, 384],
+			"id": "157c928e-2d44-48c5-8012-b0a83695aa71",
 			"name": "Execute a SQL query1",
 			"credentials": {
 				"postgres": {
@@ -1097,8 +1097,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [4848, 448],
-			"id": "b82b2b0b-518e-40bf-8543-cee7b9e186d8",
+			"position": [7088, 384],
+			"id": "a3c83d32-f705-458b-b062-89622e004398",
 			"name": "Send message5",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1114,8 +1114,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1904, -240],
-			"id": "9fcc43df-4715-4fb9-bd74-79fe06e11c1d",
+			"position": [4144, -304],
+			"id": "a2c947b8-a569-496c-aa76-bd7b40aec297",
 			"name": "Check Questionnaire Status"
 		},
 		{
@@ -1178,8 +1178,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [2144, -240],
-			"id": "a50e3fde-c483-4fae-98a7-35627b118c02",
+			"position": [4384, -304],
+			"id": "071a19fe-d46c-4a77-9cc9-e5906fa45f5e",
 			"name": "Is In Questionnaire"
 		},
 		{
@@ -1188,8 +1188,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2384, -256],
-			"id": "ec890e1b-197e-4e8a-8d4c-ac3e05fefff9",
+			"position": [4624, -320],
+			"id": "aae51ef5-ec67-474c-8554-da568f27d9df",
 			"name": "Process Answer & Next Question",
 			"alwaysOutputData": false
 		},
@@ -1201,8 +1201,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [2592, -544],
-			"id": "b44d5d5f-3eed-4be8-968a-0c7ad8026643",
+			"position": [4832, -608],
+			"id": "2957a302-a5f4-4c7c-842d-d803e3314bdd",
 			"name": "Update: Context questions",
 			"credentials": {
 				"postgres": {
@@ -1271,8 +1271,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [2624, -256],
-			"id": "5effd347-290a-4966-8c34-9d13e7306012",
+			"position": [4864, -320],
+			"id": "cbe5c70c-a91d-448c-a3d2-9dfbded3b2aa",
 			"name": "Has More Questions?"
 		},
 		{
@@ -1285,8 +1285,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-496, 64],
-			"id": "38e0476f-db5b-406b-a436-eb142543206b",
+			"position": [1744, 0],
+			"id": "8fc8e07c-c190-44dd-ba02-1d88ae92a9ed",
 			"name": "Send message4",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1306,8 +1306,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [2848, -544],
-			"id": "8a653ac4-8430-423b-b38c-21d306d0f46b",
+			"position": [5088, -608],
+			"id": "7f42bbbc-1276-47de-8cf9-f0f283aa1801",
 			"name": "Send message6",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1377,8 +1377,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [3360, -240],
-			"id": "131b9e06-0cef-412c-8144-7ca806654c7f",
+			"position": [5600, -304],
+			"id": "5f6ea9cc-2567-4088-b59d-86d7aed46673",
 			"name": "Switch1"
 		},
 		{
@@ -1389,8 +1389,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [3648, -464],
-			"id": "774d81cf-0da8-4880-aa85-e11fe6d479aa",
+			"position": [5888, -528],
+			"id": "0a7b775c-a4cf-4d09-82b3-b65affc254c6",
 			"name": "Execute a SQL query2",
 			"credentials": {
 				"postgres": {
@@ -1407,8 +1407,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [3632, -224],
-			"id": "345fcb3d-f4b4-4b32-a2dd-78dc2b100d37",
+			"position": [5872, -288],
+			"id": "afee2791-7968-4db7-8160-a2b43ff2ce6e",
 			"name": "Execute a SQL query3",
 			"credentials": {
 				"postgres": {
@@ -1427,8 +1427,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [3152, -560],
-			"id": "93bd5655-ab32-47be-821b-40e7c239572a",
+			"position": [5392, -624],
+			"id": "d2227473-23ae-4a7b-b4a6-8a4d7b86115b",
 			"name": "Message: Aprobado",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1448,8 +1448,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [3840, -224],
-			"id": "8d3a3432-e3b0-45d5-be2a-9ca9b7708975",
+			"position": [6080, -288],
+			"id": "202ec0e8-5215-42bc-b5f0-b9a79c90b1b4",
 			"name": "Message: Rejected",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1469,8 +1469,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [4576, -32],
-			"id": "2ca40a54-6f7c-4bde-9392-1352d9f9de44",
+			"position": [6816, -96],
+			"id": "38224f76-9f1c-4a83-bb56-9aa28f5e7636",
 			"name": "AI Agent"
 		},
 		{
@@ -1480,8 +1480,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [4768, 160],
-			"id": "7135aa54-87cd-4da0-a95c-a723d257368f",
+			"position": [7008, 96],
+			"id": "766d78b4-e7f7-4640-9b3e-629936897cc7",
 			"name": "Simple Memory"
 		},
 		{
@@ -1494,8 +1494,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [4880, -32],
-			"id": "8e683251-3019-4f7d-aaf3-f1e5c38f8593",
+			"position": [7120, -96],
+			"id": "6f63aa70-8e8b-44a6-a5d3-27f155fc0908",
 			"name": "Message: Reject",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -1507,12 +1507,12 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const apiResponse = $json;\nconst whatsappData = $('WhatsApp Trigger').item.json || {};\n\nconst tryParseJson = (value) => {\n  if (typeof value !== 'string') return null;\n  try {\n    return JSON.parse(value);\n  } catch (error) {\n    console.log('No se pudo convertir el valor a JSON:', error.message);\n    return null;\n  }\n};\n\nconst looksLikeContact = (value) => {\n  if (!value || typeof value !== 'object') return false;\n  const keys = Object.keys(value);\n  const hints = [\n    'id',\n    'uuid',\n    'contact_id',\n    'telefono',\n    'phone',\n    'nombre',\n    'status',\n    'estado',\n    'rechazo_previo',\n    'resumen_interacciones',\n    'etiquetas'\n  ];\n  return hints.some((hint) => keys.includes(hint));\n};\n\nconst extractContact = (value) => {\n  if (!value) return null;\n  if (typeof value === 'string') {\n    const parsed = tryParseJson(value);\n    return parsed ? extractContact(parsed) : null;\n  }\n  if (Array.isArray(value)) {\n    for (const item of value) {\n      const candidate = extractContact(item);\n      if (candidate) return candidate;\n    }\n    return null;\n  }\n  if (typeof value === 'object') {\n    if (looksLikeContact(value)) {\n      return value;\n    }\n\n    const nestedKeys = ['data', 'result', 'payload', 'body', 'contact', 'contacto'];\n    for (const key of nestedKeys) {\n      if (key in value) {\n        const candidate = extractContact(value[key]);\n        if (candidate) return candidate;\n      }\n    }\n  }\n  return null;\n};\n\nconst normalizeBoolean = (value) => {\n  if (typeof value === 'boolean') return value;\n  if (typeof value === 'number') return value !== 0;\n  if (typeof value === 'string') {\n    const normalized = value.trim().toLowerCase();\n    if (!normalized) return false;\n    return [\n      'true',\n      '1',\n      'yes',\n      'si',\n      's\u00ed',\n      'rechazado',\n      'rejected',\n      'blocked',\n      'bloqueado'\n    ].includes(normalized);\n  }\n  if (Array.isArray(value)) {\n    return value.some((entry) => normalizeBoolean(entry));\n  }\n  if (value && typeof value === 'object') {\n    return Object.values(value).some((entry) => normalizeBoolean(entry));\n  }\n  return false;\n};\n\nconst getFirstString = (...values) => {\n  for (const value of values) {\n    if (typeof value === 'string' && value.trim()) {\n      return value.trim();\n    }\n  }\n  return '';\n};\n\nconst contactRecord = extractContact(apiResponse);\nconst contactExists = Boolean(contactRecord);\nconst contactId = contactRecord?.id ?? contactRecord?.contact_id ?? contactRecord?.uuid ?? contactRecord?.telefono ?? contactRecord?.phone ?? null;\n\nlet hasRejectionHistory = false;\nif (contactRecord) {\n  const rejectionHints = [\n    contactRecord.rechazo_previo,\n    contactRecord.isRejected,\n    contactRecord.rechazado,\n    contactRecord.estado,\n    contactRecord.status,\n    contactRecord.etiquetas\n  ];\n  hasRejectionHistory = rejectionHints.some((hint) => normalizeBoolean(hint));\n}\n\nconst rejectionSummary = contactRecord\n  ? getFirstString(\n      contactRecord.resumen_interacciones,\n      contactRecord.resumen,\n      contactRecord.comentarios,\n      contactRecord.nota,\n      contactRecord.notas\n    )\n  : '';\n\nconst userMessage = whatsappData.messages?.[0]?.text?.body ?? '';\nconst waId = whatsappData.contacts?.[0]?.wa_id ?? null;\nconst sanitizedContact = contactRecord ? JSON.parse(JSON.stringify(contactRecord)) : null;\n\nreturn {\n  wa_id: waId,\n  userMessage,\n  contactExists,\n  contactId,\n  contactData: sanitizedContact,\n  hasRejectionHistory,\n  rejectionSummary\n};\n"
+				"jsCode": "const apiResponse = $json;\nconst whatsappData = $('WhatsApp Trigger').item.json || {};\n\nconst tryParseJson = (value) => {\n  if (typeof value !== 'string') return null;\n  try {\n    return JSON.parse(value);\n  } catch (error) {\n    console.log('No se pudo convertir el valor a JSON:', error.message);\n    return null;\n  }\n};\n\nconst looksLikeContact = (value) => {\n  if (!value || typeof value !== 'object') return false;\n  const keys = Object.keys(value);\n  const hints = [\n    'id',\n    'uuid',\n    'contact_id',\n    'telefono',\n    'phone',\n    'nombre',\n    'status',\n    'estado',\n    'rechazo_previo',\n    'resumen_interacciones',\n    'etiquetas'\n  ];\n  return hints.some((hint) => keys.includes(hint));\n};\n\nconst extractContact = (value) => {\n  if (!value) return null;\n  if (typeof value === 'string') {\n    const parsed = tryParseJson(value);\n    return parsed ? extractContact(parsed) : null;\n  }\n  if (Array.isArray(value)) {\n    for (const item of value) {\n      const candidate = extractContact(item);\n      if (candidate) return candidate;\n    }\n    return null;\n  }\n  if (typeof value === 'object') {\n    if (looksLikeContact(value)) {\n      return value;\n    }\n\n    const nestedKeys = ['data', 'result', 'payload', 'body', 'contact', 'contacto'];\n    for (const key of nestedKeys) {\n      if (key in value) {\n        const candidate = extractContact(value[key]);\n        if (candidate) return candidate;\n      }\n    }\n  }\n  return null;\n};\n\nconst normalizeBoolean = (value) => {\n  if (typeof value === 'boolean') return value;\n  if (typeof value === 'number') return value !== 0;\n  if (typeof value === 'string') {\n    const normalized = value.trim().toLowerCase();\n    if (!normalized) return false;\n    return [\n      'true',\n      '1',\n      'yes',\n      'si',\n      'sí',\n      'rechazado',\n      'rejected',\n      'blocked',\n      'bloqueado'\n    ].includes(normalized);\n  }\n  if (Array.isArray(value)) {\n    return value.some((entry) => normalizeBoolean(entry));\n  }\n  if (value && typeof value === 'object') {\n    return Object.values(value).some((entry) => normalizeBoolean(entry));\n  }\n  return false;\n};\n\nconst getFirstString = (...values) => {\n  for (const value of values) {\n    if (typeof value === 'string' && value.trim()) {\n      return value.trim();\n    }\n  }\n  return '';\n};\n\nconst contactRecord = extractContact(apiResponse);\nconst contactExists = Boolean(contactRecord);\nconst contactId = contactRecord?.id ?? contactRecord?.contact_id ?? contactRecord?.uuid ?? contactRecord?.telefono ?? contactRecord?.phone ?? null;\n\nlet hasRejectionHistory = false;\nif (contactRecord) {\n  const rejectionHints = [\n    contactRecord.rechazo_previo,\n    contactRecord.isRejected,\n    contactRecord.rechazado,\n    contactRecord.estado,\n    contactRecord.status,\n    contactRecord.etiquetas\n  ];\n  hasRejectionHistory = rejectionHints.some((hint) => normalizeBoolean(hint));\n}\n\nconst rejectionSummary = contactRecord\n  ? getFirstString(\n      contactRecord.resumen_interacciones,\n      contactRecord.resumen,\n      contactRecord.comentarios,\n      contactRecord.nota,\n      contactRecord.notas\n    )\n  : '';\n\nconst userMessage = whatsappData.messages?.[0]?.text?.body ?? '';\nconst waId = whatsappData.contacts?.[0]?.wa_id ?? null;\nconst sanitizedContact = contactRecord ? JSON.parse(JSON.stringify(contactRecord)) : null;\n\nreturn {\n  wa_id: waId,\n  userMessage,\n  contactExists,\n  contactId,\n  contactData: sanitizedContact,\n  hasRejectionHistory,\n  rejectionSummary\n};\n"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1104, -256],
-			"id": "073a96a2-e6ef-462a-aad6-be3e5b84fc03",
+			"position": [3344, -320],
+			"id": "cecfead2-ec88-41d7-b8bc-b5e344a52373",
 			"name": "Contact Actions"
 		},
 		{
@@ -1521,8 +1521,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1648, -240],
-			"id": "3109af0f-ad99-46d5-b24d-fea7015222c3",
+			"position": [3888, -304],
+			"id": "53807604-40a6-4574-b503-d3eb91555a2e",
 			"name": "Prepare Message Data"
 		},
 		{
@@ -1537,8 +1537,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [-336, 288],
-			"id": "36e7df40-9251-4b30-b6f9-91c5885ad278",
+			"position": [1904, 224],
+			"id": "fc17f3f1-8e1c-44b9-a42b-769d2f080830",
 			"name": "OpenAI Chat Model1",
 			"credentials": {
 				"openAiApi": {
@@ -1559,8 +1559,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [4560, 160],
-			"id": "d40732c6-ed8d-4439-90cd-68e87bb011aa",
+			"position": [6800, 96],
+			"id": "fd83dece-6a6a-4099-9b93-55d8bfc97327",
 			"name": "OpenAI Chat Model2",
 			"credentials": {
 				"openAiApi": {
@@ -1629,8 +1629,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-2048, 80],
-			"id": "64dc2c5a-3648-43e7-bae3-2f3ddb006b1e",
+			"position": [192, 16],
+			"id": "845a3014-934c-4fe0-b493-35101d75a1ff",
 			"name": "Switch: is Awaiting?"
 		},
 		{
@@ -1646,8 +1646,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-1136, 48],
-			"id": "3373af12-33fa-4164-ad1a-325d805c489b",
+			"position": [1104, -16],
+			"id": "810a3241-486a-42a5-997e-9b3645f020b5",
 			"name": "API: Set new costumer",
 			"retryOnFail": true,
 			"credentials": {
@@ -1670,8 +1670,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [720, 80],
-			"id": "3aca1e7b-8065-4940-bdb9-7d4beab03b2a",
+			"position": [2960, 16],
+			"id": "14413bdd-cd48-4679-b274-9b78c6bf4871",
 			"name": "Add Property Interest",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -1688,8 +1688,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-928, 48],
-			"id": "91cc7e93-b3ca-42e1-b629-258e57dbe7c8",
+			"position": [1312, -16],
+			"id": "daad7f1a-4f33-4297-aa17-36eed4bf72b5",
 			"name": "Update API Contact ID",
 			"credentials": {
 				"postgres": {
@@ -1715,8 +1715,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [2864, -240],
-			"id": "a4bdd250-7971-4b6b-9821-7b5d0a404d33",
+			"position": [5104, -304],
+			"id": "98aeaebb-edeb-4a89-9c41-99eac9265913",
 			"name": "Message a model1",
 			"credentials": {
 				"googlePalmApi": {
@@ -1731,8 +1731,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1552, -560],
-			"id": "7e03fe9c-6860-4e19-b080-cf763925c637",
+			"position": [688, -624],
+			"id": "3191d83e-f0da-4936-bad6-81c09eb82ca9",
 			"name": "Get: Message Info"
 		},
 		{
@@ -1820,8 +1820,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [1344, -272],
-			"id": "edcdb832-be5a-486c-b678-eeb75d1a6043",
+			"position": [3584, -336],
+			"id": "952d9083-4010-41eb-9185-fbaa8b74295a",
 			"name": "Actual status of contact"
 		},
 		{
@@ -1830,8 +1830,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1008, -560],
-			"id": "b1e5155d-e170-43b5-abce-6e491274f2fc",
+			"position": [1232, -624],
+			"id": "64c3f936-da7f-4d15-9b82-20144fecb6a9",
 			"name": "Has Postgres Context?"
 		},
 		{
@@ -1894,8 +1894,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [656, -240],
-			"id": "1027fb69-c80d-4ebb-a8b1-efba23a04169",
+			"position": [2896, -304],
+			"id": "c3d00188-d381-4ebd-9d13-f31a01741d33",
 			"name": "Need Contact Check?"
 		},
 		{
@@ -1904,8 +1904,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [3184, -240],
-			"id": "ca5ef0e9-ee01-4892-a9df-3a06dd6ce824",
+			"position": [5424, -304],
+			"id": "6676104c-013d-4ef1-918b-95376a99b150",
 			"name": "Parse Gemini Validation"
 		},
 		{
@@ -1925,8 +1925,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [3824, -464],
-			"id": "f5d1e6c8-9f39-4d43-bd8f-20b4a42a8ec6",
+			"position": [6064, -528],
+			"id": "c1249880-c423-4065-acf0-034ed8b85490",
 			"name": "Generate Resume",
 			"credentials": {
 				"googlePalmApi": {
@@ -1941,8 +1941,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [4144, -464],
-			"id": "a1760da1-d1ec-4177-9962-e2992c4bd116",
+			"position": [6384, -528],
+			"id": "580a7934-ece7-49e2-8e37-ef45bd155188",
 			"name": "Parse Resume"
 		},
 		{
@@ -1958,8 +1958,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [4368, -464],
-			"id": "e3987715-9782-467c-86d7-1f4d3dd7948b",
+			"position": [6608, -528],
+			"id": "dfe88f20-af91-41a0-9b38-55964c5c4e74",
 			"name": "HTTP Request",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -1976,8 +1976,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1184, 384],
-			"id": "e3b956f4-55f8-4341-acdc-8281dd5c0577",
+			"position": [3424, 320],
+			"id": "2c5ae019-3229-4893-a31d-fa4824a7a71b",
 			"name": "Get: User Context General Inq or Out Scope",
 			"credentials": {
 				"postgres": {
@@ -1997,8 +1997,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [1376, 624],
-			"id": "021c7347-b6af-4e08-aa60-25a087199526",
+			"position": [3616, 560],
+			"id": "d47cb0e5-874a-4e90-b31b-9d902b340dab",
 			"name": "OpenAI Chat Model",
 			"credentials": {
 				"openAiApi": {
@@ -2017,8 +2017,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [1376, 384],
-			"id": "0a43c394-67dd-4c1b-9dd5-25aad787b814",
+			"position": [3616, 320],
+			"id": "57d0a725-9761-43d4-a76b-81eb29383103",
 			"name": "AI General Inq or Out Scope"
 		},
 		{
@@ -2028,8 +2028,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [1552, 624],
-			"id": "d9915b51-875b-4e39-b88e-c2a10c95796f",
+			"position": [3792, 560],
+			"id": "ad2819dd-f774-4fae-a9c8-0d252ec5b4cf",
 			"name": "Simple Memory1"
 		},
 		{
@@ -2042,8 +2042,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [1888, 384],
-			"id": "c5fd6cfc-9173-40d8-be18-9df63cf3dcc3",
+			"position": [4128, 320],
+			"id": "3e5ea576-fd65-4239-af86-e0570fb1a266",
 			"name": "Message: General Inq or Out Scope",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2059,8 +2059,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1696, 384],
-			"id": "a5685adb-4b8b-47a5-9c8a-666e6e292ae8",
+			"position": [3936, 320],
+			"id": "09f61868-2d7b-43b3-b7f2-1fd40758b39f",
 			"name": "Parse: AI Response"
 		},
 		{
@@ -2076,8 +2076,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [2256, 384],
-			"id": "cbf9d0a5-c67c-41cd-a02b-d01249f22255",
+			"position": [4496, 320],
+			"id": "153cd76d-4c42-4e1f-b7bd-32234efbbb3e",
 			"name": "HTTP Request1",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -2094,8 +2094,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [2448, 384],
-			"id": "ef660504-e83f-4656-8398-e92a4bd1ca96",
+			"position": [4688, 320],
+			"id": "11f7658e-9b57-4841-bfba-704659d54124",
 			"name": "Update: Status awaiting1",
 			"credentials": {
 				"postgres": {
@@ -2112,8 +2112,8 @@
 			},
 			"type": "n8n-nodes-base.discord",
 			"typeVersion": 2,
-			"position": [2080, 384],
-			"id": "7c202890-fa92-450d-9b64-bc24891ff5a1",
+			"position": [4320, 320],
+			"id": "19fe23a2-24d9-4346-ac85-19203b25c716",
 			"name": "Discord: Attention Message",
 			"webhookId": "d0a56f58-550a-46fa-bb94-26037d82b649",
 			"credentials": {
@@ -2131,8 +2131,8 @@
 			},
 			"type": "n8n-nodes-base.discord",
 			"typeVersion": 2,
-			"position": [3392, -560],
-			"id": "94ef71d7-29bc-4aaf-92c1-2c0a27b6418d",
+			"position": [5632, -624],
+			"id": "db28f4da-7103-4e8f-86ec-d45da0f6dc71",
 			"name": "Discord: Approved Message",
 			"webhookId": "d0a56f58-550a-46fa-bb94-26037d82b649",
 			"credentials": {
@@ -2148,8 +2148,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [464, 64],
-			"id": "d5c203ce-2ca8-4f1a-a50e-2dcdc155f99c",
+			"position": [2704, 0],
+			"id": "a53ddeb2-5e51-4a0b-95c6-a13bf43c702a",
 			"name": "Parse: Message w Property Info"
 		},
 		{
@@ -2158,8 +2158,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [4256, 464],
-			"id": "6208ad44-ebff-46bd-a8fa-79221b5b7ada",
+			"position": [6496, 400],
+			"id": "76107cb5-889d-45c6-8031-ae3b492a519a",
 			"name": "Parse AI Questionnaire"
 		},
 		{
@@ -2174,8 +2174,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
 			"typeVersion": 1.2,
-			"position": [3888, 688],
-			"id": "c42ede0a-1cea-4694-9ea8-edd37bea03bd",
+			"position": [6128, 624],
+			"id": "a8b502ce-8c1e-429c-8ea9-b5442f602031",
 			"name": "OpenAI Chat Model3",
 			"credentials": {
 				"openAiApi": {
@@ -2192,8 +2192,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
 			"typeVersion": 1.3,
-			"position": [4048, 688],
-			"id": "dd1634d9-938c-4789-84e1-0ea8165cee12",
+			"position": [6288, 624],
+			"id": "1d463346-9df5-486f-ab8d-fb1b498e5b40",
 			"name": "Simple Memory2"
 		},
 		{
@@ -2203,9 +2203,9 @@
 				"width": 2336
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-1632, -960],
+			"position": [608, -1024],
 			"typeVersion": 1,
-			"id": "5251b3a7-e864-45c2-911f-9e937aaa3ef0",
+			"id": "545cd45f-4c77-4fe2-948a-797aeafe60a2",
 			"name": "Sticky Note"
 		},
 		{
@@ -2228,8 +2228,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.openAi",
 			"typeVersion": 1.8,
-			"position": [0, -864],
-			"id": "fc9004c5-2474-4f2a-922c-22778b27c985",
+			"position": [2240, -928],
+			"id": "e647d091-4c44-4450-8f31-0a1543147996",
 			"name": "Message a model",
 			"credentials": {
 				"openAiApi": {
@@ -2265,8 +2265,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [1904, 64],
-			"id": "9b4b6928-af52-4da1-ad5d-754ead0c5859",
+			"position": [4144, 0],
+			"id": "afbbaa2c-21d5-4b7a-b033-610130da251a",
 			"name": "If"
 		},
 		{
@@ -2282,8 +2282,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [2096, -544],
-			"id": "934c4eba-5a91-4f10-a4c1-1ece9ffa34fa",
+			"position": [4336, -608],
+			"id": "e0568134-bdf4-4387-afa7-5d387559c3d2",
 			"name": "Update: Contact Comments1",
 			"credentials": {
 				"httpBearerAuth": {
@@ -2302,16 +2302,16 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1888, -544],
-			"id": "d85f7e03-47c9-4cdf-ba86-713b618c3774",
+			"position": [4128, -608],
+			"id": "5a0e771e-0133-4c12-ba43-e80ff326c593",
 			"name": "Format Reject Comment Payload"
 		},
 		{
 			"parameters": {},
 			"type": "n8n-nodes-base.merge",
 			"typeVersion": 2.1,
-			"position": [656, -544],
-			"id": "d3a74749-2527-4edc-b4a4-3842b893a729",
+			"position": [2896, -608],
+			"id": "ac9a7ddb-d4b7-4a26-a757-a2dc983f59b0",
 			"name": "Merge Rejection Sources"
 		},
 		{
@@ -2360,8 +2360,8 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [864, -544],
-			"id": "973968d1-966a-4e1b-a9be-d1e67bd6b0aa",
+			"position": [3104, -608],
+			"id": "eaba4967-0e5d-40f5-a434-ca579b8ef7b0",
 			"name": "Set: Rejection Payload"
 		},
 		{
@@ -2385,8 +2385,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [1072, -544],
-			"id": "1b7030b3-9183-49c9-a5cb-88fe308af6c1",
+			"position": [3312, -608],
+			"id": "b172f916-65a9-4f11-ab47-a61d15d4f455",
 			"name": "AI: Create Reject Message",
 			"credentials": {
 				"googlePalmApi": {
@@ -2405,8 +2405,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [1376, -544],
-			"id": "5d9990a1-fff5-486f-b91d-b17308f83bc0",
+			"position": [3616, -608],
+			"id": "7f05da05-d61d-41c3-aa44-3c9922f2ca89",
 			"name": "Message: Reject 2",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2433,8 +2433,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.googleGemini",
 			"typeVersion": 1,
-			"position": [1568, -544],
-			"id": "8aeaef5d-0aef-49ba-8237-5c0ccdbc3692",
+			"position": [3808, -608],
+			"id": "780fc8da-6844-4fc6-8b23-49005474b46a",
 			"name": "AI: Create Reject Resume",
 			"credentials": {
 				"googlePalmApi": {
@@ -2545,6 +2545,56 @@
 							},
 							"renameOutput": true,
 							"outputKey": "No context"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "17afc7a8-8bc7-4893-a2a9-bb67e840bce6",
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "awaiting_data",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Awaiting Data"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "b965f87d-6882-4015-ac98-9560bdced08c",
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "awaiting_questionnaire",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Quest"
 						}
 					]
 				},
@@ -2552,8 +2602,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [336, -544],
-			"id": "41152c95-1d43-41d0-99ae-e2184088ceb6",
+			"position": [2576, -608],
+			"id": "120f7514-eeda-4c3f-adca-f407ec78872d",
 			"name": "Switch2"
 		},
 		{
@@ -2562,8 +2612,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-304, -528],
-			"id": "9500b26c-e0e1-4c32-a214-de2219bc11e4",
+			"position": [1936, -592],
+			"id": "d33dab3d-862f-4d75-bcb0-3c6a15286e06",
 			"name": "Parse Misbehavior"
 		},
 		{
@@ -2586,9 +2636,10 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.openAi",
 			"typeVersion": 1.8,
-			"position": [-576, -528],
-			"id": "3f43d1a1-b5fb-4274-a2c8-8acfa5be7341",
+			"position": [1664, -592],
+			"id": "5b8fc5a7-e644-4c7d-821e-ead02c48058a",
 			"name": "AI Misbehavior Detector",
+			"retryOnFail": true,
 			"credentials": {
 				"openAiApi": {
 					"id": "g8OPzRDvvB6YO7mf",
@@ -2605,8 +2656,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-1552, -864],
-			"id": "d4ba8e2f-51cc-4206-8159-162fcb7f6396",
+			"position": [688, -928],
+			"id": "c91235f0-9cff-4ec8-9545-cc215f60ec06",
 			"name": "Get API Contact",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -2620,16 +2671,16 @@
 			"parameters": {},
 			"type": "n8n-nodes-base.noOp",
 			"typeVersion": 1,
-			"position": [528, -864],
-			"id": "fd7e46b7-55e3-4d2c-b42d-a8360a42b967",
+			"position": [2768, -928],
+			"id": "ea92e679-fd18-4b66-a558-53f3f833be05",
 			"name": "No Operation, do nothing1"
 		},
 		{
 			"parameters": {},
 			"type": "n8n-nodes-base.noOp",
 			"typeVersion": 1,
-			"position": [-1040, -272],
-			"id": "2bcf8d7e-c12d-46c0-946a-f9dcc17877ed",
+			"position": [1200, -336],
+			"id": "aa842312-5e82-4fdf-a534-a6958129a85c",
 			"name": "No Operation, do nothing2"
 		},
 		{
@@ -2638,8 +2689,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-1552, -272],
-			"id": "89393478-b4c0-4c9f-99e4-e72033bd319b",
+			"position": [688, -336],
+			"id": "be2178d5-c689-4f00-8659-876e557cde9e",
 			"name": "Build Blocked Comment Payload"
 		},
 		{
@@ -2655,8 +2706,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-1360, -272],
-			"id": "6361ca31-780c-47d3-8edb-697bee596a45",
+			"position": [880, -336],
+			"id": "162513e6-7bd4-447e-ad43-5d987ccc7654",
 			"name": "API: Add Blocked Comment",
 			"credentials": {
 				"httpHeaderAuth": {
@@ -2673,8 +2724,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [-1200, -272],
-			"id": "16b43f07-8201-47cd-9001-6d6c09278c41",
+			"position": [1040, -336],
+			"id": "708673ad-4490-45ba-aa50-83715bc32839",
 			"name": "Postgres: Update Blocked Context",
 			"credentials": {
 				"postgres": {
@@ -2710,8 +2761,8 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [80, -544],
-			"id": "0e0c92f6-821b-4b0d-a896-83695b44f5ce",
+			"position": [2320, -608],
+			"id": "451c3f76-7a84-45d2-b36e-c477e0b33107",
 			"name": "Is Blocked?"
 		},
 		{
@@ -2797,8 +2848,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-832, -576],
-			"id": "868aa3e5-d54b-4bb5-b8ce-57d4afa95741",
+			"position": [1408, -640],
+			"id": "08f1d7a3-0f39-4c62-a499-6c5aae634305",
 			"name": "Switch3"
 		},
 		{
@@ -2810,8 +2861,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [-1376, -560],
-			"id": "54da2638-3d4d-4cc8-8699-aab4d2f0a955",
+			"position": [864, -624],
+			"id": "5217c17d-1a11-45b3-ae47-ef68f65cfe62",
 			"name": "Get API Contact1",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -2831,8 +2882,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-2224, -624],
-			"id": "d6a5aecb-dabf-42b7-bb44-bdc0d619d4a9",
+			"position": [16, -688],
+			"id": "5d00eedc-9ad0-43d8-8c91-9e2ba0337ef9",
 			"name": "Message: Error type",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2852,8 +2903,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [-2224, -800],
-			"id": "a5b136e8-6522-4a32-87c8-a9dd21340424",
+			"position": [16, -864],
+			"id": "d863afa2-d51c-4f30-a54d-4f213727a46e",
 			"name": "Error Message Our Side",
 			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
 			"credentials": {
@@ -2871,9 +2922,9 @@
 				"color": 4
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-2288, -432],
+			"position": [-48, -496],
 			"typeVersion": 1,
-			"id": "156a12d8-3769-4090-b5b9-94554bf9d8ff",
+			"id": "325bfdd1-a8b1-4be5-a496-d40ed02a1ec4",
 			"name": "Sticky Note1"
 		},
 		{
@@ -3009,8 +3060,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [-1920, -384],
-			"id": "25df63ec-1f81-4163-a6ba-2dfe2e396c15",
+			"position": [320, -448],
+			"id": "7390d64a-0797-446e-8b04-c9e558ad1fd3",
 			"name": "Switch Type Of Message",
 			"onError": "continueErrorOutput"
 		},
@@ -3022,9 +3073,9 @@
 				"color": 3
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-2304, -1072],
+			"position": [-64, -1136],
 			"typeVersion": 1,
-			"id": "97f91991-558e-48f9-be2a-9a492ed72feb",
+			"id": "cdd02596-c508-48e9-8140-5126b72a1c54",
 			"name": "Sticky Note2"
 		},
 		{
@@ -3035,9 +3086,9 @@
 				"color": 6
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-1568, -624],
+			"position": [672, -688],
 			"typeVersion": 1,
-			"id": "8206ddcc-5468-4207-b101-d030e03ddeb8",
+			"id": "4291c167-520a-473e-b50f-2248e705af9c",
 			"name": "Sticky Note4"
 		},
 		{
@@ -3048,9 +3099,9 @@
 				"color": 2
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-608, -624],
+			"position": [1632, -688],
 			"typeVersion": 1,
-			"id": "309baef0-9be2-4319-b3c7-50516f1210ed",
+			"id": "27fd5370-badd-4b3c-b67e-1dae53dcaeb6",
 			"name": "Sticky Note5"
 		},
 		{
@@ -3061,9 +3112,9 @@
 				"color": 3
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-1600, -336],
+			"position": [640, -400],
 			"typeVersion": 1,
-			"id": "abb80d44-b00f-4687-a261-9a1d80617786",
+			"id": "93493950-0fa0-4b42-99f5-09d870488034",
 			"name": "Sticky Note7"
 		},
 		{
@@ -3074,8 +3125,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [2288, -544],
-			"id": "4d978f9a-7468-4ad1-8487-a278dc46f84d",
+			"position": [4528, -608],
+			"id": "ffc49d28-7a52-4682-9024-8ac2e8b21470",
 			"name": "Update User Context Reject",
 			"credentials": {
 				"postgres": {
@@ -3092,9 +3143,9 @@
 				"color": 3
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [592, -624],
+			"position": [2832, -688],
 			"typeVersion": 1,
-			"id": "6aeecb7d-7cd2-450b-8ea8-422e4b427264",
+			"id": "b177467b-abec-4f39-a2e2-978cb81b511c",
 			"name": "Sticky Note8"
 		},
 		{
@@ -3106,8 +3157,8 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [912, -256],
-			"id": "e7bf5467-cd7d-40c4-88b2-d6cb30918054",
+			"position": [3152, -320],
+			"id": "fa48522c-12e8-4e8c-b996-2354b83c9aac",
 			"name": "Get API Contact2",
 			"alwaysOutputData": true,
 			"credentials": {
@@ -3125,9 +3176,9 @@
 				"color": 6
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [608, -304],
+			"position": [2848, -368],
 			"typeVersion": 1,
-			"id": "40c924e3-bfcc-44ea-aa3c-f400f58a27b0",
+			"id": "9b30a7ed-804d-4984-91ba-0ffa8e53f734",
 			"name": "Sticky Note9"
 		},
 		{
@@ -3140,8 +3191,8 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 2.2,
-			"position": [3920, 464],
-			"id": "6f291461-ba44-424f-baf2-a6aad945f7f4",
+			"position": [6160, 400],
+			"id": "c0890225-3304-4005-9917-3f30905d5acf",
 			"name": "AI Generate Dynamic Questionnaire"
 		},
 		{
@@ -3151,17 +3202,17 @@
 				"width": 1952
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [2112, -304],
+			"position": [4352, -368],
 			"typeVersion": 1,
-			"id": "b49e7ee5-6a43-4a55-a965-953cf6a6ccf8",
+			"id": "c5d44c49-a9ee-46bb-b33d-fe8b1c81c62a",
 			"name": "Sticky Note3"
 		},
 		{
 			"parameters": {},
 			"type": "n8n-nodes-base.noOp",
 			"typeVersion": 1,
-			"position": [-704, -256],
-			"id": "386f077e-6acf-4dc9-9b22-cdb338fc1035",
+			"position": [1536, -320],
+			"id": "3980d771-a304-4fe7-8fc9-15a21f01c034",
 			"name": "No Operation, do nothing"
 		},
 		{
@@ -3171,9 +3222,9 @@
 				"width": 1488
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-2256, 0],
+			"position": [-16, -64],
 			"typeVersion": 1,
-			"id": "e4fc363d-d8e6-45eb-a051-c64eb71dd22f",
+			"id": "2326a722-851a-41e2-856f-cfced5426a9c",
 			"name": "Sticky Note10"
 		},
 		{
@@ -3184,9 +3235,9 @@
 				"color": 4
 			},
 			"type": "n8n-nodes-base.stickyNote",
-			"position": [-736, -32],
+			"position": [1504, -96],
 			"typeVersion": 1,
-			"id": "1020d042-c319-4b94-bb1d-6d5c2a771c09",
+			"id": "8cb825f4-79b2-44ba-a164-212548f126bf",
 			"name": "Sticky Note11"
 		}
 	],
@@ -4302,6 +4353,20 @@
 						"node": "Merge Rejection Sources",
 						"type": "main",
 						"index": 1
+					}
+				],
+				[
+					{
+						"node": "Need Contact Check?",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Need Contact Check?",
+						"type": "main",
+						"index": 0
 					}
 				],
 				[
