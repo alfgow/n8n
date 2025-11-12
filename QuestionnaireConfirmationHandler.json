@@ -1,0 +1,366 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt "
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "20db0ebd-fd3b-4738-bdc1-7d5e39a37818",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "=Eres un clasificador de respuestas de confirmación.\n\nEl usuario respondió a la pregunta: \"¿Estás listo/a para continuar con el cuestionario?\"\n\nMENSAJE DEL USUARIO: {{ $json['userPrompt '] }}\n\nClasifica la respuesta en UNA de estas categorías:\n\n- afirmativa: Acepta continuar (sí, ok, listo, adelante, claro, de acuerdo, va, sale, órale, simón, yes, yep)\n\n- negativa: Rechaza o pospone (no, ahora no, después, más tarde, luego, ahorita no, nel, nope)\n\n- ambigua: No está claro o cambia de tema (cualquier otra respuesta que no sea claramente sí o no)\n\nEjemplos:\n- \"Sí, adelante\" → afirmativa\n- \"Ok\" → afirmativa  \n- \"Listo!\" → afirmativa\n- \"No, ahora no\" → negativa\n- \"Después te digo\" → negativa\n- \"¿Cuánto cuesta?\" → ambigua\n- \"Hola\" → ambigua\n\nResponde SOLO con una palabra: afirmativa, negativa o ambigua\nNo agregues puntuación ni explicaciones."
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [208, 0],
+			"id": "aae2627e-9300-4346-b838-61e358de3b4b",
+			"name": "Message a model",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.output[0].content[0].text }}",
+										"rightValue": "afirmativa",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "491dc383-ce20-4348-8b6e-07e1be42e6a9"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "afirmativa"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "337cfbb5-5030-4b75-837a-1a036921e10e",
+										"leftValue": "={{ $json.output[0].content[0].text }}",
+										"rightValue": "negativa",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "negativa"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "36e19012-f41e-42e1-af7d-9d4127facc43",
+										"leftValue": "={{ $json.output[0].content[0].text }}",
+										"rightValue": "ambigua",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "ambigua"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [528, -16],
+			"id": "e7431a44-8874-4993-a883-75a9f145fc29",
+			"name": "Switch"
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Message a model",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message a model": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {
+		"When Executed by Another Workflow": [
+			{
+				"wa_id": "5215559177781",
+				"userPrompt ": "si",
+				"context_data": {
+					"nombre": "Alfonso Villanueva Quiroz",
+					"status": "awaiting_questionnaire_confirmation",
+					"telefono": "5559177781",
+					"personaje": "Ale",
+					"statusBot": "working",
+					"last_intent": "property_search",
+					"interacciones": [
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "Hola quiero info del depa en museo",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-12T21:32:47.510Z"
+						},
+						{
+							"tipo": "intencion_detectada",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Intención: property_search",
+							"detalles": {
+								"intent": "property_search",
+								"original_message": "Hola quiero info del depa en museo"
+							},
+							"timestamp": "2025-11-12T21:32:54.508Z"
+						},
+						{
+							"tipo": "solicitud_datos",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Se solicitaron datos del contacto",
+							"detalles": {
+								"original_message": ""
+							},
+							"timestamp": "2025-11-12T21:32:54.653Z"
+						},
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "Alfonso Villanueva Quiroz 5559177781",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-12T21:33:14.118Z"
+						},
+						{
+							"tipo": "datos_recibidos",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Datos del contacto recibidos y validados",
+							"detalles": {
+								"nombre": "Alfonso Villanueva Quiroz",
+								"telefono": "5559177781",
+								"api_contact_id": 620
+							},
+							"timestamp": "2025-11-12T21:33:23.820Z"
+						},
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "si",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-12T21:34:13.116Z"
+						}
+					],
+					"api_contact_id": 620,
+					"property_found": {
+						"id": 18,
+						"m2": "70.00",
+						"slug": "hermoso-depa-para-dos-personas",
+						"type": "Departamento",
+						"baths": 1,
+						"rooms": 2,
+						"title": "Hermoso Depa para Dos Personas",
+						"estado": "Ciudad de México",
+						"ammount": "$11,000.00",
+						"colonia": "San Pablo Tepetlapa",
+						"parkings": 0,
+						"municipio": "Coyoacán",
+						"operacion": "Renta",
+						"description": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\r\n\r\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN NI MASCOTAS) no más.\r\n\r\nCuenta con:\r\n\r\n* Bonitos Acabados\r\n* 2 habitaciones (CON CLOSET)\r\n* 1 cocina integral\r\n* 1 baño completo\r\n* Área de Sala - Comedor.\r\n* NO TIENE ESTACIONAMIENTO\r\n\r\n** REQUISITOS**\r\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\r\n\r\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\r\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\r\n* 1 Mes de depósito en garantía\r\n* 1 Mes de renta corriente.\r\n\r\nNO aceptamos: (NO NEGOCIABLES)\r\n\r\n* Mascotas (PERROS, GATOS)\r\n* Niños\r\n* Estudiantes que NO vivan con padre o tutor\r\n* Roomies (Personas que estén cambiando frecuentemente)\r\n\r\nHorario de Atención TELEFÓNICA: NO WHATSAPP\r\n\r\nLu-Vi 09.00am a 6:00 pm\r\n\r\nSábado y Domingo 09.00am a 3:00pm",
+						"restrictions": {
+							"acepta_niños": "no",
+							"observaciones": "Ingresos mínimos comprobables de $30,000 mensuales.",
+							"precio_poliza": "4100.00",
+							"acepta_roomies": "no",
+							"acepta_mascotas": "no",
+							"ingresos_minimos": "30000.00",
+							"acepta_estudiantes": "no",
+							"requiere_comprobantes_ingresos": true
+						}
+					},
+					"original_search": "",
+					"ultima_interaccion": "2025-11-12T21:34:13.116Z"
+				},
+				"api_contact": {
+					"id": 620,
+					"nombre": "🤖 - Alfonso Villanueva Quiroz",
+					"email": null,
+					"telefono": "5559177781",
+					"estado": "en_contacto",
+					"fuente": "🤖 - WhatsApp Bot",
+					"created_at": "2025-11-12T15:32:46-06:00",
+					"updated_at": "2025-11-12T15:33:51-06:00",
+					"last_interaction_at": "2025-11-12T15:33:51-06:00",
+					"interes_reciente": {
+						"id": 76,
+						"inmueble_id": 18,
+						"inmueble": {
+							"id": 18,
+							"titulo": "Hermoso Depa para Dos Personas",
+							"slug": "hermoso-depa-para-dos-personas",
+							"descripcion": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\r\n\r\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN MASCOTAS) no más.\r\n\r\nCuenta con:\r\n\r\n* Bonitos Acabados\r\n* 2 habitaciones (CON CLOSET)\r\n* 1 cocina integral\r\n* 1 baño completo\r\n* Área de Sala - Comedor.\r\n* NO TIENE ESTACIONAMIENTO\r\n\r\n** REQUISITOS**\r\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\r\n\r\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\r\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\r\n* 1 Mes de depósito en garantía\r\n* 1 Mes de renta corriente.\r\n\r\nNO aceptamos: (NO NEGOCIABLES)\r\n\r\n* Mascotas (PERROS, GATOS)\r\n* Niños\r\n* Estudiantes que NO vivan con padre o tutor\r\n* Roomies (Personas que estén cambiando frecuentemente)\r\n\r\nHorario de Atención TELEFÓNICA: NO WHATSAPP\r\n\r\nLu-Vi 09.00am a 6:00 pm\r\n\r\nSábado y Domingo 09.00am a 3:00pm",
+							"precio": "11000.00",
+							"precio_formateado": "$11,000.00",
+							"direccion": "San Pablo Tepetlapa",
+							"colonia": "San Pablo Tepetlapa",
+							"municipio": "Coyoacán",
+							"estado": "Ciudad de México",
+							"codigo_postal": "04620",
+							"ubicacion": {
+								"latitud": 19.321995,
+								"longitud": -99.138793
+							},
+							"location": {
+								"latitude": 19.321995,
+								"longitude": -99.138793
+							},
+							"tipo": "Departamento",
+							"operacion": "Renta",
+							"habitaciones": 2,
+							"banos": 1,
+							"estacionamientos": 0,
+							"metros_cuadrados": "70.00",
+							"superficie_construida": "70.00",
+							"superficie_terreno": "70.00",
+							"anio_construccion": 2000,
+							"destacado": true,
+							"video_url": null,
+							"tour_virtual_url": null,
+							"amenidades": [],
+							"extras": [],
+							"tags": [
+								"division del norte",
+								"museo",
+								"San Pablo Tepetlapa"
+							],
+							"created_at": "2025-10-15T21:45:49-06:00",
+							"updated_at": "2025-11-06T17:58:34-06:00"
+						},
+						"created_at": "2025-11-12T15:33:51-06:00"
+					}
+				}
+			}
+		],
+		"Message a model": [
+			{
+				"output": [
+					{
+						"id": "msg_0f983f44c8ed63d7006914fe8311a881a289e21f6e92e3df57",
+						"type": "message",
+						"status": "completed",
+						"content": [
+							{
+								"type": "output_text",
+								"annotations": [],
+								"logprobs": [],
+								"text": "afirmativa"
+							}
+						],
+						"role": "assistant"
+					}
+				]
+			}
+		]
+	},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

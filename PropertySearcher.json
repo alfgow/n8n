@@ -1,0 +1,136 @@
+{
+	"name": "PropertySearcher",
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{ "name": "wa_id", "type": "string" },
+						{ "name": "userPrompt", "type": "string" },
+						{ "name": "context_data", "type": "json" },
+						{ "name": "nombre", "type": "string" },
+						{ "name": "telefono", "type": "string" }
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [240, 300],
+			"id": "trigger-ps-001",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"url": "https://vg.g210512.com/api/v1/inmuebles",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendQuery": true,
+				"queryParameters": {
+					"parameters": [
+						{
+							"name": "buscar",
+							"value": "={{ $json.userPrompt }}"
+						},
+						{ "name": "limite", "value": "5" }
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [440, 300],
+			"id": "search-api-001",
+			"name": "API: Search Properties",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const results = $json.data || [];\nconst triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\nif (results.length === 0) {\n  return {\n    wa_id: triggerData.wa_id,\n    nombre: triggerData.nombre,\n    hasResults: false,\n    message: 'Lo siento, no encontré propiedades que coincidan con tu búsqueda. ¿Podrías darme más detalles sobre lo que buscas?'\n  };\n}\n\nlet message = `¡Encontré ${results.length} ${results.length === 1 ? 'propiedad' : 'propiedades'} para ti! 🏠\\n\\n`;\n\nresults.forEach((prop, index) => {\n  message += `${index + 1}. ${prop.titulo || 'Propiedad'}\\n`;\n  message += `   📍 ${prop.ubicacion || 'Sin ubicación'}\\n`;\n  message += `   💰 ${prop.precio ? '$' + prop.precio.toLocaleString() : 'Consultar'}\\n`;\n  message += `   📏 ${prop.superficie || 'N/A'} m²\\n\\n`;\n});\n\nmessage += '¿Cuál te gustaría conocer más a detalle? Responde con el número.';\n\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\nupdatedContext.status = 'presenting_options';\nupdatedContext.ultima_interaccion = timestamp;\nupdatedContext.search_results = results;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'resultados_enviados',\n  mensaje: `Se presentaron ${results.length} opciones`,\n  detalles: { cantidad: results.length }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  nombre: triggerData.nombre,\n  hasResults: true,\n  message: message,\n  updatedContext: updatedContext\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [640, 300],
+			"id": "format-results-001",
+			"name": "Format Results"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $json.message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [840, 300],
+			"id": "send-results-001",
+			"name": "Send Results",
+			"webhookId": "send-results-001",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts SET context_data = jsonb_set($${{ $json.updatedContext.toJsonString() }}$$::jsonb, '{statusBot}', '\"free\"'::jsonb), updated_at = CURRENT_TIMESTAMP WHERE wa_id = '{{ $json.wa_id }}' RETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1040, 300],
+			"id": "save-context-001",
+			"name": "Save Context with Results",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "API: Search Properties",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Search Properties": {
+			"main": [[{ "node": "Format Results", "type": "main", "index": 0 }]]
+		},
+		"Format Results": {
+			"main": [[{ "node": "Send Results", "type": "main", "index": 0 }]]
+		},
+		"Send Results": {
+			"main": [
+				[
+					{
+						"node": "Save Context with Results",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}
