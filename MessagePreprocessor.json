@@ -1,0 +1,642 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "webhook_data",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [32, -256],
+			"id": "c4136581-ef0c-43c5-9073-68b5776de5c5",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const webhookData = $json.webhook_data;\nconst messages = webhookData.messages;\nconst contacts = webhookData.contacts;\n\nconst message = messages[0];\nconst contact = contacts[0];\n\nconst wa_id = contact.wa_id;\nconst phone = wa_id.replace(/^521/, '');\nconst userPrompt = message.text.body;\nconst messageType = message.type;\n\nreturn {\n  userPrompt,\n  type: messageType,\n  wa_id,\n  phone,\n  ai: \"\"\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [32, 0],
+			"id": "0412400b-3ec9-47b5-bf9b-48ea9eb3ebec",
+			"name": "Extract Message Info"
+		},
+		{
+			"parameters": {
+				"url": "=https://vg.g210512.com/api/v1/contactos?telefono={{ $json.phone }}",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [224, 0],
+			"id": "607086f1-d130-4bab-9589-873b1b5ffd5c",
+			"name": "Get API Contact",
+			"alwaysOutputData": true,
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract Message Info').item.json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [896, 0],
+			"id": "e7d3938e-9e65-45b7-8585-727fd693c739",
+			"name": "Check Context Status",
+			"alwaysOutputData": true,
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT COALESCE((\n  SELECT context_data->>'statusBot'\n  FROM user_contexts\n  WHERE wa_id = '{{ $('Extract Message Info').item.json.wa_id }}'\n  LIMIT 1\n), 'free') AS \"statusBot\";",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1376, 16],
+			"id": "52fa751f-8052-4968-9f9f-e32035e414c0",
+			"name": "Get Bot Status",
+			"alwaysOutputData": true,
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "9c945a0f-b0ee-4064-a1ac-81398fae8316",
+							"leftValue": "={{ $json.statusBot }}",
+							"rightValue": "working",
+							"operator": {
+								"type": "string",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [1568, 16],
+			"id": "e037f056-f76d-48ac-bc42-e93866ba7110",
+			"name": "If: Bot Working?"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Extract Message Info').item.json.wa_id }}",
+				"textBody": "=👋 Hola de nuevo. En este momento sigo trabajando en tu solicitud anterior. Por favor espera un momento y en cuanto termine te ayudaré enseguida. 🙏",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1344, -192],
+			"id": "17572d38-72d4-4484-9512-db16078caaa3",
+			"name": "Message: Bot Busy",
+			"webhookId": "32e518a9-64a8-4186-a7b0-d0962d11939a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "return {\n  bot_busy: true,\n  should_continue: false,\n  message_sent: true,\n  wa_id: $('Extract Message Info').item.json.wa_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1552, -192],
+			"id": "353453cd-3239-40bc-8200-1b4c64cac36e",
+			"name": "Format Busy Output"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Extract Message Info').item.json.wa_id }}',\n  jsonb_build_object('statusBot', 'working'),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = jsonb_set(\n    COALESCE(user_contexts.context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"working\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [336, 272],
+			"id": "e5027f9e-4b32-428d-8050-af5b643f25f9",
+			"name": "Update Bot to Working",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// Obtener datos de los nodos anteriores usando $input\nconst allInputs = $input.all();\n\n// Buscar datos en el flujo\nlet messageInfo = null;\nlet apiContact = null;\nlet characterData = null;\n\n// Recorrer todos los inputs previos\nfor (const item of allInputs) {\n  const json = item.json;\n  \n  // Identificar el nodo Extract Message Info\n  if (json.userPrompt && json.wa_id && json.phone) {\n    messageInfo = json;\n  }\n  \n  // Identificar el nodo Get API Contact\n  if (json.data !== undefined && !json.context_data) {\n    apiContact = json;\n  }\n  \n  // Identificar el nodo Update Context with Character (más reciente con context_data)\n  if (json.context_data && json.id) {\n    characterData = json;\n  }\n}\n\n// Fallback: usar el input actual si no encontramos characterData\nif (!characterData) {\n  characterData = $json;\n}\n\n// Extraer datos del contexto actualizado\nconst contextData = characterData.context_data || {};\nconst postgresContextId = characterData.id || null;\n\n// Verificar si es nuevo\nconst isNew = !contextData.personaje || contextData.personaje === null;\n\nreturn {\n  bot_busy: false,\n  should_continue: true,\n  \n  // Datos del mensaje\n  userPrompt: $('Extract Message Info').first().json.userPrompt || '',\n  type: messageInfo?.type || 'text',\n  wa_id: $('Extract Message Info').first().json.wa_id || '',\n  phone: $('Extract Message Info').first().json.phone || '',\n  \n  // Datos del contacto API\n  api_contact: $('Get API Contact').first().json.data[0] || $('API: Create Contact').first().json.data || [],\n  \n  // Datos del contexto Postgres (ACTUALIZADOS con personaje)\n  postgres_context_id: postgresContextId,\n  context_data: contextData,\n  has_postgres_context: Boolean(postgresContextId),\n  \n  // Status y personaje\n  current_status: contextData.status || 'new',\n  personaje: contextData.personaje,\n  isNew: isNew\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1584, 272],
+			"id": "1e5bb905-ef27-4c58-8f36-0dceb3197ef6",
+			"name": "Format Continue Output"
+		},
+		{
+			"parameters": {
+				"jsCode": "const contextStatus = $('Check Context Status').item.json;\nconst messageInfo = $('Extract Message Info').item.json;\n\n// Obtener datos del contexto existente\nconst existingContext = contextStatus.context_data || {};\nconst postgresContextId = contextStatus.id || null;\n\n// Lista de personajes disponibles\nconst personajes = ['Dany', 'Ale', 'Regi', 'Susy'];\n\n// Verificar si ya tiene personaje asignado\nlet personaje = existingContext.personaje;\nlet isNew = false;\n\n// Si NO tiene personaje, asignar uno aleatorio\nif (!personaje) {\n  personaje = personajes[Math.floor(Math.random() * personajes.length)];\n  isNew = true;\n  console.log('✨ Asignando nuevo personaje:', personaje);\n} else {\n  console.log('👤 Personaje existente:', personaje);\n}\n\n// Crear timestamp\nconst timestamp = new Date().toISOString();\n\n// Clonar interacciones existentes\nconst existingInteractions = Array.isArray(existingContext.interacciones)\n  ? existingContext.interacciones.map(entry => ({ ...entry }))\n  : [];\n\n// Agregar nueva interacción\nconst interactionEntry = {\n  timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'mensaje_recibido',\n  mensaje: messageInfo.userPrompt,\n  detalles: {\n    tipo_mensaje: messageInfo.type\n  }\n};\n\nexistingInteractions.push(interactionEntry);\n\n// Construir contexto actualizado\nconst updatedContext = {\n  ...existingContext,\n  personaje,\n  ultima_interaccion: timestamp,\n  interacciones: existingInteractions,\n  statusBot: 'working'\n};\n\nreturn {\n  wa_id: messageInfo.wa_id,\n  personaje,\n  isNew,\n  updatedContext,\n  contextId: postgresContextId,\n  timestamp\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [560, 272],
+			"id": "8ff9a0f6-d1a0-4e7a-b8ea-122999b55fc8",
+			"name": "Assign Character If Needed"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $json.wa_id }}',\n  $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id)\nDO UPDATE SET\n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [768, 272],
+			"id": "3c03eaca-9d4c-4d65-b8e2-6dd79bb6813e",
+			"name": "Update Context with Character",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [880, -240],
+			"id": "9de5ee0a-55f0-415c-9782-88b63ce8021b",
+			"name": "No Operation, do nothing"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Extract Message Info').item.json.wa_id }}',\n  jsonb_build_object('statusBot', 'working'),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = jsonb_set(\n    COALESCE(user_contexts.context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [672, -240],
+			"id": "64f1cfaa-ed88-4aa8-85bd-45a5d9c7a5c1",
+			"name": "Update Bot to Free",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "7b79bf00-b16c-4518-8f3b-6cbb528c6559",
+							"leftValue": "={{ $json.data[0].estado }}",
+							"rightValue": "blocked",
+							"operator": {
+								"type": "string",
+								"operation": "equals",
+								"name": "filter.operator.equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [672, -16],
+			"id": "50e48dce-7a42-4bc6-b514-84be2028799a",
+			"name": "If: API Blocked?"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "eebaa239-268f-4da5-b1fd-3bd9a28cac64",
+							"leftValue": "={{ $json.context_data.status }}",
+							"rightValue": "blocked",
+							"operator": {
+								"type": "string",
+								"operation": "equals",
+								"name": "filter.operator.equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [1120, 0],
+			"id": "208daf1e-60e4-4071-98b5-5caa306aace4",
+			"name": "If: Postgress Blocked?"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "https://vg.g210512.com/api/v1/contactos",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"nombre\": \"🤖 - Sin nombre\",\n  \"telefono\": \"{{ $json.filters.telefono }}\",\n  \"estado\": \"nuevo\",\n  \"fuente\": \"WhatsApp Bot\"\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [416, -192],
+			"id": "68aca724-c97a-4f80-a612-8edc45ac5b14",
+			"name": "API: Create Contact",
+			"alwaysOutputData": true,
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "8c0db733-f88c-4d82-b2ad-f85b010abd7f",
+							"leftValue": "={{ $json.data[0].id }}",
+							"rightValue": "",
+							"operator": {
+								"type": "number",
+								"operation": "exists",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [400, 0],
+			"id": "f77d901a-17c9-4915-8dae-2cd7bedcf8ee",
+			"name": "If: API Exists?"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact_id }}/comentarios\n",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "=🤖 Procesé exitosamente mensaje inicial del contacto: {{ $('Extract Message Info').item.json.userPrompt }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [1168, 272],
+			"id": "5c7d4ad9-8326-431b-9cb6-7bf9ca29f71c",
+			"name": "API: Add Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "let id = null;\n\ntry {\n  id = $('Get API Contact').item.json.data?.[0]?.id;\n} catch {}\nif (!id) {\n  try {\n    id = $('API: Create Contact').item.json.data?.id;\n  } catch {}\n}\n\nreturn { api_contact_id: id };\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [960, 272],
+			"id": "70d2ac27-c67d-43b9-986a-cb0080d12f15",
+			"name": "Get API id"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract Message Info').item.json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1376, 272],
+			"id": "fc435aef-99a1-4e17-952e-84dad5f471b7",
+			"name": "Execute a SQL query",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Extract Message Info",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Extract Message Info": {
+			"main": [
+				[
+					{
+						"node": "Get API Contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get API Contact": {
+			"main": [
+				[
+					{
+						"node": "If: API Exists?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Context Status": {
+			"main": [
+				[
+					{
+						"node": "If: Postgress Blocked?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get Bot Status": {
+			"main": [
+				[
+					{
+						"node": "If: Bot Working?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Bot Working?": {
+			"main": [
+				[
+					{
+						"node": "Message: Bot Busy",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Update Bot to Working",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message: Bot Busy": {
+			"main": [
+				[
+					{
+						"node": "Format Busy Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Bot to Working": {
+			"main": [
+				[
+					{
+						"node": "Assign Character If Needed",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Format Continue Output": {
+			"main": [[]]
+		},
+		"Assign Character If Needed": {
+			"main": [
+				[
+					{
+						"node": "Update Context with Character",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Context with Character": {
+			"main": [
+				[
+					{
+						"node": "Get API id",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Bot to Free": {
+			"main": [
+				[
+					{
+						"node": "No Operation, do nothing",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: API Blocked?": {
+			"main": [
+				[
+					{
+						"node": "Update Bot to Free",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Check Context Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Postgress Blocked?": {
+			"main": [
+				[
+					{
+						"node": "Update Bot to Free",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Get Bot Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Create Contact": {
+			"main": [
+				[
+					{
+						"node": "If: API Blocked?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: API Exists?": {
+			"main": [
+				[
+					{
+						"node": "If: API Blocked?",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "API: Create Contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Add Comment": {
+			"main": [
+				[
+					{
+						"node": "Execute a SQL query",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get API id": {
+			"main": [
+				[
+					{
+						"node": "API: Add Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query": {
+			"main": [
+				[
+					{
+						"node": "Format Continue Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

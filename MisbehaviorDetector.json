@@ -1,0 +1,661 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $json.wa_id }}',\n  $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id)\nDO UPDATE SET\n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1392, -144],
+			"id": "7723c055-fd13-48f6-9292-12f62a85acd7",
+			"name": "Update Context - No misbehavior",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact_id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "={{$json.commentText}}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [672, -128],
+			"id": "f084aeac-2f56-4fc9-a588-23e70c0cf348",
+			"name": "API: Add Comment1",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "phone"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "e334fda3-3055-4aaf-b471-e98dac8bd714",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const contextData = $json.context_data || {};\nconst apiContact = $json.api_contact || [];\n\n// Verificar si está bloqueado en Postgres\nconst blockedInPostgres = contextData.status === 'blocked';\n\n// Verificar si está bloqueado en API\nconst blockedInAPI = apiContact.length > 0 && \n                     apiContact[0]?.estado === 'blocked';\n\n// Si está bloqueado, obtener historial y razones\nconst isBlocked = blockedInPostgres || blockedInAPI;\n\nlet blockReason = '';\nlet blockHistory = [];\n\nif (blockedInPostgres) {\n  blockReason = contextData.motivo_rechazo?.join(', ') || 'Bloqueado previamente';\n  blockHistory = contextData.mal_comportamiento_historial || [];\n}\n\nconsole.log('🔍 Estado de bloqueo:');\nconsole.log('  - Bloqueado en Postgres:', blockedInPostgres);\nconsole.log('  - Bloqueado en API:', blockedInAPI);\nconsole.log('  - Razón:', blockReason);\n\nreturn {\n  wa_id: $json.wa_id,\n  phone: $json.phone,\n  userPrompt: $json.userPrompt,\n  context_data: contextData,\n  api_contact: apiContact,\n  is_blocked: isBlocked,\n  blocked_in_postgres: blockedInPostgres,\n  blocked_in_api: blockedInAPI,\n  block_reason: blockReason,\n  block_history: blockHistory\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [208, 0],
+			"id": "33a165c7-1f9f-44e5-8fa8-3ae79d70fa4f",
+			"name": "Check Existing Block Status"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "048ca520-873e-4ae2-9cf8-f6c3a8b1c8b4",
+							"leftValue": "={{ $json.is_blocked }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [416, 0],
+			"id": "0a920b07-b7c6-4b70-b721-f0ae7ea21749",
+			"name": "If: Already Blocked?"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "=Eres un detector de comportamiento inapropiado.\n\nMENSAJE DEL CLIENTE: {{ $('Check Existing Block Status').item.json.userPrompt }}\n\nAnaliza si contiene:\n- Insultos directos o indirectos\n- Lenguaje ofensivo o profano\n- Amenazas (legales, físicas, etc)\n- Acoso o discriminación\n- Groserías en español mexicano\n- Intento de evadir filtros (p3nd3jo, p e n d e j o, etc)\n\nNO marques como ofensivo: quejas legítimas, frustración educada, críticas constructivas\nSÍ marca como ofensivo: insultos personales, amenazas, lenguaje agresivo\n\nResponde SOLO con JSON válido:\n{\n  \"isMisbehavior\": true o false,\n  \"confidence\": 0.0 a 1.0,\n  \"reason\": \"Razón específica si es ofensivo, vacío si no\",\n  \"detectedTerms\": [\"lista de términos ofensivos\"]\n}\n\nNO uses markdown ni explicaciones."
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {
+					"textFormat": {
+						"textOptions": {
+							"type": "json_object"
+						}
+					}
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [640, 64],
+			"id": "6fc583f1-40d9-423b-a0cc-df84b0e90fbd",
+			"name": "AI: Detect Misbehavior",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const originalData = $('Check Existing Block Status').item.json;\n\nlet parsed = {\n  isMisbehavior: false,\n  confidence: 0,\n  reason: '',\n  detectedTerms: []\n};\n\ntry {\n  const output = $json.output;\n  if (Array.isArray(output) && output.length > 0) {\n    const msg = output[0];\n    const content = msg.content;\n    if (Array.isArray(content) && content.length > 0) {\n      const textObj = content[0].text;\n      if (textObj) {\n        parsed = textObj;\n      }\n    }\n  }\n} catch (error) {\n  console.error('❌ Error parseando detección:', error);\n  console.log('Contenido recibido:', $json.output);\n}\n\nreturn {\n  wa_id: originalData.wa_id,\n  phone: originalData.phone,\n  userPrompt: originalData.userPrompt,\n  context_data: originalData.context_data,\n  api_contact: originalData.api_contact,\n  misbehavior_detected: parsed.isMisbehavior,\n  misbehavior_confidence: parsed.confidence,\n  misbehavior_reason: parsed.reason,\n  misbehavior_terms: parsed.detectedTerms\n};\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [960, 64],
+			"id": "99e8f2b9-33cd-45ad-af22-bbf3fb7efec6",
+			"name": "Parse Misbehavior"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "092b6ad9-4216-43df-bf1f-51f12ed6b40a",
+							"leftValue": "={{ $json.misbehavior_detected }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [1168, 64],
+			"id": "ca18a08d-f6b4-436d-a339-6e2c1b81bba2",
+			"name": "If: Misbehavior Detected?"
+		},
+		{
+			"parameters": {
+				"jsCode": "const misbehaviorData = $('Parse Misbehavior').item.json;\nconst timestamp = new Date().toISOString();\n\n// Construir entrada de historial\nconst historyEntry = {\n  timestamp,\n  mensaje_original: misbehaviorData.userPrompt,\n  palabras_detectadas: misbehaviorData.misbehavior_terms,\n  origen: 'auto_filter',\n  razon: misbehaviorData.misbehavior_reason\n};\n\n// Actualizar contexto\nconst existingContext = misbehaviorData.context_data || {};\n\nconst existingHistory = Array.isArray(existingContext.mal_comportamiento_historial)\n  ? existingContext.mal_comportamiento_historial\n  : [];\n\nconst existingReasons = Array.isArray(existingContext.motivo_rechazo)\n  ? existingContext.motivo_rechazo\n  : [];\n\n// Agregar nueva razón si no existe\nconst updatedReasons = [...existingReasons];\nif (!updatedReasons.includes(misbehaviorData.misbehavior_reason)) {\n  updatedReasons.push(misbehaviorData.misbehavior_reason);\n}\n\n// Interacción\nconst existingInteractions = Array.isArray(existingContext.interacciones)\n  ? existingContext.interacciones\n  : [];\n\nconst blockInteraction = {\n  timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'bloqueo_automatico',\n  mensaje: '🤖 - Contacto bloqueado por comportamiento indebido',\n  detalles: {\n    motivo: misbehaviorData.misbehavior_reason,\n    palabras_detectadas: misbehaviorData.misbehavior_terms\n  }\n};\n\n// Contexto actualizado\nconst updatedContext = {\n  ...existingContext,\n  status: 'blocked',\n  statusBot: 'free',\n  rechazo_previo: true,\n  motivo_rechazo: updatedReasons,\n  mal_comportamiento_historial: [...existingHistory, historyEntry],\n  ultima_interaccion: timestamp,\n  interacciones: [...existingInteractions, blockInteraction]\n};\n\n// Comentario para la API\nconst commentLines = [\n  '🚫 BLOQUEADO - MAL COMPORTAMIENTO',\n  '',\n  `Motivo: 🤖 - ${misbehaviorData.misbehavior_reason}`,\n  misbehaviorData.misbehavior_terms.length ? `Coincidencias: ${misbehaviorData.misbehavior_terms.join(', ')}` : '',\n  `Mensaje: \"${misbehaviorData.userPrompt}\"`,\n  `Registrado: ${timestamp}`\n].filter(Boolean).join('\\n');\n\nreturn {\n  wa_id: misbehaviorData.wa_id,\n  phone: misbehaviorData.phone,\n  updatedContext,\n  commentText: commentLines,\n  misbehavior_reason: misbehaviorData.misbehavior_reason,\n  api_contact_id: existingContext.api_contact_id || null,\n  needs_api_contact: !existingContext.api_contact_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [-16, 304],
+			"id": "2fdeb3a3-495c-4620-9f9a-a79e852ab46e",
+			"name": "Build Block Context"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $json.wa_id }}',\n  $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id)\nDO UPDATE SET\n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [192, 304],
+			"id": "611017d3-57b6-44cd-9327-4b56037e1a1c",
+			"name": "Update Context - Blocked",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "f08cf359-0ce1-491b-bcbb-1617bd380b81",
+							"leftValue": "={{ $('Build Block Context').item.json.needs_api_contact }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [416, 304],
+			"id": "5d548642-d283-4289-b041-bd59bd50c1d9",
+			"name": "If: Needs API Contact?"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Check Existing Block Status').item.json.api_contact.id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "={{ $json.context_data.interacciones[0].mensaje }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [736, 304],
+			"id": "f64276e8-a605-45bf-9f8c-bb67172ff416",
+			"name": "API: Add Block Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "=Genera un mensaje breve para informar al usuario que ha sido bloqueado.\n\nMotivo: {{ $('Build Block Context').item.json.misbehavior_reason }}\n\nEl mensaje debe:\n1. Ser claro pero amable\n2. Indicar que el contacto fue bloqueado\n3. Mencionar comportamiento inapropiado\n4. Cerrar cordialmente\n\nEjemplo: \"Detectamos un comportamiento indebido en tu mensaje. Tu contacto ha sido reportado y no podremos continuar con la atención. ❌\""
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [976, 304],
+			"id": "a37ec561-6d6d-4a95-ab82-3a04ed91db62",
+			"name": "AI: Create Block Message",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Build Block Context').item.json.wa_id }}",
+				"textBody": "={{ $json.output[0].content[0].text }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1680, 304],
+			"id": "d3e5625a-b6c2-4319-931b-df21ec12df9e",
+			"name": "Send Block Notification",
+			"webhookId": "0e255374-10b6-4317-9b31-f4dba3424ce6",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const blockData = $('Build Block Context').item.json;\nconst aiMessage = $('AI: Create Block Message').item.json;\n\nreturn {\n  is_blocked: true,\n  misbehavior_detected: true,\n  should_continue: false,\n  block_message: aiMessage.message?.content,\n  wa_id: blockData.wa_id,\n  block_reason: blockData.misbehavior_reason\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1904, 304],
+			"id": "3de6ed0c-3018-4e05-a0ad-9b45b2a1db6d",
+			"name": "Format Misbehavior Output"
+		},
+		{
+			"parameters": {
+				"jsCode": "const checkData = $('Parse Misbehavior').item.json;\n\nreturn {\n  is_blocked: false,\n  misbehavior_detected: false,\n  should_continue: true,\n  wa_id: checkData.wa_id,\n  userPrompt: checkData.userPrompt,\n  context_data: checkData.context_data,\n  api_contact: checkData.api_contact\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1760, -144],
+			"id": "b8989a1b-f7fb-4b3b-b03f-f9f8740ac10d",
+			"name": "Format Clean Output"
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [1072, -128],
+			"id": "7fb219a7-fc59-4942-8827-e3fd6caf0372",
+			"name": "No Operation, do nothing"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $json.wa_id }}',\n  jsonb_build_object('statusBot', 'working'),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = jsonb_set(\n    COALESCE(user_contexts.context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [896, -128],
+			"id": "04e370c1-e0f6-45c7-994d-6086429818b8",
+			"name": "Update Bot to Free",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.context_data.api_contact_id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "=🤖 - No he detectado faltas de respeto u hostilidad, continuamos atención"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [1584, -144],
+			"id": "47ae8c75-2894-4b2d-aa54-a0a2b48bef0e",
+			"name": "API: Add Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Construir nuevo contexto\nconst updatedContext = {\n  status: \"active\",\n  statusBot: \"free\",\n  api_contact_id: data.api_contact?.id || null,\n  ultima_interaccion: timestamp,\n  misbehavior_confidence: data.misbehavior_confidence || 0,\n  misbehavior_reason: data.misbehavior_reason || \"\",\n  misbehavior_terms: data.misbehavior_terms || [],\n  interacciones: [\n    {\n      timestamp,\n      actor: \"usuario\",\n      canal: \"whatsapp\",\n      tipo: \"mensaje_recibido\",\n      mensaje: data.userPrompt || \"\",\n      detalles: {\n        analisis: \"sin_comportamiento_inadecuado\",\n        confianza: data.misbehavior_confidence || 0\n      }\n    }\n  ]\n};\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext\n};\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1392, 80],
+			"id": "f270c2e7-0b10-4770-a3f7-946236c09ff4",
+			"name": "Code in JavaScript"
+		}
+	],
+	"connections": {
+		"Update Context - No misbehavior": {
+			"main": [
+				[
+					{
+						"node": "API: Add Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Add Comment1": {
+			"main": [
+				[
+					{
+						"node": "Update Bot to Free",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Check Existing Block Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Existing Block Status": {
+			"main": [
+				[
+					{
+						"node": "If: Already Blocked?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Already Blocked?": {
+			"main": [
+				[
+					{
+						"node": "API: Add Comment1",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "AI: Detect Misbehavior",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI: Detect Misbehavior": {
+			"main": [
+				[
+					{
+						"node": "Parse Misbehavior",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Misbehavior": {
+			"main": [
+				[
+					{
+						"node": "If: Misbehavior Detected?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Misbehavior Detected?": {
+			"main": [
+				[
+					{
+						"node": "Build Block Context",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Code in JavaScript",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Build Block Context": {
+			"main": [
+				[
+					{
+						"node": "Update Context - Blocked",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Context - Blocked": {
+			"main": [
+				[
+					{
+						"node": "If: Needs API Contact?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Needs API Contact?": {
+			"main": [
+				[
+					{
+						"node": "API: Add Block Comment",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "API: Add Block Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Add Block Comment": {
+			"main": [
+				[
+					{
+						"node": "AI: Create Block Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI: Create Block Message": {
+			"main": [
+				[
+					{
+						"node": "Send Block Notification",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Block Notification": {
+			"main": [
+				[
+					{
+						"node": "Format Misbehavior Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Bot to Free": {
+			"main": [
+				[
+					{
+						"node": "No Operation, do nothing",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Add Comment": {
+			"main": [
+				[
+					{
+						"node": "Format Clean Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Code in JavaScript": {
+			"main": [
+				[
+					{
+						"node": "Update Context - No misbehavior",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {
+		"When Executed by Another Workflow": [
+			{
+				"userPrompt": "pendejo",
+				"wa_id": "5215559177781",
+				"phone": "5559177781",
+				"context_data": {},
+				"api_contact": {
+					"id": 611,
+					"nombre": "🤖 - Sin nombre",
+					"email": null,
+					"telefono": "5559177781",
+					"estado": "nuevo",
+					"fuente": "WhatsApp Bot",
+					"created_at": "2025-11-11T01:20:58-06:00",
+					"updated_at": "2025-11-11T01:20:58-06:00",
+					"last_interaction_at": "2025-11-11T01:34:40-06:00",
+					"interes_reciente": null
+				}
+			}
+		]
+	},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

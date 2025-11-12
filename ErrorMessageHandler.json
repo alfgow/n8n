@@ -1,0 +1,136 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "error_type"
+						},
+						{
+							"name": "phone"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "fc7c38d2-6c20-4463-8543-776dae418473",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const errorType = $json.error_type || 'system_error';\nconst waId = $json.wa_id;\nconst phone = $json.phone || waId;\n\n// Mapeo de tipos de error a mensajes\nconst errorMessages = {\n  unsupported_media: \"Te recuerdo que este chat solo recibe texto y audio.\",\n  system_error: \"😅 Tuvimos un error de nuestro lado, intenta de nuevo por favor\",\n  invalid_data: \"Para continuar, necesito por favor me proporciones en un solo mensaje:\\n\\nNombre Completo\\nNúmero de teléfono\\n\\nSigo al pendiente.\",\n  bot_busy: \"👋 Hola de nuevo. En este momento sigo trabajando en tu solicitud anterior. Por favor espera un momento y en cuanto termine te ayudaré enseguida. 🙏\"\n};\n\n// Obtener el mensaje apropiado o usar uno por defecto\nconst message = errorMessages[errorType] || errorMessages.system_error;\n\nreturn {\n  wa_id: waId,\n  phone: phone,\n  error_type: errorType,\n  message: message,\n  should_update_bot_status: true\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [208, 0],
+			"id": "696fe609-d92d-449b-abef-faef011b98bd",
+			"name": "Determine Error Message"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+				"textBody": "={{ $json.message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [416, 0],
+			"id": "e726594a-cb5c-431b-90ec-63fb621dccb5",
+			"name": "Send Error Message",
+			"webhookId": "3e00110a-8005-4714-a7d6-f5b942ee4d0a",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.contacts[0].wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [624, 0],
+			"id": "39bcda45-7afa-428e-aedd-652e80992d3e",
+			"name": "Execute a SQL query",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "return {\n  success: true,\n  error_type: $('Determine Error Message').item.json.error_type,\n  message_sent: true,\n  bot_status_updated: true,\n  wa_id: $('Determine Error Message').item.json.wa_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [832, 0],
+			"id": "a8ad8e5e-f58b-41a1-866a-a380b4298aa6",
+			"name": "Format Output"
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Determine Error Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Determine Error Message": {
+			"main": [
+				[
+					{
+						"node": "Send Error Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Error Message": {
+			"main": [
+				[
+					{
+						"node": "Execute a SQL query",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query": {
+			"main": [
+				[
+					{
+						"node": "Format Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

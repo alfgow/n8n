@@ -1,0 +1,849 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"updates": ["messages"],
+				"options": {}
+			},
+			"type": "n8n-nodes-base.whatsAppTrigger",
+			"typeVersion": 1,
+			"position": [-224, 0],
+			"id": "1674c9f9-8662-4819-8d14-5e5f78f0342c",
+			"name": "WhatsApp Trigger",
+			"webhookId": "74594388-e12c-4f20-b583-78678872e5e7",
+			"credentials": {
+				"whatsAppTriggerApi": {
+					"id": "wFOtw7oArsG5zhql",
+					"name": "WhatsApp OAuth account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.messages[0].text.body }}",
+										"rightValue": "",
+										"operator": {
+											"type": "string",
+											"operation": "exists",
+											"singleValue": true
+										},
+										"id": "b564c529-0a34-48cf-beaf-0004336706ef"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "text-message"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "250baf65-d4ac-41ab-a455-eb87a917a514",
+										"leftValue": "={{ $json.messages[0].image }}",
+										"rightValue": "",
+										"operator": {
+											"type": "object",
+											"operation": "exists",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "image-message"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "bf6ad2e8-fe57-43c2-8f6e-1b3381f0dcff",
+										"leftValue": "={{ $json.messages[0].document.mime_type }}",
+										"rightValue": "image/",
+										"operator": {
+											"type": "string",
+											"operation": "contains"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "document-image"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "ad353bff-2299-4372-a4ea-1feadb00dab2",
+										"leftValue": "={{ $json.messages[0].document.mime_type }}",
+										"rightValue": "application/",
+										"operator": {
+											"type": "string",
+											"operation": "contains"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "pdf"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "9c8d220b-1791-4273-bb74-08b2b3f7f319",
+										"leftValue": "={{ $json.messages[0].audio }}",
+										"rightValue": "",
+										"operator": {
+											"type": "object",
+											"operation": "exists",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "audio-message"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "8128736a-b8de-4776-bf65-bee38faaba50",
+										"leftValue": "={{ $json.messages[0].type }}",
+										"rightValue": "sticker",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Sticker"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [-16, -16],
+			"id": "a9c5ce3b-bc60-40ec-8b89-2b8c11b875e6",
+			"name": "Switch Type Of Message",
+			"onError": "continueErrorOutput"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "1B63l9Pj47HP9OBS",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/1B63l9Pj47HP9OBS",
+					"cachedResultName": "AudioTranscriber"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"audio_id": "={{ $json.messages[0].audio.id }}",
+						"wa_id": "={{ $json.contacts[0].wa_id }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "audio_id",
+							"displayName": "audio_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [240, 160],
+			"id": "80fc9c46-d7a4-495f-9f54-f470cfc50546",
+			"name": "Call AudioTranscriber"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "1lmLWx3jGe8XhG9p",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/1lmLWx3jGe8XhG9p",
+					"cachedResultName": "ErrorMessageHandler"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $json.contacts[0].wa_id }}",
+						"error_type": "system_error",
+						"phone": "={{ $json.contacts[0].wa_id.replace(/^521/, '') }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "error_type",
+							"displayName": "error_type",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "phone",
+							"displayName": "phone",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [-480, -208],
+			"id": "6391e5cc-7c5a-4a5d-9ca3-f91162340929",
+			"name": "Call ErrorMessageHandler (System Error)"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "1lmLWx3jGe8XhG9p",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/1lmLWx3jGe8XhG9p",
+					"cachedResultName": "ErrorMessageHandler"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $json.contacts[0].wa_id }}",
+						"error_type": "unsupported_media",
+						"phone": "={{ $json.contacts[0].wa_id.replace(/^521/, '') }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "error_type",
+							"displayName": "error_type",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "phone",
+							"displayName": "phone",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [-480, -16],
+			"id": "233658aa-334e-4e6c-9dc3-921ea43b2047",
+			"name": "Call ErrorMessageHandler (Unsopported Media)"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "URDhTUSyFZ9qEWDO",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/URDhTUSyFZ9qEWDO",
+					"cachedResultName": "MessagePreprocessor"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"webhook_data": "={{ $json }}"
+					},
+					"matchingColumns": ["webhook_data"],
+					"schema": [
+						{
+							"id": "webhook_data",
+							"displayName": "webhook_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [240, -96],
+			"id": "15c2ef20-3981-4131-bdaa-14e09d753b84",
+			"name": "Call 'MessagePreprocessor'"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "100d994f-50e4-424e-a171-dcd601f63ea8",
+							"leftValue": "={{ $json.should_continue }}",
+							"rightValue": true,
+							"operator": {
+								"type": "boolean",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [448, -96],
+			"id": "13843319-0261-4330-9814-5fccd9b94096",
+			"name": "Should Continue Processing?"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "7fb769ac-a83d-49ae-ad30-7187a051316f",
+										"leftValue": "={{ $json.current_status }}",
+										"rightValue": "=new",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "new"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "504cc244-5f64-4efa-a1d1-fe3f3d7b96fe",
+										"leftValue": "={{ $json.current_status }}",
+										"rightValue": "rejected",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "rejected"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "b7fc09fa-12f9-48c7-a2cc-6fe2287e4859",
+										"leftValue": "={{ $json.current_status }}",
+										"rightValue": "approved",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "approved"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "ec158ac4-da01-4fab-9998-4188a0618e87",
+										"leftValue": "={{ $json.current_status }}",
+										"rightValue": "awaiting_questionaire",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "awaiting Q"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "be706e7e-6ae3-4fd5-a657-8294c052cdb9",
+										"leftValue": "={{ $json.current_status }}",
+										"rightValue": "questionaire",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "questionaire"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "f395e94e-daa5-4b05-9751-cee6fe38268d",
+										"leftValue": "={{ $json.current_status }}",
+										"rightValue": "requiere_attention",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "requiere_attention"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "0babd37b-4202-42f7-ba08-b302150489ec",
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "active",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Active"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [1232, -304],
+			"id": "d27e1d75-a7cd-4443-93c7-afbd9c963923",
+			"name": "Switch3"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "0TSGWfoAMihHssHI",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/0TSGWfoAMihHssHI",
+					"cachedResultName": "MisbehaviorDetector"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"userPrompt": "={{ $json.userPrompt }}",
+						"wa_id": "={{ $json.wa_id }}",
+						"phone": "={{ $json.phone }}",
+						"context_data": "={{ $json.context_data }}",
+						"api_contact": "={{ $json.api_contact }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "phone",
+							"displayName": "phone",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [752, -192],
+			"id": "590a6eff-2309-48fc-8127-588e8cef1a28",
+			"name": "Call 'MisbehaviorDetector'"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "b19f0ae2-46c9-459a-bb21-f3b121016bd7",
+							"leftValue": "={{ $json.should_continue }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [960, -192],
+			"id": "5f68441f-4982-4a6a-aa26-a7c915f66907",
+			"name": "Misbehavior: Should Continue?"
+		}
+	],
+	"connections": {
+		"WhatsApp Trigger": {
+			"main": [
+				[
+					{
+						"node": "Switch Type Of Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch Type Of Message": {
+			"main": [
+				[
+					{
+						"node": "Call 'MessagePreprocessor'",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call ErrorMessageHandler (Unsopported Media)",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call ErrorMessageHandler (Unsopported Media)",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call ErrorMessageHandler (Unsopported Media)",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call AudioTranscriber",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call ErrorMessageHandler (Unsopported Media)",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call ErrorMessageHandler (System Error)",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call AudioTranscriber": {
+			"main": [
+				[
+					{
+						"node": "Call 'MessagePreprocessor'",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call 'MessagePreprocessor'": {
+			"main": [
+				[
+					{
+						"node": "Should Continue Processing?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Should Continue Processing?": {
+			"main": [
+				[
+					{
+						"node": "Call 'MisbehaviorDetector'",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call 'MisbehaviorDetector'": {
+			"main": [
+				[
+					{
+						"node": "Misbehavior: Should Continue?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Misbehavior: Should Continue?": {
+			"main": [
+				[
+					{
+						"node": "Switch3",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}
