@@ -1,0 +1,350 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{ "name": "wa_id" },
+						{ "name": "userPrompt" },
+						{ "name": "context_data", "type": "object" },
+						{ "name": "api_contact", "type": "object" }
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "trigger-001",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"messages": {
+					"values": [{ "content": "={{ $json.userPrompt }}" }]
+				},
+				"jsonOutput": true,
+				"options": {
+					"systemMessage": "Eres un clasificador de intenciones para una inmobiliaria. Analiza el mensaje del usuario y clasifica en UNA de estas categorías:\n\n- property_search: Busca un inmueble específico (departamento, casa, propiedad, renta, compra)\n- greeting: Saludos iniciales o conversación casual amistosa (hola, qué tal, buenas tardes)\n- general_inquiry: Preguntas sobre servicios, áreas, zonas, precios generales, información de la empresa\n- confirmation: Confirmaciones para avanzar (sí, ok, listo, adelante, de acuerdo)\n- negotiation: Intenta negociar precio, condiciones o pedir excepciones\n- out_of_scope: Cualquier tema NO relacionado con inmobiliaria (clima, política, chistes, etc)\n\nEjemplos:\n- \"Busco depa en Polanco\" → property_search\n- \"Hola, buenos días\" → greeting\n- \"¿En qué zonas tienen propiedades?\" → general_inquiry\n- \"Sí, adelante\" → confirmation\n- \"¿Pueden bajar el precio?\" → negotiation\n- \"¿Cómo está el clima?\" → out_of_scope\n\nResponde SOLO con el nombre de la categoría en minúsculas, sin explicaciones ni puntuación."
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [200, 0],
+			"id": "ai-classifier-001",
+			"name": "AI: Classify Intention",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const aiResponse = $json.content.parts[0].text;\nconst triggerData = $('When Executed by Another Workflow').item.json;\n\n// Limpiar respuesta de IA\nconst intent = aiResponse.trim().toLowerCase().replace(/[^a-z_]/g, '');\n\n// Validar intención\nconst validIntents = [\n  'property_search',\n  'greeting',\n  'general_inquiry',\n  'confirmation',\n  'negotiation',\n  'out_of_scope'\n];\n\nconst finalIntent = validIntents.includes(intent) ? intent : 'general_inquiry';\n\nconsole.log('🎯 Intención detectada:', finalIntent);\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: triggerData.userPrompt,\n  context_data: triggerData.context_data,\n  api_contact: triggerData.api_contact,\n  intent: finalIntent,\n  timestamp: new Date().toISOString()\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [400, 0],
+			"id": "parser-001",
+			"name": "Parse Intention"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "property_search",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-property"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Property Search"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "greeting",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-greeting"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Greeting"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "general_inquiry",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-inquiry"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "General Inquiry"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "confirmation",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-confirm"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Confirmation"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "negotiation",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-negotiation"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Negotiation"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "out_of_scope",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-out"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Out of Scope"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [600, 0],
+			"id": "router-001",
+			"name": "Switch: By Intention"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data || {}));\n\n// Agregar intención al contexto\nupdatedContext.last_intent = data.intent;\nupdatedContext.status = 'awaiting_data';\nupdatedContext.original_search = data.userPrompt;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'intencion_detectada',\n  mensaje: `Intención: ${data.intent}`,\n  detalles: {\n    intent: data.intent,\n    original_message: data.userPrompt\n  }\n});\n\nupdatedContext.interacciones = interactions;\nupdatedContext.ultima_interaccion = timestamp;\n\nreturn {\n  wa_id: data.wa_id,\n  userPrompt: data.userPrompt,\n  intent: data.intent,\n  updatedContext,\n  api_contact: data.api_contact,\n  needsNamePhone: true\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [800, -100],
+			"id": "property-handler-001",
+			"name": "Prepare Property Search Context"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1000, -100],
+			"id": "postgres-001",
+			"name": "Update Context: Property Search",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "=¡Hola! 👋 Soy {{ $('Parse Intention').item.json.context_data.personaje }}, tu asistente en Inmobiliaria Villanueva García.\n\n¿En qué te puedo ayudar hoy?",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [800, 100],
+			"id": "greeting-001",
+			"name": "Send Greeting Message",
+			"webhookId": "greeting-webhook-001",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Parse Intention').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1000, 100],
+			"id": "postgres-002",
+			"name": "Update Bot: Free",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "AI: Classify Intention",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI: Classify Intention": {
+			"main": [
+				[{ "node": "Parse Intention", "type": "main", "index": 0 }]
+			]
+		},
+		"Parse Intention": {
+			"main": [
+				[{ "node": "Switch: By Intention", "type": "main", "index": 0 }]
+			]
+		},
+		"Switch: By Intention": {
+			"main": [
+				[
+					{
+						"node": "Prepare Property Search Context",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send Greeting Message",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[],
+				[],
+				[],
+				[]
+			]
+		},
+		"Prepare Property Search Context": {
+			"main": [
+				[
+					{
+						"node": "Update Context: Property Search",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Greeting Message": {
+			"main": [
+				[{ "node": "Update Bot: Free", "type": "main", "index": 0 }]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

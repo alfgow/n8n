@@ -1,0 +1,502 @@
+{
+	"name": "NamePhoneExtractor",
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id",
+							"type": "string"
+						},
+						{
+							"name": "userPrompt",
+							"type": "string"
+						},
+						{
+							"name": "context_data",
+							"type": "json"
+						},
+						{
+							"name": "api_contact",
+							"type": "json"
+						},
+						{
+							"name": "intent",
+							"type": "string"
+						},
+						{
+							"name": "needsNamePhone",
+							"type": "boolean"
+						}
+					]
+				}
+			},
+			"id": "trigger-npe-001",
+			"name": "When Executed by Another Workflow",
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [240, 300]
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst contextData = data.context_data || {};\n\nconst comesFromIntent = data.needsNamePhone === true;\nconst comesFromAwaiting = contextData.status === 'awaiting_data';\n\nconsole.log('🔍 Origen:', comesFromIntent ? 'IntentionDetector' : 'StateRouter');\n\nconst hasNombre = contextData.nombre && contextData.nombre.trim() !== '' && !contextData.nombre.includes('Sin nombre');\nconst hasTelefono = contextData.telefono && contextData.telefono.trim() !== '' && contextData.telefono !== 'unknown';\n\nconst hasCompleteData = hasNombre && hasTelefono;\n\nconsole.log('📋 Tiene nombre:', hasNombre, '→', contextData.nombre);\nconsole.log('📋 Tiene teléfono:', hasTelefono, '→', contextData.telefono);\n\nreturn {\n  wa_id: data.wa_id,\n  userPrompt: data.userPrompt,\n  context_data: contextData,\n  api_contact: data.api_contact,\n  intent: data.intent,\n  comesFromIntent: comesFromIntent,\n  comesFromAwaiting: comesFromAwaiting,\n  hasCompleteData: hasCompleteData,\n  hasNombre: hasNombre,\n  hasTelefono: hasTelefono\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [440, 300],
+			"id": "check-data-001",
+			"name": "Check Existing Data"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.comesFromIntent }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true"
+										},
+										"id": "from-intent"
+									},
+									{
+										"leftValue": "={{ $json.hasCompleteData }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false"
+										},
+										"id": "no-data"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Request Data"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.comesFromIntent }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true"
+										},
+										"id": "from-intent-2"
+									},
+									{
+										"leftValue": "={{ $json.hasCompleteData }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true"
+										},
+										"id": "has-data"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Has Data"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.comesFromAwaiting }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true"
+										},
+										"id": "from-awaiting"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Extract Data"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [640, 300],
+			"id": "router-npe-001",
+			"name": "Switch: Data Status"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data || {}));\n\nupdatedContext.status = 'awaiting_data';\nupdatedContext.original_search = data.userPrompt;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'solicitud_datos',\n  mensaje: 'Se solicitaron datos del contacto',\n  detalles: {\n    intent: data.intent,\n    original_message: data.userPrompt\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext: updatedContext\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [840, 200],
+			"id": "prepare-request-001",
+			"name": "Prepare Request Context"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1040, 200],
+			"id": "update-request-001",
+			"name": "Update Context: Awaiting Data",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "¡Perfecto! Para ayudarte con la información del inmueble que buscas, necesito que me compartas:\n\n📝 Tu nombre completo\n📱 Tu número de teléfono\n\nPor favor compártelos en un solo mensaje 😊",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1240, 200],
+			"id": "send-request-001",
+			"name": "Send Data Request",
+			"webhookId": "data-request-001",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const userPrompt = $json.userPrompt;\n\nlet nombre = '';\nlet telefono = '';\n\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0].replace(/\\D/g, '');\n  if (telefono.length > 10) {\n    telefono = telefono.slice(-10);\n  }\n}\n\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: $json.userPrompt,\n  context_data: $json.context_data,\n  api_contact: $json.api_contact,\n  nombre_extracted: nombre,\n  telefono_extracted: telefono,\n  has_valid_data: hasValidData\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [840, 400],
+			"id": "extract-data-001",
+			"name": "Extract Name & Phone"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.has_valid_data }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true"
+										},
+										"id": "valid-data"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Valid"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.has_valid_data }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false"
+										},
+										"id": "invalid-data"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Invalid"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [1040, 400],
+			"id": "validate-data-001",
+			"name": "Switch: Data Valid?"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "Para continuar, necesito por favor me proporciones en un solo mensaje:\n\n📝 Nombre Completo\n📱 Número de teléfono\n\nSigo al pendiente.",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1240, 500],
+			"id": "send-invalid-001",
+			"name": "Send Invalid Data Message",
+			"webhookId": "invalid-data-001",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1440, 500],
+			"id": "update-invalid-001",
+			"name": "Update Bot: Free (Invalid)",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "https://vg.g210512.com/api/v1/contactos",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"nombre\": \"{{ $json.nombre_extracted }}\",\n  \"telefono\": \"{{ $json.telefono_extracted }}\",\n  \"estado\": \"nuevo\",\n  \"fuente\": \"WhatsApp Bot\"\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1240, 300],
+			"id": "create-contact-001",
+			"name": "API: Create/Update Contact",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const apiResponse = $('API: Create/Update Contact').item.json;\nconst extractData = $('Extract Name & Phone').item.json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(extractData.context_data || {}));\n\nupdatedContext.nombre = extractData.nombre_extracted;\nupdatedContext.telefono = extractData.telefono_extracted;\nupdatedContext.status = 'in_progress';\nupdatedContext.api_contact_id = apiResponse.data?.id || updatedContext.api_contact_id;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'datos_recibidos',\n  mensaje: 'Datos del contacto recibidos y validados',\n  detalles: {\n    nombre: extractData.nombre_extracted,\n    telefono: extractData.telefono_extracted,\n    api_contact_id: apiResponse.data?.id\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: extractData.wa_id,\n  userPrompt: updatedContext.original_search || extractData.userPrompt,\n  nombre: extractData.nombre_extracted,\n  telefono: extractData.telefono_extracted,\n  updatedContext: updatedContext,\n  readyForPropertySearch: true\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1440, 300],
+			"id": "prepare-context-001",
+			"name": "Prepare Complete Context"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1640, 300],
+			"id": "save-complete-001",
+			"name": "Save Complete Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Check Existing Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Existing Data": {
+			"main": [
+				[
+					{
+						"node": "Switch: Data Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch: Data Status": {
+			"main": [
+				[
+					{
+						"node": "Prepare Request Context",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[],
+				[
+					{
+						"node": "Extract Name & Phone",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Request Context": {
+			"main": [
+				[
+					{
+						"node": "Update Context: Awaiting Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Context: Awaiting Data": {
+			"main": [
+				[
+					{
+						"node": "Send Data Request",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Extract Name & Phone": {
+			"main": [
+				[
+					{
+						"node": "Switch: Data Valid?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch: Data Valid?": {
+			"main": [
+				[
+					{
+						"node": "API: Create/Update Contact",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Send Invalid Data Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Invalid Data Message": {
+			"main": [
+				[
+					{
+						"node": "Update Bot: Free (Invalid)",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Create/Update Contact": {
+			"main": [
+				[
+					{
+						"node": "Prepare Complete Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Complete Context": {
+			"main": [
+				[
+					{
+						"node": "Save Complete Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}
