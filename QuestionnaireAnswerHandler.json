@@ -1,0 +1,556 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "2bcdca63-9191-4c0d-813f-89eb0aab3f71",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const triggerData = $json;\nconst contextData = triggerData.context_data || {};\n\n// Obtener cuestionario y paso actual\nconst questionnaire = contextData.questionnaire || [];\nconst currentStep = contextData.questionnaire_step || 1;\nconst totalQuestions = contextData.questionnaire_total || questionnaire.length;\n\n// Obtener pregunta actual (los arrays empiezan en 0, los steps en 1)\nconst currentQuestion = questionnaire[currentStep - 1];\n\nif (!currentQuestion) {\n  throw new Error(`No se encontró la pregunta para el step ${currentStep}`);\n}\n\nconsole.log(`📍 Procesando pregunta ${currentStep} de ${totalQuestions}`);\nconsole.log(`❓ Pregunta: ${currentQuestion.field}`);\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: triggerData.userPrompt,\n  context_data: contextData,\n  api_contact: triggerData.api_contact,\n  \n  // Datos de la pregunta actual\n  currentStep: currentStep,\n  totalQuestions: totalQuestions,\n  currentQuestion: currentQuestion,\n  questionnaire: questionnaire\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [208, 0],
+			"id": "17b4f97a-d4c3-441c-b32d-c455f3517a53",
+			"name": "Get Current Question"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst question = data.currentQuestion;\nconst userAnswer = data.userPrompt.toLowerCase().trim();\n\nlet isValid = false;\nlet parsedAnswer = null;\nlet errorMessage = '';\n\nconsole.log(`🔍 Validando respuesta para: ${question.field}`);\nconsole.log(`📝 Tipo: ${question.type}, Expected: ${question.expected}`);\nconsole.log(`💬 Respuesta usuario: \"${userAnswer}\"`);\n\n// VALIDACIÓN SEGÚN TIPO DE PREGUNTA\nswitch (question.type) {\n  \n  case 'boolean':\n    // Detectar respuestas afirmativas\n    const affirmative = ['si', 'sí', 'yes', 'sip', 'sep', 'ok', 'dale', 'va', 'sale', 'simón', 'simon'];\n    const negative = ['no', 'nope', 'nel', 'nop', 'negativo'];\n    \n    if (affirmative.some(word => userAnswer.includes(word))) {\n      parsedAnswer = true;\n    } else if (negative.some(word => userAnswer.includes(word))) {\n      parsedAnswer = false;\n    } else {\n      errorMessage = 'Por favor responde con \"Sí\" o \"No\" 😊';\n      break;\n    }\n    \n    // Validar contra expected\n    if (parsedAnswer === question.expected) {\n      isValid = true;\n    } else {\n      isValid = false;\n      \n      // Mensajes específicos según el campo\n      if (question.field === 'tiene_mascotas' && parsedAnswer === true) {\n        errorMessage = 'Lo siento, este inmueble no acepta mascotas 🐕🐈';\n      } else if (question.field === 'tiene_ninos' && parsedAnswer === true) {\n        errorMessage = 'Lo siento, este inmueble no acepta niños 👶';\n      } else if (question.field === 'tiene_roomies' && parsedAnswer === true) {\n        errorMessage = 'Lo siento, el arrendador no acepta roomies 👥';\n      } else {\n        errorMessage = 'Lo siento, no cumples con este requisito necesario para el inmueble 😔';\n      }\n    }\n    break;\n  \n  case 'text':\n    // Para preguntas informativas, cualquier respuesta es válida\n    parsedAnswer = data.userPrompt;\n    isValid = true;\n    break;\n  \n  case 'number_minimum':\n    // Extraer número de la respuesta\n    const numberMatch = userAnswer.match(/\\d+/);\n    \n    if (!numberMatch) {\n      errorMessage = 'Por favor indica un monto numérico 💵';\n      break;\n    }\n    \n    parsedAnswer = parseInt(numberMatch[0]);\n    \n    // Validar contra mínimo requerido\n    if (parsedAnswer >= question.expected) {\n      isValid = true;\n    } else {\n      isValid = false;\n      errorMessage = `Lo siento, el ingreso mínimo requerido es de $${question.expected.toLocaleString()} mensuales 💰`;\n    }\n    break;\n  \n  default:\n    errorMessage = 'Error: Tipo de pregunta no reconocido';\n    break;\n}\n\nconsole.log(isValid ? '✅ Respuesta válida' : '❌ Respuesta inválida');\n\nreturn {\n  ...data,\n  isValid: isValid,\n  parsedAnswer: parsedAnswer,\n  errorMessage: errorMessage\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [416, 0],
+			"id": "02817f9a-e70e-4b90-9ff2-5182d68fe2e8",
+			"name": "Validate Answer"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.isValid }}",
+										"rightValue": "true",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "1e39fa49-04a9-4cba-98bc-6f26490c218a"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "✅ Valid"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "244e1110-4e11-4060-b764-55a18f55f535",
+										"leftValue": "={{ $json.isValid }}",
+										"rightValue": "false",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "❌ Invalid"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [624, 0],
+			"id": "b45e5e25-c34f-4bbd-8fa9-9a6caacadd0f",
+			"name": "Answer Valid?"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [400, -240],
+			"id": "a37ac7fd-7d0c-4cc4-b62f-7711ef4a2746",
+			"name": "Execute a SQL query",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data));\n\n// Agregar respuesta al array de respuestas\nconst answerEntry = {\n  step: data.currentStep,\n  field: data.currentQuestion.field,\n  section: data.currentQuestion.section,\n  question: data.currentQuestion.question,\n  answer: data.parsedAnswer,\n  passed: data.isValid,\n  timestamp: timestamp\n};\n\nupdatedContext.questionnaire_answers.push(answerEntry);\n\n// Incrementar step\nconst nextStep = data.currentStep + 1;\nupdatedContext.questionnaire_step = nextStep;\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'respuesta_cuestionario',\n  mensaje: `Pregunta ${data.currentStep}: ${data.parsedAnswer}`,\n  detalles: {\n    field: data.currentQuestion.field,\n    paso: data.currentStep,\n    total: data.totalQuestions\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Verificar si hay más preguntas\nconst hasMoreQuestions = nextStep <= data.totalQuestions;\n\nconsole.log(`📊 Progreso: ${data.currentStep}/${data.totalQuestions}`);\nconsole.log(`➡️ Siguiente: ${hasMoreQuestions ? `Pregunta ${nextStep}` : 'Finalizar'}`);\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext: updatedContext,\n  currentStep: data.currentStep,\n  nextStep: nextStep,\n  totalQuestions: data.totalQuestions,\n  hasMoreQuestions: hasMoreQuestions,\n  nextQuestion: hasMoreQuestions ? data.questionnaire[nextStep - 1] : null,\n  api_contact_id: updatedContext.api_contact_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [928, -80],
+			"id": "483e5c89-ec15-4cf1-b549-dfb0c4d5781c",
+			"name": "Save Answer & Check Progress"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.hasMoreQuestions }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "a2144567-0b37-41e2-a1f8-48d15b43f959"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "➡️ Next Q"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "a3df4c5f-36e0-4ee9-9295-7152d4dbd5bf",
+										"leftValue": "={{ $json.hasMoreQuestions }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🎉 Complete"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [1120, -80],
+			"id": "190da3b7-7e5d-4a00-b8a3-f4fc5b497553",
+			"name": "Has More Questions?"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [896, -320],
+			"id": "0f0a9e4f-86dc-450c-8a99-c2ab8dc85580",
+			"name": "Update Context & Progress",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Save Answer & Check Progress').item.json.wa_id }}",
+				"textBody": "={{ \"**Pregunta \" + $('Save Answer & Check Progress').item.json.nextStep + \" de \" + $('Save Answer & Check Progress').item.json.totalQuestions + \":**\\n\\n\" + $('Save Answer & Check Progress').item.json.nextQuestion.question }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1104, -320],
+			"id": "d4ce4272-b927-46e3-b7eb-6f5f87d53075",
+			"name": "Send Next Question",
+			"webhookId": "30d77278-3aa6-4f95-9137-ec21643d3565",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Save Answer & Check Progress').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1312, -320],
+			"id": "d5c0721b-f9ce-4b4a-8462-6e633aa37f16",
+			"name": "Set Bot Free",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst contextData = data.updatedContext;\n\n// Obtener todas las respuestas\nconst answers = contextData.questionnaire_answers || [];\nconst questionnaire = contextData.questionnaire || [];\n\n// Preparar datos para el AI\nconst evaluationData = {\n  property: {\n    title: contextData.property_found.title,\n    restrictions: contextData.property_found.restrictions\n  },\n  questionnaire_with_answers: questionnaire.map((q, index) => {\n    const answer = answers.find(a => a.field === q.field);\n    return {\n      field: q.field,\n      section: q.section,\n      question: q.question,\n      type: q.type,\n      expected: q.expected,\n      answer_given: answer ? answer.answer : null,\n      passed: answer ? answer.passed : null\n    };\n  }),\n  contact_info: {\n    nombre: contextData.nombre,\n    telefono: contextData.telefono,\n    wa_id: data.wa_id\n  }\n};\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext: contextData,\n  evaluationData: evaluationData,\n  api_contact_id: contextData.api_contact_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [864, 144],
+			"id": "446e42c2-d62e-4d3a-805f-18777dee98c1",
+			"name": "Prepare Evaluation Data"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "=Eres un evaluador de perfiles para una inmobiliaria.\n\nDATOS DE EVALUACIÓN:\n{{ $json.evaluationData.toJsonString() }}\n\nTu tarea es evaluar si el perfil del contacto es APROBADO o RECHAZADO.\n\n---\n\nCRITERIOS DE EVALUACIÓN:\n\n1. **Preguntas con expected = false (restricciones)**:\n   - Si answer_given = true → RECHAZAR\n   - Motivos comunes: tiene mascotas, tiene niños, tiene roomies\n\n2. **Preguntas con expected = true (requisitos)**:\n   - Si answer_given = false → RECHAZAR\n   - Motivos comunes: no acepta póliza, no tiene el depósito\n\n3. **Preguntas con expected = número (ingresos)**:\n   - Si answer_given < expected → RECHAZAR\n   - Motivo: ingresos insuficientes\n\n4. **Preguntas tipo \"text\" (informativas)**:\n   - Analiza ocupación si restrictions dicen \"no estudiantes\"\n   - Si es estudiante sin padre/tutor → RECHAZAR\n\n---\n\nDECISIÓN:\n\nSi TODAS las respuestas pasaron (passed = true):\n→ status: \"approved\"\n\nSi AL MENOS UNA respuesta falló (passed = false):\n→ status: \"rejected\"\n→ Identifica TODAS las razones de rechazo\n\n---\n\nFORMATO DE RESPUESTA (JSON):\n\n{\n  \"status\": \"approved\" o \"rejected\",\n  \"rejection_reasons\": [\n    \"Lista de motivos específicos si es rechazado\",\n    \"Ejemplo: Tiene mascotas y el inmueble no las acepta\",\n    \"Ejemplo: Ingresos insuficientes ($25,000 vs $30,000 requeridos)\"\n  ],\n  \"summary\": \"Resumen breve del perfil del contacto (2-3 líneas)\",\n  \"recommendation\": \"Recomendación para el equipo (solo si aprobado)\"\n}\n\n⚠️ IMPORTANTE:\n- NO uses markdown (```json)\n- Responde SOLO con JSON válido\n- Si aprobado, rejection_reasons debe estar vacío []\n- Si rechazado, rejection_reasons debe tener al menos 1 motivo"
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [1072, 144],
+			"id": "000716d3-c44c-4052-84ef-339dd992c1eb",
+			"name": "Evaluate Profile",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const prepareData = $('Prepare Evaluation Data').item.json;\n\n// Parsear respuesta del AI\nlet evaluationText = $json.output || '';\nevaluationText = evaluationText.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet evaluation = {\n  status: 'rejected',\n  rejection_reasons: ['Error al evaluar el perfil'],\n  summary: 'Error en la evaluación',\n  recommendation: ''\n};\n\ntry {\n  evaluation = JSON.parse(evaluationText);\n  console.log(`📊 Evaluación: ${evaluation.status.toUpperCase()}`);\n  \n  if (evaluation.status === 'rejected') {\n    console.log('❌ Motivos:', evaluation.rejection_reasons.join(', '));\n  }\n  \n} catch (error) {\n  console.error('❌ Error parseando evaluación:', error);\n  console.log('Texto recibido:', evaluationText.substring(0, 200));\n}\n\nreturn {\n  wa_id: prepareData.wa_id,\n  updatedContext: prepareData.updatedContext,\n  api_contact_id: prepareData.api_contact_id,\n  evaluation: evaluation,\n  isApproved: evaluation.status === 'approved'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1376, 144],
+			"id": "4fdcee5e-b8b4-4c69-89e5-ce58a94f19c6",
+			"name": "Parse Evaluation"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.isApproved }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										},
+										"id": "25e8a33c-1ae8-4396-a597-77ebfa9d86ba"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "✅ Approved"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "204a243a-8e29-4aa6-9dcd-51e55e5a3d19",
+										"leftValue": "={{ $json.isApproved }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "❌ Rejected"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [1536, 144],
+			"id": "03f7384f-f502-41b0-90b4-03a87bbf1596",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $json.errorMessage }}, Intenta de nuevo por favor 🙏",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [192, -240],
+			"id": "2cf69e0f-c15a-4ea1-b1d1-690bf4b01990",
+			"name": "Message Invalid Answer",
+			"webhookId": "fab5036f-a9cb-45d8-9bcc-9282a2a2586c",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Get Current Question",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get Current Question": {
+			"main": [
+				[
+					{
+						"node": "Validate Answer",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Validate Answer": {
+			"main": [
+				[
+					{
+						"node": "Answer Valid?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Answer Valid?": {
+			"main": [
+				[
+					{
+						"node": "Save Answer & Check Progress",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Message Invalid Answer",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Execute a SQL query": {
+			"main": [[]]
+		},
+		"Save Answer & Check Progress": {
+			"main": [
+				[
+					{
+						"node": "Has More Questions?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Has More Questions?": {
+			"main": [
+				[
+					{
+						"node": "Update Context & Progress",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Prepare Evaluation Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Context & Progress": {
+			"main": [
+				[
+					{
+						"node": "Send Next Question",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Next Question": {
+			"main": [
+				[
+					{
+						"node": "Set Bot Free",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Evaluation Data": {
+			"main": [
+				[
+					{
+						"node": "Evaluate Profile",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Evaluate Profile": {
+			"main": [
+				[
+					{
+						"node": "Parse Evaluation",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Evaluation": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message Invalid Answer": {
+			"main": [
+				[
+					{
+						"node": "Execute a SQL query",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}
