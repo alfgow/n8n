@@ -100,54 +100,6 @@
 								"conditions": [
 									{
 										"leftValue": "={{ $json.intent }}",
-										"rightValue": "general_inquiry",
-										"operator": {
-											"type": "string",
-											"operation": "equals"
-										},
-										"id": "intent-inquiry"
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "General Inquiry"
-						},
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "strict",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"leftValue": "={{ $json.intent }}",
-										"rightValue": "confirmation",
-										"operator": {
-											"type": "string",
-											"operation": "equals"
-										},
-										"id": "intent-confirm"
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Confirmation"
-						},
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "strict",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"leftValue": "={{ $json.intent }}",
 										"rightValue": "negotiation",
 										"operator": {
 											"type": "string",
@@ -392,6 +344,48 @@
 					"name": "OpenAi account"
 				}
 			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Parse Intention').item.json.wa_id }}",
+				"textBody": "Lo siento, tanto los montos de renta como los requisitos y restricciones no son negociables, que tengas éxito en tu busqueda.",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-320, 64],
+			"id": "3cea4c7c-5770-463c-8293-1346b036c46f",
+			"name": "Negotiation Message",
+			"webhookId": "3eb21d24-69af-4a16-872f-9e6e6de64b4d",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Parse Intention').item.json.wa_id }}",
+				"textBody": "Lo siento, únicamente te puedo ayudar con temas relacionados a Inmobiliaria Villanueva García",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-320, -96],
+			"id": "bd92bba2-da5f-4ea0-891f-7fafc85bc0a4",
+			"name": "OutScope Message",
+			"webhookId": "77757eb5-61c1-4fb8-9764-b9b1fdb7fb16",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
 		}
 	],
 	"connections": {
@@ -429,6 +423,20 @@
 				[
 					{
 						"node": "Send Greeting Message",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Negotiation Message",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "OutScope Message",
 						"type": "main",
 						"index": 0
 					}
