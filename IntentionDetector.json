@@ -4,55 +4,37 @@
 			"parameters": {
 				"workflowInputs": {
 					"values": [
-						{ "name": "wa_id" },
-						{ "name": "userPrompt" },
-						{ "name": "context_data", "type": "object" },
-						{ "name": "api_contact", "type": "object" }
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
 					]
 				}
 			},
 			"type": "n8n-nodes-base.executeWorkflowTrigger",
 			"typeVersion": 1.1,
-			"position": [0, 0],
-			"id": "trigger-001",
+			"position": [-176, 288],
+			"id": "9220017a-23b2-4448-9a5c-bef26bd25a9b",
 			"name": "When Executed by Another Workflow"
 		},
 		{
 			"parameters": {
-				"modelId": {
-					"__rl": true,
-					"value": "models/gemini-2.5-flash",
-					"mode": "list",
-					"cachedResultName": "models/gemini-2.5-flash"
-				},
-				"messages": {
-					"values": [{ "content": "={{ $json.userPrompt }}" }]
-				},
-				"jsonOutput": true,
-				"options": {
-					"systemMessage": "Eres un clasificador de intenciones para una inmobiliaria. Analiza el mensaje del usuario y clasifica en UNA de estas categorías:\n\n- property_search: Busca un inmueble específico (departamento, casa, propiedad, renta, compra)\n- greeting: Saludos iniciales o conversación casual amistosa (hola, qué tal, buenas tardes)\n- general_inquiry: Preguntas sobre servicios, áreas, zonas, precios generales, información de la empresa\n- confirmation: Confirmaciones para avanzar (sí, ok, listo, adelante, de acuerdo)\n- negotiation: Intenta negociar precio, condiciones o pedir excepciones\n- out_of_scope: Cualquier tema NO relacionado con inmobiliaria (clima, política, chistes, etc)\n\nEjemplos:\n- \"Busco depa en Polanco\" → property_search\n- \"Hola, buenos días\" → greeting\n- \"¿En qué zonas tienen propiedades?\" → general_inquiry\n- \"Sí, adelante\" → confirmation\n- \"¿Pueden bajar el precio?\" → negotiation\n- \"¿Cómo está el clima?\" → out_of_scope\n\nResponde SOLO con el nombre de la categoría en minúsculas, sin explicaciones ni puntuación."
-				}
-			},
-			"type": "@n8n/n8n-nodes-langchain.googleGemini",
-			"typeVersion": 1,
-			"position": [200, 0],
-			"id": "ai-classifier-001",
-			"name": "AI: Classify Intention",
-			"credentials": {
-				"googlePalmApi": {
-					"id": "3Qw3858fHslDYr4D",
-					"name": "Gemini - alfgow"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"jsCode": "const aiResponse = $json.content.parts[0].text;\nconst triggerData = $('When Executed by Another Workflow').item.json;\n\n// Limpiar respuesta de IA\nconst intent = aiResponse.trim().toLowerCase().replace(/[^a-z_]/g, '');\n\n// Validar intención\nconst validIntents = [\n  'property_search',\n  'greeting',\n  'general_inquiry',\n  'confirmation',\n  'negotiation',\n  'out_of_scope'\n];\n\nconst finalIntent = validIntents.includes(intent) ? intent : 'general_inquiry';\n\nconsole.log('🎯 Intención detectada:', finalIntent);\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: triggerData.userPrompt,\n  context_data: triggerData.context_data,\n  api_contact: triggerData.api_contact,\n  intent: finalIntent,\n  timestamp: new Date().toISOString()\n};"
+				"jsCode": "const aiResponse = $input.first().json.output[0].content[0].text;\nconst triggerData = $('When Executed by Another Workflow').item.json;\n\n// Limpiar respuesta de IA\nconst intent = aiResponse.trim().toLowerCase().replace(/[^a-z_]/g, '');\n\n// Validar intención\nconst validIntents = [\n  'property_search',\n  'greeting',\n  'general_inquiry',\n  'confirmation',\n  'negotiation',\n  'out_of_scope'\n];\n\nconst finalIntent = validIntents.includes(intent) ? intent : 'general_inquiry';\n\nconsole.log('🎯 Intención detectada:', finalIntent);\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: triggerData.userPrompt,\n  context_data: triggerData.context_data,\n  api_contact: triggerData.api_contact,\n  intent: finalIntent,\n  timestamp: new Date().toISOString()\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [400, 0],
-			"id": "parser-001",
+			"position": [368, 288],
+			"id": "926d05eb-e0a0-4e69-8ec5-74fcb5373a83",
 			"name": "Parse Intention"
 		},
 		{
@@ -209,8 +191,8 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [600, 0],
-			"id": "router-001",
+			"position": [576, 224],
+			"id": "66e25840-c482-47d4-b7b1-b5c0acf07679",
 			"name": "Switch: By Intention"
 		},
 		{
@@ -219,8 +201,8 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [800, -100],
-			"id": "property-handler-001",
+			"position": [944, 48],
+			"id": "c8a32706-3975-4871-a9d7-10da45020e1d",
 			"name": "Prepare Property Search Context"
 		},
 		{
@@ -231,8 +213,8 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1000, -100],
-			"id": "postgres-001",
+			"position": [1168, 48],
+			"id": "0a689379-4ac6-4c66-9a85-d036ca1268bf",
 			"name": "Update Context: Property Search",
 			"credentials": {
 				"postgres": {
@@ -251,8 +233,8 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [800, 100],
-			"id": "greeting-001",
+			"position": [944, 240],
+			"id": "7072eb2a-eefa-4bf2-805b-c252fb073f17",
 			"name": "Send Greeting Message",
 			"webhookId": "greeting-webhook-001",
 			"credentials": {
@@ -264,19 +246,150 @@
 		},
 		{
 			"parameters": {
+				"jsCode": "const greetingData = $('Send Greeting Message').item.json;\nconst intentData = $('Parse Intention').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(intentData.context_data || {}));\n\n// Agregar flags\nupdatedContext.last_intent = \"greeting\";\nupdatedContext.already_greeted = true;\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacciones\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\n// Interacción: intención detectada\ninteractions.push({\n  timestamp,\n  actor: \"sistema\",\n  canal: \"whatsapp\",\n  tipo: \"intencion_detectada\",\n  mensaje: \"Intención detectada: greeting\",\n  detalles: { \n    intent: \"greeting\",\n    user_message: intentData.userPrompt\n  }\n});\n\n// Interacción: mensaje enviado\ninteractions.push({\n  timestamp,\n  actor: \"bot\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_enviado\",\n  mensaje: `¡Hola! 👋 Soy ${updatedContext.personaje}, tu asistente...`,\n  detalles: { \n    intent: \"greeting\",\n    personaje: updatedContext.personaje\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: intentData.wa_id,\n  updatedContext\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1168, 240],
+			"id": "b1abb168-d6c9-4e10-8ae7-10822f77f748",
+			"name": "Update Greeting Context"
+		},
+		{
+			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Parse Intention').item.json.wa_id }}'\nRETURNING *;",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1000, 100],
-			"id": "postgres-002",
-			"name": "Update Bot: Free",
+			"position": [1376, 240],
+			"id": "a40dfbd0-6381-464b-83d8-ac101ec17873",
+			"name": "Update Context & Bot Status",
 			"credentials": {
 				"postgres": {
 					"id": "qyR2OAIR7tUEVcQf",
 					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "yb4kwczhVfftt9q5",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/yb4kwczhVfftt9q5",
+					"cachedResultName": "NamePhoneExtractor"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "json",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "json",
+							"removed": false
+						},
+						{
+							"id": "intent",
+							"displayName": "intent",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "needsNamePhone",
+							"displayName": "needsNamePhone",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "boolean",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [1376, 48],
+			"id": "90e948f2-fa8b-4df5-abc6-6fb68a2ea7ee",
+			"name": "Call 'NamePhoneExtractor'"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"content": "={{ $json.userPrompt }}"
+						},
+						{
+							"role": "system",
+							"content": "=Eres un clasificador de intenciones para una inmobiliaria. Analiza el mensaje del usuario y clasifica en UNA de estas categorías:\n\n- property_search: Busca un inmueble específico (departamento, casa, propiedad, renta, compra)\n- greeting: Saludos iniciales o conversación casual amistosa (hola, qué tal, buenas tardes)\n- general_inquiry: Preguntas sobre servicios, áreas, zonas, precios generales, información de la empresa\n- confirmation: Confirmaciones para avanzar (sí, ok, listo, adelante, de acuerdo)\n- negotiation: Intenta negociar precio, condiciones o pedir excepciones\n- out_of_scope: Cualquier tema NO relacionado con inmobiliaria (clima, política, chistes, etc)\n\nEjemplos:\n- \"Busco depa en Polanco\" → property_search\n- \"Hola, buenos días\" → greeting\n- \"¿En qué zonas tienen propiedades?\" → general_inquiry\n- \"Sí, adelante\" → confirmation\n- \"¿Pueden bajar el precio?\" → negotiation\n- \"¿Cómo está el clima?\" → out_of_scope\n\nResponde SOLO con el nombre de la categoría en minúsculas, sin explicaciones ni puntuación."
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [32, 288],
+			"id": "24416fa4-b7b9-4702-bdec-7f0b9505f2b7",
+			"name": "Message a model",
+			"retryOnFail": true,
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
 				}
 			}
 		}
@@ -286,21 +399,22 @@
 			"main": [
 				[
 					{
-						"node": "AI: Classify Intention",
+						"node": "Message a model",
 						"type": "main",
 						"index": 0
 					}
 				]
 			]
 		},
-		"AI: Classify Intention": {
-			"main": [
-				[{ "node": "Parse Intention", "type": "main", "index": 0 }]
-			]
-		},
 		"Parse Intention": {
 			"main": [
-				[{ "node": "Switch: By Intention", "type": "main", "index": 0 }]
+				[
+					{
+						"node": "Switch: By Intention",
+						"type": "main",
+						"index": 0
+					}
+				]
 			]
 		},
 		"Switch: By Intention": {
@@ -318,11 +432,7 @@
 						"type": "main",
 						"index": 0
 					}
-				],
-				[],
-				[],
-				[],
-				[]
+				]
 			]
 		},
 		"Prepare Property Search Context": {
@@ -336,13 +446,88 @@
 				]
 			]
 		},
+		"Update Context: Property Search": {
+			"main": [
+				[
+					{
+						"node": "Call 'NamePhoneExtractor'",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
 		"Send Greeting Message": {
 			"main": [
-				[{ "node": "Update Bot: Free", "type": "main", "index": 0 }]
+				[
+					{
+						"node": "Update Greeting Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Greeting Context": {
+			"main": [
+				[
+					{
+						"node": "Update Context & Bot Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message a model": {
+			"main": [
+				[
+					{
+						"node": "Parse Intention",
+						"type": "main",
+						"index": 0
+					}
+				]
 			]
 		}
 	},
-	"pinData": {},
+	"pinData": {
+		"When Executed by Another Workflow": [
+			{
+				"wa_id": "5215559177781",
+				"userPrompt": "Hola quiero un info del depa en museo",
+				"context_data": {
+					"personaje": "Ale",
+					"statusBot": "working",
+					"interacciones": [
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "Hola quiero un info del depa en museo",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-13T13:55:35.908Z"
+						}
+					],
+					"ultima_interaccion": "2025-11-13T13:55:35.908Z"
+				},
+				"api_contact": {
+					"id": 628,
+					"nombre": "🤖 - Sin nombre",
+					"email": null,
+					"telefono": "5559177781",
+					"estado": "nuevo",
+					"fuente": "WhatsApp Bot",
+					"created_at": "2025-11-13T07:55:35-06:00",
+					"updated_at": "2025-11-13T07:55:35-06:00",
+					"last_interaction_at": "2025-11-13T07:55:35-06:00",
+					"interes_reciente": null
+				}
+			}
+		]
+	},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"

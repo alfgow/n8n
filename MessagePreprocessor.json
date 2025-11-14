@@ -142,7 +142,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1552, -192],
+			"position": [1536, -192],
 			"id": "353453cd-3239-40bc-8200-1b4c64cac36e",
 			"name": "Format Busy Output"
 		},
@@ -356,7 +356,7 @@
 					"parameters": [
 						{
 							"name": "comentario",
-							"value": "=🤖 Procesé exitosamente mensaje inicial del contacto: {{ $('Extract Message Info').item.json.userPrompt }}"
+							"value": "=☺️ Mensaje del contacto: ➡️ {{ $('Extract Message Info').item.json.userPrompt }}"
 						}
 					]
 				},
@@ -386,6 +386,35 @@
 		},
 		{
 			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('If: Postgress Blocked?').item.json.context_data.api_contact_id }}/comentarios\n",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "=🤖 'Estoy procesando tu ultima petición, dame un momento'"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [1744, -192],
+			"id": "7b304cdd-6e78-47b1-b3d3-61da51ced4f3",
+			"name": "API: Add Comment1",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
 				"operation": "executeQuery",
 				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract Message Info').item.json.wa_id }}'\nLIMIT 1;",
 				"options": {}
@@ -394,7 +423,7 @@
 			"typeVersion": 2.6,
 			"position": [1376, 272],
 			"id": "fc435aef-99a1-4e17-952e-84dad5f471b7",
-			"name": "Execute a SQL query",
+			"name": "Get Final context_data",
 			"credentials": {
 				"postgres": {
 					"id": "qyR2OAIR7tUEVcQf",
@@ -482,6 +511,17 @@
 				[
 					{
 						"node": "Format Busy Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Format Busy Output": {
+			"main": [
+				[
+					{
+						"node": "API: Add Comment1",
 						"type": "main",
 						"index": 0
 					}
@@ -604,7 +644,7 @@
 			"main": [
 				[
 					{
-						"node": "Execute a SQL query",
+						"node": "Get Final context_data",
 						"type": "main",
 						"index": 0
 					}
@@ -622,7 +662,7 @@
 				]
 			]
 		},
-		"Execute a SQL query": {
+		"Get Final context_data": {
 			"main": [
 				[
 					{

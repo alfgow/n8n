@@ -12,7 +12,7 @@
 						},
 						{
 							"name": "context_data",
-							"type": "json"
+							"type": "object"
 						},
 						{
 							"name": "nombre"
@@ -137,7 +137,7 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "// 1. Prepare for Property Search (después del trigger)\nconst triggerData = $json;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: triggerData.context_data.interacciones[0].mensaje,\n  nombre: triggerData.context_data.nombre,\n  telefono: triggerData.context_data.telefono,\n  personaje: triggerData.context_data.personaje,\n  api_contact_id: triggerData.context_data.api_contact_id\n};"
+				"jsCode": "const triggerData = $json;\n\n// Buscar la interacción de búsqueda de propiedad\nconst propertySearchInteraction = triggerData.context_data.interacciones.find(\n  i => i.tipo === 'intencion_detectada' && i.detalles?.intent === 'property_search'\n);\n\n// Obtener el mensaje original de búsqueda\nlet searchMessage = '';\n\nif (propertySearchInteraction && propertySearchInteraction.detalles?.original_message) {\n  searchMessage = propertySearchInteraction.detalles.original_message;\n} else {\n  // Fallback: buscar el último mensaje del usuario antes de la intención\n  const userMessages = triggerData.context_data.interacciones.filter(\n    i => i.tipo === 'mensaje_recibido' && i.actor === 'usuario'\n  );\n  searchMessage = userMessages[userMessages.length - 1]?.mensaje || triggerData.userPrompt;\n}\n\nconsole.log('🔍 Mensaje de búsqueda:', searchMessage);\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: searchMessage,\n  nombre: triggerData.context_data.nombre,\n  telefono: triggerData.context_data.telefono,\n  personaje: triggerData.context_data.personaje,\n  api_contact_id: triggerData.context_data.api_contact_id\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
@@ -359,115 +359,7 @@
 			]
 		}
 	},
-	"pinData": {
-		"When Executed by Another Workflow": [
-			{
-				"wa_id": "5215559177781",
-				"userPrompt": "ok Emmet Juaquin Villanueva 5559177781",
-				"context_data": {
-					"nombre": "Emmet Juaquin Villanueva",
-					"status": "in_progress",
-					"telefono": "5559177781",
-					"personaje": "Dany",
-					"statusBot": "working",
-					"last_intent": "property_search",
-					"interacciones": [
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Hola",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-14T02:57:24.711Z"
-						},
-						{
-							"tipo": "intencion_detectada",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Intención detectada: greeting",
-							"detalles": {
-								"intent": "greeting",
-								"user_message": "Hola"
-							},
-							"timestamp": "2025-11-14T02:57:33.783Z"
-						},
-						{
-							"tipo": "mensaje_enviado",
-							"actor": "bot",
-							"canal": "whatsapp",
-							"mensaje": "¡Hola! 👋 Soy Dany, tu asistente...",
-							"detalles": {
-								"intent": "greeting",
-								"personaje": "Dany"
-							},
-							"timestamp": "2025-11-14T02:57:33.783Z"
-						},
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Quiero info del depa en Cuajimalpa",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-14T02:57:57.836Z"
-						},
-						{
-							"tipo": "intencion_detectada",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Intención: property_search",
-							"detalles": {
-								"intent": "property_search",
-								"original_message": "Quiero info del depa en Cuajimalpa"
-							},
-							"timestamp": "2025-11-14T02:58:07.287Z"
-						},
-						{
-							"tipo": "solicitud_datos",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Se solicitaron datos del contacto",
-							"detalles": {
-								"original_message": ""
-							},
-							"timestamp": "2025-11-14T02:58:07.415Z"
-						},
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "ok Emmet Juaquin Villanueva 5559177781",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-14T02:58:33.166Z"
-						},
-						{
-							"tipo": "datos_recibidos",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Datos del contacto recibidos y validados",
-							"detalles": {
-								"nombre": "Emmet Juaquin Villanueva",
-								"telefono": "5559177781",
-								"api_contact_id": 633
-							},
-							"timestamp": "2025-11-14T02:58:39.124Z"
-						}
-					],
-					"api_contact_id": 633,
-					"already_greeted": true,
-					"original_search": "",
-					"ultima_interaccion": "2025-11-14T02:58:39.124Z"
-				},
-				"nombre": "Emmet Juaquin Villanueva",
-				"telefono": "5559177781"
-			}
-		]
-	},
+	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"

@@ -148,7 +148,7 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// Cambiar status e iniciar cuestionario\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire_step = 1;\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'confirmacion_cuestionario',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'afirmativa',\n    inicia_cuestionario: true\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta basada en restricciones\nconst property = updatedContext.property_found || {};\nconst restrictions = property.restrictions || {};\n\nlet firstQuestion = \"Perfecto, empecemos 😊\\n\\n**Pregunta 1 de 5:**\\n¿Cuántas personas vivirían en el inmueble?\";\n\n// Si la propiedad no acepta niños, agregar aclaración\nif (restrictions.acepta_niños === \"no\") {\n  firstQuestion += \"\\n\\n_(Solo adultos, la propiedad no acepta niños)_\";\n}\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  firstQuestion: firstQuestion,\n  api_contact_id: updatedContext.api_contact_id\n};"
+				"jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// Cambiar status e iniciar cuestionario\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire_step = 1;\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'confirmacion_cuestionario',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'afirmativa',\n    inicia_cuestionario: true\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta basada en restricciones\nconst property = updatedContext.property_found || {};\nconst restrictions = property.restrictions || {};\n\nlet firstQuestion = \"Perfecto, \\n\\n¿Cuántas personas vivirían en el inmueble?\";\n\n// Si la propiedad no acepta niños, agregar aclaración\nif (restrictions.acepta_niños === \"no\") {\n  firstQuestion += \"\\n\\n_(Solo adultos, la propiedad no acepta niños)_\";\n}\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  firstQuestion: firstQuestion,\n  api_contact_id: updatedContext.api_contact_id\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
@@ -158,21 +158,11 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\n\n// El AI Agent devuelve la respuesta en $json.output como STRING\nlet questionnaireText = $json.output || '';\n\nconsole.log('📥 Respuesta del AI recibida');\n\n// Limpiar respuesta (por si viene con markdown)\nquestionnaireText = questionnaireText\n  .replace(/```json\\n?/g, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\n// Parsear JSON\nlet questionnaire = [];\n\ntry {\n  questionnaire = JSON.parse(questionnaireText);\n  \n  // Validar que sea un array\n  if (!Array.isArray(questionnaire)) {\n    throw new Error('La respuesta no es un array');\n  }\n  \n  // Validar que tenga al menos 1 pregunta\n  if (questionnaire.length === 0) {\n    throw new Error('El cuestionario está vacío');\n  }\n  \n  console.log(`✅ Cuestionario generado con ${questionnaire.length} preguntas`);\n  \n} catch (error) {\n  console.error('❌ Error parseando cuestionario:', error);\n  console.log('Texto recibido:', questionnaireText.substring(0, 200));\n  \n  // Fallback: cuestionario básico\n  questionnaire = [\n    {\n      section: \"validacion_basica\",\n      field: \"puede_continuar\",\n      question: \"¿Cumples con todos los requisitos mencionados en la descripción del inmueble?\",\n      type: \"boolean\",\n      expected: true\n    }\n  ];\n}\n\n// Preparar output\nreturn {\n  wa_id: triggerData.wa_id,\n  questionnaire: questionnaire,\n  total_questions: questionnaire.length,\n  first_question: questionnaire[0],\n  context_data: triggerData.context_data\n};"
+				"jsCode": "const parseData = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(parseData.context_data || {}));\n\n// Agregar cuestionario y configuración\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire = parseData.questionnaire;\nupdatedContext.questionnaire_step = 1;\nupdatedContext.questionnaire_total = parseData.total_questions;\nupdatedContext.questionnaire_answers = []; // Array vacío para ir guardando respuestas\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción al historial\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'inicio_cuestionario',\n  mensaje: 'Cuestionario generado e iniciado',\n  detalles: {\n    total_preguntas: parseData.total_questions,\n    primera_pregunta: parseData.first_question.field\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta para WhatsApp\nconst firstQuestion = parseData.first_question;\nlet questionText = `Perfecto, empecemos 😊:\\n\\n${firstQuestion.question}`;\n\nreturn {\n  wa_id: parseData.wa_id,\n  updatedContext: updatedContext,\n  questionText: questionText,\n  current_question: firstQuestion\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1328, -144],
-			"id": "a68014c5-11be-42cf-8869-7ded9b0adddb",
-			"name": "Parse AI Questionnaire"
-		},
-		{
-			"parameters": {
-				"jsCode": "const parseData = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(parseData.context_data || {}));\n\n// Agregar cuestionario y configuración\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire = parseData.questionnaire;\nupdatedContext.questionnaire_step = 1;\nupdatedContext.questionnaire_total = parseData.total_questions;\nupdatedContext.questionnaire_answers = []; // Array vacío para ir guardando respuestas\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción al historial\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'inicio_cuestionario',\n  mensaje: 'Cuestionario generado e iniciado',\n  detalles: {\n    total_preguntas: parseData.total_questions,\n    primera_pregunta: parseData.first_question.field\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta para WhatsApp\nconst firstQuestion = parseData.first_question;\nlet questionText = `Perfecto, empecemos 😊\\n\\n**Pregunta 1 de ${parseData.total_questions}:**\\n\\n${firstQuestion.question}`;\n\nreturn {\n  wa_id: parseData.wa_id,\n  updatedContext: updatedContext,\n  questionText: questionText,\n  current_question: firstQuestion\n};"
-			},
-			"type": "n8n-nodes-base.code",
-			"typeVersion": 2,
-			"position": [1536, -144],
+			"position": [1184, -128],
 			"id": "a16d67b1-de75-4c14-8b2e-1bbb7add2462",
 			"name": "Prepare Context with Questionnaire"
 		},
@@ -184,7 +174,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1744, -144],
+			"position": [1488, -144],
 			"id": "b710c8ce-7d44-48a0-9928-d5ad14e58a62",
 			"name": "Save Context with Questionnaire",
 			"credentials": {
@@ -204,7 +194,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [1952, -144],
+			"position": [1760, -144],
 			"id": "acad6a4d-9d2c-41a8-8404-8770dac05582",
 			"name": "Send message",
 			"webhookId": "aef0e0a7-bf3c-454a-9777-e7370c1fcf3b",
@@ -221,7 +211,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2160, -144],
+			"position": [1968, -144],
 			"id": "d6b637d3-e110-4eea-8a0b-5a18bd155739",
 			"name": "Format Success Output"
 		},
@@ -233,7 +223,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1280, -368],
+			"position": [1152, -336],
 			"id": "e079643f-a93c-46a4-9981-52f391e597ac",
 			"name": "Update Bot to Free",
 			"credentials": {
@@ -266,41 +256,13 @@
 		},
 		{
 			"parameters": {
-				"modelId": {
-					"__rl": true,
-					"value": "gpt-5-nano",
-					"mode": "list",
-					"cachedResultName": "GPT-5-NANO"
-				},
-				"responses": {
-					"values": [
-						{
-							"role": "system",
-							"content": "=Eres un asistente de Inmobiliaria Villanueva García. Genera un cuestionario conversacional basado en el inmueble y sus restricciones.\n\nDATOS DEL INMUEBLE:\n{{ $json.updatedContext.property_found.toJsonString() }}\n\nRESTRICCIONES:\n{{ $json.updatedContext.property_found.restrictions.toJsonString() }}\n\nOBJETIVO:\nCrear preguntas 100% conversacionales con respuestas abiertas (type: \"text\"). No preguntes \"sí/no\". El usuario responde naturalmente y el sistema interpreta.\n\nESTILO:\n- Tono profesional y cálido\n- Sin saludos ni \"Pregunta X de X\"\n- Contextualiza antes de preguntar (menciona la característica del inmueble)\n- Usa \"Platícame...\" / \"¿Cómo te sientes con...?\" \n- NO repitas condiciones ya preguntadas\n\nSECCIONES:\n\n1. CARACTERÍSTICAS FÍSICAS\nPregunta sobre: piso/elevador, habitaciones vs habitantes, estacionamiento, mascotas (si está alfombrado), y otros detalles físicos relevantes.\n\n2. RESTRICCIONES DE CONVIVENCIA (solo lo NO preguntado en sección 1)\nPregunta sobre: niños (si acepta_niños=\"no\"), mascotas (si acepta_mascotas=\"no\" y no se preguntó antes), roomies (si acepta_roomies=\"no\").\n\n3. CONDICIONES DE CONTRATACIÓN\nPregunta sobre: póliza jurídica (si precio_poliza > 0), depósito y renta inicial.\n\n4. VALIDACIÓN DE INGRESOS\nPregunta sobre: ingresos mínimos (si ingresos_minimos > 0), ocupación, comprobantes de ingresos (si requiere_comprobantes_ingresos=true).\n\nREGLAS:\n- Si una condición ya fue preguntada, NO la repitas\n- Integra varias condiciones en una pregunta cuando sea lógico\n- Usa [X] para valores reales (precio, piso, habitaciones, etc.)\n- Si falta un dato necesario, omite esa pregunta\n- Todas las preguntas son type: \"text\"\n\nFORMATO DE SALIDA (solo JSON array, sin markdown):\n\n[\n  {\n    \"section\": \"caracteristicas_fisicas\",\n    \"field\": \"acepta_piso_sin_elevador\",\n    \"question\": \"El departamento está en el 3er piso y no cuenta con elevador. ¿Cómo te sientes con eso?\",\n    \"type\": \"text\"\n  },\n  {\n    \"section\": \"validacion_ingresos\",\n    \"field\": \"ocupacion\",\n    \"question\": \"Para conocer mejor tu perfil, ¿a qué te dedicas actualmente?\",\n    \"type\": \"text\"\n  }\n]"
-						}
-					]
-				},
-				"builtInTools": {},
-				"options": {
-					"textFormat": {
-						"textOptions": {
-							"type": "json_object"
-						}
-					}
-				}
+				"jsCode": "// Obtener datos del nodo anterior\nconst previousData = $('Prepare Questionnaire Context').item.json;\nconst propertyData = previousData.updatedContext.property_found;\nconst contextData = previousData.updatedContext;\n\nconst TEMPLATE = {\n  caracteristicas_fisicas: [\n    {\n      condition: () => !propertyData.parkings || propertyData.parkings === 0,\n      field: \"necesita_estacionamiento\",\n      question: \"El inmueble no cuenta con estacionamiento. ¿Estás de acuerdo con esto?\"\n    }\n  ],\n  \n  restricciones_convivencia: [\n    {\n      condition: () => propertyData.restrictions?.acepta_niños === \"no\",\n      field: \"tiene_ninos\",\n      question: \"¿Entre las personas que vivirían en el inmueble habría niños?\"\n    },\n    {\n      condition: () => propertyData.restrictions?.acepta_mascotas === \"no\",\n      field: \"tiene_mascotas\",\n      question: \"El arrendador no acepta mascotas, es una restricción no negociable. ¿Tienes inconveniente con esto?\"\n    },\n    {\n      condition: () => propertyData.restrictions?.acepta_roomies === \"no\",\n      field: \"tiene_roomies\",\n      question: \"Platícame con quien vivirás ¿solo/a, con pareja, familia o con roomies?\"\n    }\n  ],\n  \n  condiciones_contratacion: [\n    {\n      condition: () => propertyData.restrictions?.precio_poliza > 0,\n      field: \"acepta_poliza\",\n      question: `Se solicita una póliza jurídica de $${parseFloat(propertyData.restrictions.precio_poliza).toLocaleString('es-MX')} que se paga anualmente, es decir, cada año que renueves el contrato. ¿Estás de acuerdo?`\n    },\n    {\n      condition: () => true,\n      field: \"acepta_deposito_renta\",\n      question: \"Los pagos iniciales que se requieren son: Primer mes de renta y un mes de renta como depósito en garantía. ¿Estás de acuerdo con éste requisito?\"\n    }\n  ],\n  \n  validacion_ingresos: [\n    {\n      condition: () => propertyData.restrictions?.ingresos_minimos > 0,\n      field: \"cumple_ingresos\",\n      question: `Se pide un ingreso mínimo de $${parseFloat(propertyData.restrictions.ingresos_minimos).toLocaleString('es-MX')} mensuales, puede ser individual o mancomunado si vivirás en pareja. ¿Cumples con éste requisito?`\n    },\n    {\n      condition: () => true,\n      field: \"ocupacion\",\n      question: \"Para conocer mejor tu perfil, ¿a qué te dedicas actualmente?\"\n    },\n    {\n      condition: () => propertyData.restrictions?.requiere_comprobantes_ingresos === true,\n      field: \"tipo_comprobante\",\n      question: \"¿Qué tipo de comprobantes de ingresos tienes? (Recibo de nómina timbrado por el SAT, estados de cuenta completos o facturas?)\"\n    }\n  ]\n};\n\n// Generar cuestionario\nconst questionnaire = [];\n\nfor (const [section, questions] of Object.entries(TEMPLATE)) {\n  questions.forEach(q => {\n    if (q.condition()) {\n      questionnaire.push({\n        section: section,\n        field: q.field,\n        question: q.question,\n        type: \"text\"\n      });\n    }\n  });\n}\n\n// Obtener primera pregunta\nconst firstQuestion = questionnaire[0] || null;\n\n// Validar que hay al menos una pregunta\nif (!firstQuestion) {\n  throw new Error('No se generaron preguntas para este inmueble');\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  questionnaire: questionnaire,\n  total_questions: questionnaire.length,\n  first_question: firstQuestion,    // ← ESTO FALTABA\n  context_data: contextData          // ← ESTO FALTABA\n};"
 			},
-			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
 			"position": [944, -128],
-			"id": "fd8e5da6-40c7-40d4-9a14-4c226861d62f",
-			"name": "AI Generate Dynamic Questionnaire",
-			"credentials": {
-				"openAiApi": {
-					"id": "g8OPzRDvvB6YO7mf",
-					"name": "OpenAi account"
-				}
-			},
-			"onError": "continueErrorOutput"
+			"id": "728f00a9-217e-412d-ab66-ff2db7ad8dec",
+			"name": "Generate Static Questionnaire"
 		}
 	],
 	"connections": {
@@ -341,18 +303,7 @@
 			"main": [
 				[
 					{
-						"node": "AI Generate Dynamic Questionnaire",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Parse AI Questionnaire": {
-			"main": [
-				[
-					{
-						"node": "Prepare Context with Questionnaire",
+						"node": "Generate Static Questionnaire",
 						"type": "main",
 						"index": 0
 					}
@@ -403,18 +354,11 @@
 				]
 			]
 		},
-		"AI Generate Dynamic Questionnaire": {
+		"Generate Static Questionnaire": {
 			"main": [
 				[
 					{
-						"node": "Parse AI Questionnaire",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Send message1",
+						"node": "Prepare Context with Questionnaire",
 						"type": "main",
 						"index": 0
 					}
@@ -422,418 +366,7 @@
 			]
 		}
 	},
-	"pinData": {
-		"When Executed by Another Workflow": [
-			{
-				"wa_id": "5215559177781",
-				"userPrompt ": "Si adelante",
-				"context_data": {
-					"nombre": "Alfonso Villanueva Quiroz",
-					"status": "awaiting_questionnaire_confirmation",
-					"telefono": "5559177781",
-					"personaje": "Dany",
-					"statusBot": "working",
-					"last_intent": "property_search",
-					"interacciones": [
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Hola quiero un info del depa en museo",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T13:59:04.846Z"
-						},
-						{
-							"tipo": "intencion_detectada",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Intención: property_search",
-							"detalles": {
-								"intent": "property_search",
-								"original_message": "Hola quiero un info del depa en museo"
-							},
-							"timestamp": "2025-11-13T13:59:13.339Z"
-						},
-						{
-							"tipo": "solicitud_datos",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Se solicitaron datos del contacto",
-							"detalles": {
-								"original_message": ""
-							},
-							"timestamp": "2025-11-13T13:59:13.464Z"
-						},
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Alfonso Villanueva Quiroz, 5559177781",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T13:59:32.388Z"
-						},
-						{
-							"tipo": "datos_recibidos",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Datos del contacto recibidos y validados",
-							"detalles": {
-								"nombre": "Alfonso Villanueva Quiroz",
-								"telefono": "5559177781",
-								"api_contact_id": 629
-							},
-							"timestamp": "2025-11-13T13:59:40.221Z"
-						},
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Si adelante",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T14:01:00.259Z"
-						}
-					],
-					"api_contact_id": 629,
-					"property_found": {
-						"id": 18,
-						"m2": "70.00",
-						"slug": "hermoso-depa-para-dos-personas",
-						"type": "Departamento",
-						"baths": 1,
-						"rooms": 2,
-						"title": "Hermoso Depa para Dos Personas",
-						"estado": "Ciudad de México",
-						"ammount": "$11,000.00",
-						"colonia": "San Pablo Tepetlapa",
-						"parkings": 0,
-						"municipio": "Coyoacán",
-						"operacion": "Renta",
-						"description": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\\r\\n\\r\\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN MASCOTAS) no más.\\r\\n\\r\\nCuenta con:\\r\\n\\r\\n* Bonitos Acabados\\r\\n* 2 habitaciones (CON CLOSET)\\r\\n* 1 cocina integral\\r\\n* 1 baño completo\\r\\n* Área de Sala - Comedor.\\r\\n* NO TIENE ESTACIONAMIENTO\\r\\n\\r\\n** REQUISITOS**\\r\\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\\r\\n\\r\\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\\r\\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\\r\\n* 1 Mes de depósito en garantía\\r\\n* 1 Mes de renta corriente.\\r\\n\\r\\nNO aceptamos: (NO NEGOCIABLES)\\r\\n\\r\\n* Mascotas (PERROS, GATOS)\\r\\n* Niños\\r\\n* Estudiantes que NO vivan con padre o tutor\\r\\n* Roomies (Personas que estén cambiando frecuentemente)\\r\\n\\r\\nHorario de Atención TELEFÓNICA: NO WHATSAPP\\r\\n\\r\\nLu-Vi 09.00am a 6:00 pm\\r\\n\\r\\nSábado y Domingo 09.00am a 3:00pm",
-						"restrictions": {
-							"acepta_niños": "no",
-							"observaciones": "Ingresos mínimos comprobables de $30,000 mensuales.",
-							"precio_poliza": "4100.00",
-							"acepta_roomies": "no",
-							"acepta_mascotas": "no",
-							"ingresos_minimos": "30000.00",
-							"acepta_estudiantes": "no",
-							"requiere_comprobantes_ingresos": true
-						}
-					},
-					"original_search": "",
-					"ultima_interaccion": "2025-11-13T14:01:00.259Z"
-				},
-				"api_contact": {
-					"id": 629,
-					"nombre": "🤖 - Alfonso Villanueva Quiroz",
-					"email": null,
-					"telefono": "5559177781",
-					"estado": "en_contacto",
-					"fuente": "🤖 - WhatsApp Bot",
-					"created_at": "2025-11-13T07:59:04-06:00",
-					"updated_at": "2025-11-13T08:00:11-06:00",
-					"last_interaction_at": "2025-11-13T08:00:11-06:00",
-					"interes_reciente": {
-						"id": 82,
-						"inmueble_id": 18,
-						"inmueble": {
-							"id": 18,
-							"titulo": "Hermoso Depa para Dos Personas",
-							"slug": "hermoso-depa-para-dos-personas",
-							"descripcion": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\r\n\r\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN MASCOTAS) no más.\r\n\r\nCuenta con:\r\n\r\n* Bonitos Acabados\r\n* 2 habitaciones (CON CLOSET)\r\n* 1 cocina integral\r\n* 1 baño completo\r\n* Área de Sala - Comedor.\r\n* NO TIENE ESTACIONAMIENTO\r\n\r\n** REQUISITOS**\r\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\r\n\r\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\r\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\r\n* 1 Mes de depósito en garantía\r\n* 1 Mes de renta corriente.\r\n\r\nNO aceptamos: (NO NEGOCIABLES)\r\n\r\n* Mascotas (PERROS, GATOS)\r\n* Niños\r\n* Estudiantes que NO vivan con padre o tutor\r\n* Roomies (Personas que estén cambiando frecuentemente)\r\n\r\nHorario de Atención TELEFÓNICA: NO WHATSAPP\r\n\r\nLu-Vi 09.00am a 6:00 pm\r\n\r\nSábado y Domingo 09.00am a 3:00pm",
-							"precio": "11000.00",
-							"precio_formateado": "$11,000.00",
-							"direccion": "San Pablo Tepetlapa",
-							"colonia": "San Pablo Tepetlapa",
-							"municipio": "Coyoacán",
-							"estado": "Ciudad de México",
-							"codigo_postal": "04620",
-							"ubicacion": {
-								"latitud": 19.321995,
-								"longitud": -99.138793
-							},
-							"location": {
-								"latitude": 19.321995,
-								"longitude": -99.138793
-							},
-							"tipo": "Departamento",
-							"operacion": "Renta",
-							"habitaciones": 2,
-							"banos": 1,
-							"estacionamientos": 0,
-							"metros_cuadrados": "70.00",
-							"superficie_construida": "70.00",
-							"superficie_terreno": "70.00",
-							"anio_construccion": 2000,
-							"destacado": true,
-							"video_url": null,
-							"tour_virtual_url": null,
-							"amenidades": [],
-							"extras": [],
-							"tags": [
-								"division del norte",
-								"museo",
-								"San Pablo Tepetlapa"
-							],
-							"created_at": "2025-10-15T21:45:49-06:00",
-							"updated_at": "2025-11-06T17:58:34-06:00"
-						},
-						"created_at": "2025-11-13T08:00:11-06:00"
-					}
-				}
-			}
-		],
-		"Message a model": [
-			{
-				"output": [
-					{
-						"id": "msg_0066aeaa5af2324a006915e4a3c664819787c18139f387fab4",
-						"type": "message",
-						"status": "completed",
-						"content": [
-							{
-								"type": "output_text",
-								"annotations": [],
-								"logprobs": [],
-								"text": "afirmativa"
-							}
-						],
-						"role": "assistant"
-					}
-				]
-			}
-		],
-		"Switch": [
-			{
-				"output": [
-					{
-						"id": "msg_0066aeaa5af2324a006915e4a3c664819787c18139f387fab4",
-						"type": "message",
-						"status": "completed",
-						"content": [
-							{
-								"type": "output_text",
-								"annotations": [],
-								"logprobs": [],
-								"text": "afirmativa"
-							}
-						],
-						"role": "assistant"
-					}
-				]
-			}
-		],
-		"Prepare Questionnaire Context": [
-			{
-				"wa_id": "5215559177781",
-				"updatedContext": {
-					"nombre": "Alfonso Villanueva Quiroz",
-					"status": "in_questionnaire",
-					"telefono": "5559177781",
-					"personaje": "Dany",
-					"statusBot": "working",
-					"last_intent": "property_search",
-					"interacciones": [
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Hola quiero un info del depa en museo",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T13:59:04.846Z"
-						},
-						{
-							"tipo": "intencion_detectada",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Intención: property_search",
-							"detalles": {
-								"intent": "property_search",
-								"original_message": "Hola quiero un info del depa en museo"
-							},
-							"timestamp": "2025-11-13T13:59:13.339Z"
-						},
-						{
-							"tipo": "solicitud_datos",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Se solicitaron datos del contacto",
-							"detalles": {
-								"original_message": ""
-							},
-							"timestamp": "2025-11-13T13:59:13.464Z"
-						},
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Alfonso Villanueva Quiroz, 5559177781",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T13:59:32.388Z"
-						},
-						{
-							"tipo": "datos_recibidos",
-							"actor": "sistema",
-							"canal": "whatsapp",
-							"mensaje": "Datos del contacto recibidos y validados",
-							"detalles": {
-								"nombre": "Alfonso Villanueva Quiroz",
-								"telefono": "5559177781",
-								"api_contact_id": 629
-							},
-							"timestamp": "2025-11-13T13:59:40.221Z"
-						},
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Si adelante",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T14:01:00.259Z"
-						},
-						{
-							"timestamp": "2025-11-13T14:01:08.026Z",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"tipo": "confirmacion_cuestionario",
-							"mensaje": "Si adelante",
-							"detalles": {
-								"respuesta": "afirmativa",
-								"inicia_cuestionario": true
-							}
-						}
-					],
-					"api_contact_id": 629,
-					"property_found": {
-						"id": 18,
-						"m2": "70.00",
-						"slug": "hermoso-depa-para-dos-personas",
-						"type": "Departamento",
-						"baths": 1,
-						"rooms": 2,
-						"title": "Hermoso Depa para Dos Personas",
-						"estado": "Ciudad de México",
-						"ammount": "$11,000.00",
-						"colonia": "San Pablo Tepetlapa",
-						"parkings": 0,
-						"municipio": "Coyoacán",
-						"operacion": "Renta",
-						"description": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\\r\\n\\r\\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN MASCOTAS) no más.\\r\\n\\r\\nCuenta con:\\r\\n\\r\\n* Bonitos Acabados\\r\\n* 2 habitaciones (CON CLOSET)\\r\\n* 1 cocina integral\\r\\n* 1 baño completo\\r\\n* Área de Sala - Comedor.\\r\\n* NO TIENE ESTACIONAMIENTO\\r\\n\\r\\n** REQUISITOS**\\r\\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\\r\\n\\r\\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\\r\\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\\r\\n* 1 Mes de depósito en garantía\\r\\n* 1 Mes de renta corriente.\\r\\n\\r\\nNO aceptamos: (NO NEGOCIABLES)\\r\\n\\r\\n* Mascotas (PERROS, GATOS)\\r\\n* Niños\\r\\n* Estudiantes que NO vivan con padre o tutor\\r\\n* Roomies (Personas que estén cambiando frecuentemente)\\r\\n\\r\\nHorario de Atención TELEFÓNICA: NO WHATSAPP\\r\\n\\r\\nLu-Vi 09.00am a 6:00 pm\\r\\n\\r\\nSábado y Domingo 09.00am a 3:00pm",
-						"restrictions": {
-							"acepta_niños": "no",
-							"observaciones": "Ingresos mínimos comprobables de $30,000 mensuales.",
-							"precio_poliza": "4100.00",
-							"acepta_roomies": "no",
-							"acepta_mascotas": "no",
-							"ingresos_minimos": "30000.00",
-							"acepta_estudiantes": "no",
-							"requiere_comprobantes_ingresos": true
-						}
-					},
-					"original_search": "",
-					"ultima_interaccion": "2025-11-13T14:01:08.026Z",
-					"questionnaire_step": 1
-				},
-				"firstQuestion": "Perfecto, empecemos 😊\n\n**Pregunta 1 de 5:**\n¿Cuántas personas vivirían en el inmueble?\n\n_(Solo adultos, la propiedad no acepta niños)_",
-				"api_contact_id": 629
-			}
-		],
-		"AI Generate Dynamic Questionnaire": [
-			{
-				"output": [
-					{
-						"id": "msg_0310219c7d018048006915ecf21554819ca967213b71c47804",
-						"type": "message",
-						"status": "completed",
-						"content": [
-							{
-								"type": "output_text",
-								"annotations": [],
-								"logprobs": [],
-								"text": {
-									"questions": [
-										{
-											"section": "caracteristicas_fisicas",
-											"field": "distribucion_habitaciones",
-											"question": "Este departamento tiene 2 habitaciones con closet, cocina integral y sala-comedor; ¿cómo distribuirías el espacio entre dormitorios y áreas comunes para tu día a día?",
-											"type": "text"
-										},
-										{
-											"section": "caracteristicas_fisicas",
-											"field": "estacionamiento_disponibilidad",
-											"question": "El inmueble no cuenta con estacionamiento; ¿cómo planificarías tu movilidad y visitas diarias para que te resulte práctico vivir aquí?",
-											"type": "text"
-										},
-										{
-											"section": "caracteristicas_fisicas",
-											"field": "accesos_y_elevador",
-											"question": "Considerando que el edificio no especifica elevador, ¿qué tan cómodo te sería subir escaleras y moverte entre pisos si fuese necesario?",
-											"type": "text"
-										},
-										{
-											"section": "caracteristicas_fisicas",
-											"field": "acabados_y_pisos",
-											"question": "El inmueble describe 'bonitos acabados' y una cocina integral; ¿qué tipo de piso y acabados te resultan más cómodos para tu rutina diaria?",
-											"type": "text"
-										},
-										{
-											"section": "caracteristicas_fisicas",
-											"field": "almacenamiento_y_closets",
-											"question": "Las dos habitaciones tienen closet; ¿cuáles son tus necesidades de almacenamiento para ropa, zapatos y otros objetos?",
-											"type": "text"
-										},
-										{
-											"section": "restricciones_convivencia",
-											"field": "restricciones_niños",
-											"question": "La publicación indica que no se aceptan niños; ¿cómo se alinea esa condición con tus planes de convivencia y familia?",
-											"type": "text"
-										},
-										{
-											"section": "restricciones_convivencia",
-											"field": "restricciones_mascotas",
-											"question": "La política prohíbe mascotas; ¿cómo influye eso en tu decisión si tienes o planeas tener una mascota en el futuro?",
-											"type": "text"
-										},
-										{
-											"section": "restricciones_convivencia",
-											"field": "restricciones_roomies",
-											"question": "Indican que no se permiten roomies; ¿cómo afectaría esto tus planes de vivir solo o con pareja?",
-											"type": "text"
-										},
-										{
-											"section": "condiciones_contratacion",
-											"field": "requisitos_policia_juridica",
-											"question": "Para la contratación, se solicita una póliza jurídica de [4100] MXN al año, un depósito de [1] mes y una renta de [11000] MXN; ¿cómo planificarías para cumplir con estos requisitos y tu presupuesto?",
-											"type": "text"
-										},
-										{
-											"section": "validacion_ingresos",
-											"field": "ocupacion_y_ingresos_y_comprobantes",
-											"question": "Para entender tu perfil y verificar elegibilidad, ¿a qué te dedicas actualmente y qué rango de ingresos mensuales manejas, y qué comprobantes de ingresos podrías presentar para cumplir con el mínimo de [30000] MXN al mes?",
-											"type": "text"
-										}
-									]
-								}
-							}
-						],
-						"role": "assistant"
-					}
-				]
-			}
-		]
-	},
+	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"

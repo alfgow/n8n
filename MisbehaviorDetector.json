@@ -29,7 +29,7 @@
 					"parameters": [
 						{
 							"name": "comentario",
-							"value": "={{$json.commentText}}"
+							"value": "=🤖- 🤚 {{$json.commentText}}"
 						}
 					]
 				},
@@ -266,7 +266,7 @@
 					"parameters": [
 						{
 							"name": "comentario",
-							"value": "={{ $json.context_data.interacciones[0].mensaje }}"
+							"value": "=🤖 - 🚫 {{ $json.context_data.interacciones[0].mensaje }}"
 						}
 					]
 				},
@@ -325,7 +325,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [1680, 304],
+			"position": [1392, 304],
 			"id": "d3e5625a-b6c2-4319-931b-df21ec12df9e",
 			"name": "Send Block Notification",
 			"webhookId": "0e255374-10b6-4317-9b31-f4dba3424ce6",
@@ -342,7 +342,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1904, 304],
+			"position": [1616, 304],
 			"id": "3de6ed0c-3018-4e05-a0ad-9b45b2a1db6d",
 			"name": "Format Misbehavior Output"
 		},
@@ -352,7 +352,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1760, -144],
+			"position": [1616, -144],
 			"id": "b8989a1b-f7fb-4b3b-b03f-f9f8740ac10d",
 			"name": "Format Clean Output"
 		},
@@ -372,7 +372,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [896, -128],
+			"position": [880, -128],
 			"id": "04e370c1-e0f6-45c7-994d-6086429818b8",
 			"name": "Update Bot to Free",
 			"credentials": {
@@ -384,36 +384,7 @@
 		},
 		{
 			"parameters": {
-				"method": "POST",
-				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.context_data.api_contact_id }}/comentarios",
-				"authentication": "genericCredentialType",
-				"genericAuthType": "httpHeaderAuth",
-				"sendBody": true,
-				"bodyParameters": {
-					"parameters": [
-						{
-							"name": "comentario",
-							"value": "=🤖 - No he detectado faltas de respeto u hostilidad, continuamos atención"
-						}
-					]
-				},
-				"options": {}
-			},
-			"type": "n8n-nodes-base.httpRequest",
-			"typeVersion": 4.3,
-			"position": [1584, -144],
-			"id": "47ae8c75-2894-4b2d-aa54-a0a2b48bef0e",
-			"name": "API: Add Comment",
-			"credentials": {
-				"httpHeaderAuth": {
-					"id": "rzmCtJN8Vtwv6AO3",
-					"name": "API Key Inmuebles"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Construir nuevo contexto\nconst updatedContext = {\n  status: \"active\",\n  statusBot: \"free\",\n  api_contact_id: data.api_contact?.id || null,\n  ultima_interaccion: timestamp,\n  misbehavior_confidence: data.misbehavior_confidence || 0,\n  misbehavior_reason: data.misbehavior_reason || \"\",\n  misbehavior_terms: data.misbehavior_terms || [],\n  interacciones: [\n    {\n      timestamp,\n      actor: \"usuario\",\n      canal: \"whatsapp\",\n      tipo: \"mensaje_recibido\",\n      mensaje: data.userPrompt || \"\",\n      detalles: {\n        analisis: \"sin_comportamiento_inadecuado\",\n        confianza: data.misbehavior_confidence || 0\n      }\n    }\n  ]\n};\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext\n};\n"
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Construir nuevo contexto\nconst updatedContext = {\n  statusBot: \"free\",\n  api_contact_id: data.api_contact?.id || null,\n  ultima_interaccion: timestamp,\n  misbehavior_confidence: data.misbehavior_confidence || 0,\n  misbehavior_reason: data.misbehavior_reason || \"\",\n  misbehavior_terms: data.misbehavior_terms || [],\n  interacciones: [\n    {\n      timestamp,\n      actor: \"usuario\",\n      canal: \"whatsapp\",\n      tipo: \"mensaje_recibido\",\n      mensaje: data.userPrompt || \"\",\n      detalles: {\n        analisis: \"sin_comportamiento_inadecuado\",\n        confianza: data.misbehavior_confidence || 0\n      }\n    }\n  ]\n};\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext\n};\n"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
@@ -427,7 +398,7 @@
 			"main": [
 				[
 					{
-						"node": "API: Add Comment",
+						"node": "Format Clean Output",
 						"type": "main",
 						"index": 0
 					}
@@ -609,17 +580,6 @@
 				]
 			]
 		},
-		"API: Add Comment": {
-			"main": [
-				[
-					{
-						"node": "Format Clean Output",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
 		"Code in JavaScript": {
 			"main": [
 				[
@@ -632,28 +592,7 @@
 			]
 		}
 	},
-	"pinData": {
-		"When Executed by Another Workflow": [
-			{
-				"userPrompt": "pendejo",
-				"wa_id": "5215559177781",
-				"phone": "5559177781",
-				"context_data": {},
-				"api_contact": {
-					"id": 611,
-					"nombre": "🤖 - Sin nombre",
-					"email": null,
-					"telefono": "5559177781",
-					"estado": "nuevo",
-					"fuente": "WhatsApp Bot",
-					"created_at": "2025-11-11T01:20:58-06:00",
-					"updated_at": "2025-11-11T01:20:58-06:00",
-					"last_interaction_at": "2025-11-11T01:34:40-06:00",
-					"interes_reciente": null
-				}
-			}
-		]
-	},
+	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
