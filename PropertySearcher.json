@@ -1,77 +1,48 @@
 {
-	"name": "PropertySearcher",
 	"nodes": [
 		{
 			"parameters": {
 				"workflowInputs": {
 					"values": [
-						{ "name": "wa_id", "type": "string" },
-						{ "name": "userPrompt", "type": "string" },
-						{ "name": "context_data", "type": "json" },
-						{ "name": "nombre", "type": "string" },
-						{ "name": "telefono", "type": "string" }
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "json"
+						},
+						{
+							"name": "nombre"
+						},
+						{
+							"name": "telefono"
+						}
 					]
 				}
 			},
 			"type": "n8n-nodes-base.executeWorkflowTrigger",
 			"typeVersion": 1.1,
-			"position": [240, 300],
-			"id": "trigger-ps-001",
+			"position": [416, -96],
+			"id": "f45e5d40-2763-4666-829d-356c34425ca0",
 			"name": "When Executed by Another Workflow"
-		},
-		{
-			"parameters": {
-				"url": "https://vg.g210512.com/api/v1/inmuebles",
-				"authentication": "genericCredentialType",
-				"genericAuthType": "httpHeaderAuth",
-				"sendQuery": true,
-				"queryParameters": {
-					"parameters": [
-						{
-							"name": "buscar",
-							"value": "={{ $json.userPrompt }}"
-						},
-						{ "name": "limite", "value": "5" }
-					]
-				},
-				"options": {}
-			},
-			"type": "n8n-nodes-base.httpRequest",
-			"typeVersion": 4.2,
-			"position": [440, 300],
-			"id": "search-api-001",
-			"name": "API: Search Properties",
-			"credentials": {
-				"httpHeaderAuth": {
-					"id": "rzmCtJN8Vtwv6AO3",
-					"name": "API Key Inmuebles"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"jsCode": "const results = $json.data || [];\nconst triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\nif (results.length === 0) {\n  return {\n    wa_id: triggerData.wa_id,\n    nombre: triggerData.nombre,\n    hasResults: false,\n    message: 'Lo siento, no encontré propiedades que coincidan con tu búsqueda. ¿Podrías darme más detalles sobre lo que buscas?'\n  };\n}\n\nlet message = `¡Encontré ${results.length} ${results.length === 1 ? 'propiedad' : 'propiedades'} para ti! 🏠\\n\\n`;\n\nresults.forEach((prop, index) => {\n  message += `${index + 1}. ${prop.titulo || 'Propiedad'}\\n`;\n  message += `   📍 ${prop.ubicacion || 'Sin ubicación'}\\n`;\n  message += `   💰 ${prop.precio ? '$' + prop.precio.toLocaleString() : 'Consultar'}\\n`;\n  message += `   📏 ${prop.superficie || 'N/A'} m²\\n\\n`;\n});\n\nmessage += '¿Cuál te gustaría conocer más a detalle? Responde con el número.';\n\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\nupdatedContext.status = 'presenting_options';\nupdatedContext.ultima_interaccion = timestamp;\nupdatedContext.search_results = results;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'resultados_enviados',\n  mensaje: `Se presentaron ${results.length} opciones`,\n  detalles: { cantidad: results.length }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  nombre: triggerData.nombre,\n  hasResults: true,\n  message: message,\n  updatedContext: updatedContext\n};"
-			},
-			"type": "n8n-nodes-base.code",
-			"typeVersion": 2,
-			"position": [640, 300],
-			"id": "format-results-001",
-			"name": "Format Results"
 		},
 		{
 			"parameters": {
 				"operation": "send",
 				"phoneNumberId": "812415788624920",
 				"recipientPhoneNumber": "={{ $json.wa_id }}",
-				"textBody": "={{ $json.message }}",
+				"textBody": "=Gracias {{ $json.nombre.split(' ')[0] }}, dame por favor un momento, estoy trabajando tu solicitud",
 				"additionalFields": {}
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [840, 300],
-			"id": "send-results-001",
-			"name": "Send Results",
-			"webhookId": "send-results-001",
+			"position": [832, -96],
+			"id": "3c16c85b-3b6a-4a6e-af72-8aa780d8a09c",
+			"name": "Send message",
+			"webhookId": "2a8e1297-bce0-4525-8e2b-557b154e2224",
 			"credentials": {
 				"whatsAppApi": {
 					"id": "DpdLgHZCEJ199330",
@@ -81,19 +52,186 @@
 		},
 		{
 			"parameters": {
+				"promptType": "define",
+				"text": "={{ $json.contacts[0].wa_id }}",
+				"options": {
+					"systemMessage": "=use the tool **InmuebleFinderTool** w search term: \"{{ $('Prepare for Property Search').item.json.userPrompt }}\".\nYou must respond only with a valid JSON array.\nDo not include Markdown formatting, code fences (`````), explanations, or any text before or after the JSON.\n\nThe JSON must be parsable directly with JSON.parse() in JavaScript.\n\nOutput format required:\n\n[\n  {\n    \"id\": number,\n    \"title\": \"string\",\n    \"slug\": \"string\",\n    \"description\": \"string\",\n    \"ammount\": \"string\",\n    \"colonia\": \"string\",\n    \"municipio\": \"string\",\n    \"estado\": \"string\",\n    \"type\": \"string\",\n    \"operacion\": \"string\",\n    \"estatus\": \"string\",\n    \"rooms\": number,\n    \"baths\": number,\n    \"parkings\": number,\n    \"m2\": \"string\",\n    \"restrictions\": {\n      \"acepta_mascotas\": \"string\",\n      \"acepta_niños\": \"string\",\n      \"acepta_estudiantes\": \"string\",\n      \"acepta_roomies\": \"string\",\n      \"ingresos_minimos\": \"string\",\n      \"precio_poliza\": \"string or null\",\n      \"requiere_comprobantes_ingresos\": boolean,\n      \"observaciones\": \"string\"\n    }\n  }\n]\n\n\n⚠️ Do not wrap your answer inside triple backticks or any markdown block.\n⚠️ Do not include the words “json” or “output” before the array.\n\nJust return the array itself — nothing else."
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.agent",
+			"typeVersion": 2.2,
+			"position": [1008, -96],
+			"id": "fc05bcc9-5eb6-4ed0-8334-cb1f53684b9e",
+			"name": "AI Agent - Get Property",
+			"alwaysOutputData": true
+		},
+		{
+			"parameters": {
+				"model": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "gpt-5-nano"
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+			"typeVersion": 1.2,
+			"position": [976, 128],
+			"id": "ee2058a0-8cde-4e01-bf6c-aea015d7ae93",
+			"name": "OpenAI Chat Model1",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"description": "Este Workflow busca la informacion de los inmuebles",
+				"workflowId": {
+					"__rl": true,
+					"value": "8JWwPczEyYuP2J3N",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/8JWwPczEyYuP2J3N",
+					"cachedResultName": "InmuebleFinderTool"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"termino": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('termino', ``, 'string') }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "termino",
+							"displayName": "termino",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": false
+				}
+			},
+			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+			"typeVersion": 2.2,
+			"position": [1168, 128],
+			"id": "56485096-ccfd-464a-bd62-d5d70a9b234c",
+			"name": "Call 'InmuebleFinderTool'1"
+		},
+		{
+			"parameters": {
+				"jsCode": "const previousData = $('Prepare for Property Search').item.json;\nlet raw = $json.output;\nlet propertyFound = false;\nlet propertyData = null;\n\ntry {\n  // 🧠 Primer parse: convierte el texto escapado en un objeto/array real\n  const parsed = JSON.parse(raw);\n\n  // ✅ Verificamos que efectivamente sea un array con un objeto\n  if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].slug) {\n    const p = parsed[0];\n    propertyFound = true;\n    propertyData = {\n      id: p.id,\n      slug: p.slug,\n      title: p.title,\n      description: p.description,\n      colonia: p.colonia,\n      municipio: p.municipio,\n      estado: p.estado,\n      operacion: p.operacion,\n      ammount: p.ammount,\n      rooms: p.rooms,\n      baths: p.baths,\n      parkings: p.parkings,\n      m2: p.m2,\n      type: p.type,\n      restrictions: p.restrictions || {},\n    };\n  } else {\n    console.warn('⚠️ No se encontró slug en el resultado parseado.');\n  }\n} catch (err) {\n  console.error('❌ Error parseando propiedad:', err.message);\n  console.log('Contenido RAW:', raw);\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  nombre: previousData.nombre,\n  telefono: previousData.telefono,\n  personaje: previousData.personaje,\n  context_id: previousData.context_id,\n  propertyFound,\n  propertyData,\n};\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1328, -96],
+			"id": "ed0b92c3-4ab1-41b4-b22d-5d2abafb046e",
+			"name": "Parse: Property Information"
+		},
+		{
+			"parameters": {
+				"jsCode": "// 1. Prepare for Property Search (después del trigger)\nconst triggerData = $json;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  userPrompt: triggerData.context_data.interacciones[0].mensaje,\n  nombre: triggerData.context_data.nombre,\n  telefono: triggerData.context_data.telefono,\n  personaje: triggerData.context_data.personaje,\n  api_contact_id: triggerData.context_data.api_contact_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [624, -96],
+			"id": "05240620-c2d1-4e0e-8723-db1f5b1df9fa",
+			"name": "Prepare for Property Search"
+		},
+		{
+			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts SET context_data = jsonb_set($${{ $json.updatedContext.toJsonString() }}$$::jsonb, '{statusBot}', '\"free\"'::jsonb), updated_at = CURRENT_TIMESTAMP WHERE wa_id = '{{ $json.wa_id }}' RETURNING *;",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{status}',\n      '\"awaiting_questionnaire_confirmation\"'\n    ),\n    '{property_found}',\n    '{{ $json.propertyData.toJsonString() }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1040, 300],
-			"id": "save-context-001",
-			"name": "Save Context with Results",
+			"position": [1536, -96],
+			"id": "a6ea2378-3cb7-4c7f-8e02-6093873e1552",
+			"name": "Update: Customer Context",
 			"credentials": {
 				"postgres": {
 					"id": "qyR2OAIR7tUEVcQf",
 					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.context_data.api_contact_id }}/intereses",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"inmueble_id\": {{ $('Parse: Property Information').item.json.propertyData.id }}\n}",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1744, -96],
+			"id": "c8683ced-25e3-444a-b9f4-167ab4f1f0ec",
+			"name": "API - Add Property Interest",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const propertyData = $('Parse: Property Information').item.json.propertyData;\nconst contextData = $('Update: Customer Context').item.json.context_data.property_found;\nconst nombre = $('Parse: Property Information').item.json.nombre.split(' ')[0];\n\nconst mensaje = '¡Listo ' + nombre + '! 🙌\\n\\n' +\n'Aquí tienes la información del inmueble que buscas 🏡✨\\n\\n' +\n'📍 ' + contextData.title + '\\n' +\n'🏘️ ' + contextData.colonia + ', ' + contextData.municipio + '\\n' +\n'💰 ' + contextData.operacion + ': ' + contextData.ammount + '\\n' +\n'🛏️ ' + contextData.rooms + ' recámaras | 🚿 ' + contextData.baths + ' baños | 🚗 ' + contextData.parkings + ' estacionamientos\\n' +\n'📐 ' + contextData.m2 + ' m² construidos\\n\\n' +\n'Para continuar con el proceso, necesito hacerte unas breves preguntas para confirmar que cumples con los requisitos del arrendador. ¿Estás listo/a? 😊';\n\nreturn {\n  wa_id: $('Parse: Property Information').item.json.wa_id,\n  formatted_message: mensaje\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1952, -96],
+			"id": "75288daa-89d4-4562-91fe-dbcb563f455e",
+			"name": "Parse: Message w Property Info"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.contacts[0].wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [2352, -96],
+			"id": "f9218777-07c5-4ca4-9c2e-005628a36073",
+			"name": "Update Bot: Free (Invalid)",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $json.formatted_message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [2160, -96],
+			"id": "6e55c481-12ab-4bf7-a20c-4507ad256804",
+			"name": "Message: Property Info",
+			"webhookId": "95aba4b6-7a26-49a7-a4cb-d7403fb97f32",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
 				}
 			}
 		}
@@ -103,24 +241,117 @@
 			"main": [
 				[
 					{
-						"node": "API: Search Properties",
+						"node": "Prepare for Property Search",
 						"type": "main",
 						"index": 0
 					}
 				]
 			]
 		},
-		"API: Search Properties": {
-			"main": [[{ "node": "Format Results", "type": "main", "index": 0 }]]
-		},
-		"Format Results": {
-			"main": [[{ "node": "Send Results", "type": "main", "index": 0 }]]
-		},
-		"Send Results": {
+		"Send message": {
 			"main": [
 				[
 					{
-						"node": "Save Context with Results",
+						"node": "AI Agent - Get Property",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AI Agent - Get Property": {
+			"main": [
+				[
+					{
+						"node": "Parse: Property Information",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"OpenAI Chat Model1": {
+			"ai_languageModel": [
+				[
+					{
+						"node": "AI Agent - Get Property",
+						"type": "ai_languageModel",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call 'InmuebleFinderTool'1": {
+			"ai_tool": [
+				[
+					{
+						"node": "AI Agent - Get Property",
+						"type": "ai_tool",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: Property Information": {
+			"main": [
+				[
+					{
+						"node": "Update: Customer Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare for Property Search": {
+			"main": [
+				[
+					{
+						"node": "Send message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update: Customer Context": {
+			"main": [
+				[
+					{
+						"node": "API - Add Property Interest",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API - Add Property Interest": {
+			"main": [
+				[
+					{
+						"node": "Parse: Message w Property Info",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: Message w Property Info": {
+			"main": [
+				[
+					{
+						"node": "Message: Property Info",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message: Property Info": {
+			"main": [
+				[
+					{
+						"node": "Update Bot: Free (Invalid)",
 						"type": "main",
 						"index": 0
 					}
@@ -128,7 +359,115 @@
 			]
 		}
 	},
-	"pinData": {},
+	"pinData": {
+		"When Executed by Another Workflow": [
+			{
+				"wa_id": "5215559177781",
+				"userPrompt": "ok Emmet Juaquin Villanueva 5559177781",
+				"context_data": {
+					"nombre": "Emmet Juaquin Villanueva",
+					"status": "in_progress",
+					"telefono": "5559177781",
+					"personaje": "Dany",
+					"statusBot": "working",
+					"last_intent": "property_search",
+					"interacciones": [
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "Hola",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-14T02:57:24.711Z"
+						},
+						{
+							"tipo": "intencion_detectada",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Intención detectada: greeting",
+							"detalles": {
+								"intent": "greeting",
+								"user_message": "Hola"
+							},
+							"timestamp": "2025-11-14T02:57:33.783Z"
+						},
+						{
+							"tipo": "mensaje_enviado",
+							"actor": "bot",
+							"canal": "whatsapp",
+							"mensaje": "¡Hola! 👋 Soy Dany, tu asistente...",
+							"detalles": {
+								"intent": "greeting",
+								"personaje": "Dany"
+							},
+							"timestamp": "2025-11-14T02:57:33.783Z"
+						},
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "Quiero info del depa en Cuajimalpa",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-14T02:57:57.836Z"
+						},
+						{
+							"tipo": "intencion_detectada",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Intención: property_search",
+							"detalles": {
+								"intent": "property_search",
+								"original_message": "Quiero info del depa en Cuajimalpa"
+							},
+							"timestamp": "2025-11-14T02:58:07.287Z"
+						},
+						{
+							"tipo": "solicitud_datos",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Se solicitaron datos del contacto",
+							"detalles": {
+								"original_message": ""
+							},
+							"timestamp": "2025-11-14T02:58:07.415Z"
+						},
+						{
+							"tipo": "mensaje_recibido",
+							"actor": "usuario",
+							"canal": "whatsapp",
+							"mensaje": "ok Emmet Juaquin Villanueva 5559177781",
+							"detalles": {
+								"tipo_mensaje": "text"
+							},
+							"timestamp": "2025-11-14T02:58:33.166Z"
+						},
+						{
+							"tipo": "datos_recibidos",
+							"actor": "sistema",
+							"canal": "whatsapp",
+							"mensaje": "Datos del contacto recibidos y validados",
+							"detalles": {
+								"nombre": "Emmet Juaquin Villanueva",
+								"telefono": "5559177781",
+								"api_contact_id": 633
+							},
+							"timestamp": "2025-11-14T02:58:39.124Z"
+						}
+					],
+					"api_contact_id": 633,
+					"already_greeted": true,
+					"original_search": "",
+					"ultima_interaccion": "2025-11-14T02:58:39.124Z"
+				},
+				"nombre": "Emmet Juaquin Villanueva",
+				"telefono": "5559177781"
+			}
+		]
+	},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
