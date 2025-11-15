@@ -1,0 +1,203 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "array"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "05963d71-8957-418d-b54c-fa7f11dfc46b",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst contextData = data.context_data;\nconst apiContact = data.api_contact;\n\n// Contar intentos de contacto rechazado\nconst currentCount = contextData.rejectedContact || 0;\nconst newCount = currentCount + 1;\n\n// Obtener nombre del API contact (no está en context_data)\nconst nombreCompleto = contextData?.nombre?.replace('🤖 - ', '') || '';\nconst nombre = nombreCompleto.split(' ')[0] || '';\n\n// Obtener property title del interes_reciente del API\nconst propertyTitle = apiContact?.interes_reciente?.inmueble?.titulo || 'la propiedad';\n\n// Mensajes según el número de contacto\nlet mensaje = '';\n\nif (newCount === 1) {\n  // Primer contacto post-rechazo\n  mensaje = `Hola ${nombre},\n\nLamentablemente en este momento no cumples con los requisitos necesarios para ${propertyTitle}.\n\nSi necesitas más información o ayuda, por favor envía un correo a:\n📧 ventas@villanuevagarcia.com\n\n¡Gracias por tu interés! 🙏`;\n  \n} else if (newCount === 2) {\n  // Segundo contacto post-rechazo\n  mensaje = `Hola ${nombre},\n\nComo te lo he comentado anteriormente, no cumples con los requisitos necesarios para nuestras propiedades en este momento.\n\nPor favor envía tus dudas a:\n📧 ventas@villanuevagarcia.com\n\nGracias.`;\n  \n} else {\n  // Tercer contacto o más - BLOQUEO\n  mensaje = `${nombre}, has sido bloqueado del sistema por contactos repetidos después de tu rechazo.\n\nPara más información:\n📧 ventas@villanuevagarcia.com`;\n}\n\nconsole.log('📊 RejectedContact:', currentCount, '→', newCount);\nconsole.log('👤 Nombre:', nombre);\nconsole.log('🏠 Propiedad:', propertyTitle);\n\nreturn {\n  wa_id: data.wa_id,\n  mensaje: mensaje,\n  rejectedContact: newCount,\n  shouldBlock: newCount >= 3\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [176, 0],
+			"id": "73bb2928-8f6b-4abc-8ef5-0df22570555e",
+			"name": "Prepare Rejection Message"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+				"textBody": "={{ $('Prepare Rejection Message').item.json.mensaje }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [800, 0],
+			"id": "6d456b5f-29e8-4e9e-ab94-3fd60a9fd27e",
+			"name": "Send message",
+			"webhookId": "3a5a88c0-e2f2-4f49-8a19-7d564fee4cdd",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{statusBot}',\n      '\"free\"'\n    ),\n    '{rejectedContact}',\n    to_jsonb({{ $('Prepare Rejection Message').item.json.rejectedContact }}::int)\n  ) || \n  CASE \n    WHEN {{ $('Prepare Rejection Message').item.json.shouldBlock }}::boolean = true \n    THEN '{\"status\": \"blocked\"}'::jsonb\n    ELSE '{}'::jsonb\n  END,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Prepare Rejection Message').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1008, 0],
+			"id": "cb718294-b418-4f60-ad8c-a879d6c666d6",
+			"name": "Update Bot: Free",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "PUT",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('When Executed by Another Workflow').item.json.api_contact[0].id }}",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "estado",
+							"value": "={{ $('Prepare Rejection Message').item.json.shouldBlock ? 'blocked' : 'rejected' }}"
+						},
+						{
+							"name": "=nombre",
+							"value": "={{ $('When Executed by Another Workflow').item.json.api_contact[0].nombre }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [384, 0],
+			"id": "02d2d38c-6009-4226-97df-593382d8eb13",
+			"name": "API: Update Contact State",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.data.id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "={{ $('Prepare Rejection Message').item.json.shouldBlock ? '🚫 Contacto bloqueado automáticamente por múltiples intentos tras rechazo (intento #' + $('Prepare Rejection Message').item.json.rejectedContact + ')' : '⚠️ Contacto rechazado - Intento #' + $('Prepare Rejection Message').item.json.rejectedContact + ' tras no cumplir requisitos' }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [592, 0],
+			"id": "53159a14-e1a2-45fd-a7d7-ac49ae3fbe67",
+			"name": "API: Add Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Prepare Rejection Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Rejection Message": {
+			"main": [
+				[
+					{
+						"node": "API: Update Contact State",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send message": {
+			"main": [
+				[
+					{
+						"node": "Update Bot: Free",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Update Contact State": {
+			"main": [
+				[
+					{
+						"node": "API: Add Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"API: Add Comment": {
+			"main": [
+				[
+					{
+						"node": "Send message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

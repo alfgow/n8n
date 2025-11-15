@@ -50,7 +50,7 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract Message Info').item.json.wa_id }}'\nLIMIT 1;",
+				"query": "SELECT \n  *\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract Message Info').item.json.wa_id }}'\nLIMIT 1;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
@@ -74,7 +74,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1376, 16],
+			"position": [1376, 0],
 			"id": "52fa751f-8052-4968-9f9f-e32035e414c0",
 			"name": "Get Bot Status",
 			"alwaysOutputData": true,
@@ -111,7 +111,7 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [1568, 16],
+			"position": [1568, 0],
 			"id": "e037f056-f76d-48ac-bc42-e93866ba7110",
 			"name": "If: Bot Working?"
 		},
@@ -261,37 +261,6 @@
 		},
 		{
 			"parameters": {
-				"conditions": {
-					"options": {
-						"caseSensitive": true,
-						"leftValue": "",
-						"typeValidation": "strict",
-						"version": 2
-					},
-					"conditions": [
-						{
-							"id": "eebaa239-268f-4da5-b1fd-3bd9a28cac64",
-							"leftValue": "={{ $json.context_data.status }}",
-							"rightValue": "blocked",
-							"operator": {
-								"type": "string",
-								"operation": "equals",
-								"name": "filter.operator.equals"
-							}
-						}
-					],
-					"combinator": "and"
-				},
-				"options": {}
-			},
-			"type": "n8n-nodes-base.if",
-			"typeVersion": 2.2,
-			"position": [1120, 0],
-			"id": "208daf1e-60e4-4071-98b5-5caa306aace4",
-			"name": "If: Postgress Blocked?"
-		},
-		{
-			"parameters": {
 				"method": "POST",
 				"url": "https://vg.g210512.com/api/v1/contactos",
 				"authentication": "genericCredentialType",
@@ -430,6 +399,190 @@
 					"name": "Postgres-neon"
 				}
 			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "blocked",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "ffaf6dca-6545-44b1-bf76-8f0a7365a1e0"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🚫 Blocked"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "052057a7-00a5-4152-990c-6bfa76a32e14",
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "",
+										"operator": {
+											"type": "string",
+											"operation": "notExists",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Nothing"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "0bfca781-b44b-460c-a19a-53ffdaf7015f",
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "approved",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "approved"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "6eb35b5a-7bf1-4e3c-b2a7-e21ecc37f19e",
+										"leftValue": "={{ $json.context_data.status }}",
+										"rightValue": "rejected",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "❌ Rejected"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [1072, -16],
+			"id": "1a019bcb-3976-4de9-8e17-5a9f7930ee67",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "mqV7reY3C3IxWfje",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/mqV7reY3C3IxWfje",
+					"cachedResultName": "HandleRejected"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $('Check Context Status').item.json.wa_id }}",
+						"context_data": "={{ $('Check Context Status').item.json.context_data }}",
+						"api_contact": "={{ $('If: API Blocked?').item.json.data }}",
+						"userPrompt": "={{ $('Extract Message Info').item.json.userPrompt }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "array",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [1792, 64],
+			"id": "b1f4b7df-0969-4e52-958e-2da6f8e26031",
+			"name": "Call 'HandleRejected'"
 		}
 	],
 	"connections": {
@@ -470,7 +623,7 @@
 			"main": [
 				[
 					{
-						"node": "If: Postgress Blocked?",
+						"node": "Switch",
 						"type": "main",
 						"index": 0
 					}
@@ -593,24 +746,6 @@
 				]
 			]
 		},
-		"If: Postgress Blocked?": {
-			"main": [
-				[
-					{
-						"node": "Update Bot to Free",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Get Bot Status",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
 		"API: Create Contact": {
 			"main": [
 				[
@@ -667,6 +802,38 @@
 				[
 					{
 						"node": "Format Continue Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "Update Bot to Free",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Get Bot Status",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Get Bot Status",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call 'HandleRejected'",
 						"type": "main",
 						"index": 0
 					}

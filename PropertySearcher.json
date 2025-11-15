@@ -25,7 +25,7 @@
 			},
 			"type": "n8n-nodes-base.executeWorkflowTrigger",
 			"typeVersion": 1.1,
-			"position": [416, -96],
+			"position": [416, -496],
 			"id": "f45e5d40-2763-4666-829d-356c34425ca0",
 			"name": "When Executed by Another Workflow"
 		},
@@ -39,7 +39,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [832, -96],
+			"position": [832, -496],
 			"id": "3c16c85b-3b6a-4a6e-af72-8aa780d8a09c",
 			"name": "Send message",
 			"webhookId": "2a8e1297-bce0-4525-8e2b-557b154e2224",
@@ -52,86 +52,11 @@
 		},
 		{
 			"parameters": {
-				"promptType": "define",
-				"text": "={{ $json.contacts[0].wa_id }}",
-				"options": {
-					"systemMessage": "=use the tool **InmuebleFinderTool** w search term: \"{{ $('Prepare for Property Search').item.json.userPrompt }}\".\nYou must respond only with a valid JSON array.\nDo not include Markdown formatting, code fences (`````), explanations, or any text before or after the JSON.\n\nThe JSON must be parsable directly with JSON.parse() in JavaScript.\n\nOutput format required:\n\n[\n  {\n    \"id\": number,\n    \"title\": \"string\",\n    \"slug\": \"string\",\n    \"description\": \"string\",\n    \"ammount\": \"string\",\n    \"colonia\": \"string\",\n    \"municipio\": \"string\",\n    \"estado\": \"string\",\n    \"type\": \"string\",\n    \"operacion\": \"string\",\n    \"estatus\": \"string\",\n    \"rooms\": number,\n    \"baths\": number,\n    \"parkings\": number,\n    \"m2\": \"string\",\n    \"restrictions\": {\n      \"acepta_mascotas\": \"string\",\n      \"acepta_niños\": \"string\",\n      \"acepta_estudiantes\": \"string\",\n      \"acepta_roomies\": \"string\",\n      \"ingresos_minimos\": \"string\",\n      \"precio_poliza\": \"string or null\",\n      \"requiere_comprobantes_ingresos\": boolean,\n      \"observaciones\": \"string\"\n    }\n  }\n]\n\n\n⚠️ Do not wrap your answer inside triple backticks or any markdown block.\n⚠️ Do not include the words “json” or “output” before the array.\n\nJust return the array itself — nothing else."
-				}
-			},
-			"type": "@n8n/n8n-nodes-langchain.agent",
-			"typeVersion": 2.2,
-			"position": [1008, -96],
-			"id": "fc05bcc9-5eb6-4ed0-8334-cb1f53684b9e",
-			"name": "AI Agent - Get Property",
-			"alwaysOutputData": true
-		},
-		{
-			"parameters": {
-				"model": {
-					"__rl": true,
-					"value": "gpt-5-nano",
-					"mode": "list",
-					"cachedResultName": "gpt-5-nano"
-				},
-				"options": {}
-			},
-			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-			"typeVersion": 1.2,
-			"position": [976, 128],
-			"id": "ee2058a0-8cde-4e01-bf6c-aea015d7ae93",
-			"name": "OpenAI Chat Model1",
-			"credentials": {
-				"openAiApi": {
-					"id": "g8OPzRDvvB6YO7mf",
-					"name": "OpenAi account"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"description": "Este Workflow busca la informacion de los inmuebles",
-				"workflowId": {
-					"__rl": true,
-					"value": "8JWwPczEyYuP2J3N",
-					"mode": "list",
-					"cachedResultUrl": "/workflow/8JWwPczEyYuP2J3N",
-					"cachedResultName": "InmuebleFinderTool"
-				},
-				"workflowInputs": {
-					"mappingMode": "defineBelow",
-					"value": {
-						"termino": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('termino', ``, 'string') }}"
-					},
-					"matchingColumns": [],
-					"schema": [
-						{
-							"id": "termino",
-							"displayName": "termino",
-							"required": false,
-							"defaultMatch": false,
-							"display": true,
-							"canBeUsedToMatch": true,
-							"type": "string",
-							"removed": false
-						}
-					],
-					"attemptToConvertTypes": false,
-					"convertFieldsToString": false
-				}
-			},
-			"type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-			"typeVersion": 2.2,
-			"position": [1168, 128],
-			"id": "56485096-ccfd-464a-bd62-d5d70a9b234c",
-			"name": "Call 'InmuebleFinderTool'1"
-		},
-		{
-			"parameters": {
-				"jsCode": "const previousData = $('Prepare for Property Search').item.json;\nlet raw = $json.output;\nlet propertyFound = false;\nlet propertyData = null;\n\ntry {\n  // 🧠 Primer parse: convierte el texto escapado en un objeto/array real\n  const parsed = JSON.parse(raw);\n\n  // ✅ Verificamos que efectivamente sea un array con un objeto\n  if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].slug) {\n    const p = parsed[0];\n    propertyFound = true;\n    propertyData = {\n      id: p.id,\n      slug: p.slug,\n      title: p.title,\n      description: p.description,\n      colonia: p.colonia,\n      municipio: p.municipio,\n      estado: p.estado,\n      operacion: p.operacion,\n      ammount: p.ammount,\n      rooms: p.rooms,\n      baths: p.baths,\n      parkings: p.parkings,\n      m2: p.m2,\n      type: p.type,\n      restrictions: p.restrictions || {},\n    };\n  } else {\n    console.warn('⚠️ No se encontró slug en el resultado parseado.');\n  }\n} catch (err) {\n  console.error('❌ Error parseando propiedad:', err.message);\n  console.log('Contenido RAW:', raw);\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  nombre: previousData.nombre,\n  telefono: previousData.telefono,\n  personaje: previousData.personaje,\n  context_id: previousData.context_id,\n  propertyFound,\n  propertyData,\n};\n"
+				"jsCode": "const previousData = $('Prepare for Property Search').item.json;\nconst p = $json; // Los datos llegan directamente aquí\nlet propertyFound = false;\nlet propertyData = null;\n\ntry {\n  if (p && p.slug) {\n    propertyFound = true;\n    propertyData = {\n      id: p.id,\n      slug: p.slug,\n      title: p.title,\n      description: p.description,\n      colonia: p.colonia,\n      municipio: p.municipio,\n      estado: p.estado,\n      operacion: p.operacion,\n      ammount: p.ammount,\n      rooms: p.rooms,\n      baths: p.baths,\n      parkings: p.parkings,\n      m2: p.m2,\n      type: p.type,\n      restrictions: p.restrictions || {},\n    };\n    \n    console.log('✅ Propiedad encontrada:', p.title);\n  } else {\n    console.warn('⚠️ No se encontró propiedad.');\n  }\n} catch (err) {\n  console.error('❌ Error parseando propiedad:', err.message);\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  nombre: previousData.nombre,\n  telefono: previousData.telefono,\n  personaje: previousData.personaje,\n  propertyFound,\n  propertyData,\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1328, -96],
+			"position": [784, -240],
 			"id": "ed0b92c3-4ab1-41b4-b22d-5d2abafb046e",
 			"name": "Parse: Property Information"
 		},
@@ -141,19 +66,19 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [624, -96],
+			"position": [624, -496],
 			"id": "05240620-c2d1-4e0e-8723-db1f5b1df9fa",
 			"name": "Prepare for Property Search"
 		},
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{status}',\n      '\"awaiting_questionnaire_confirmation\"'\n    ),\n    '{property_found}',\n    '{{ $json.propertyData.toJsonString() }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      context_data,\n      '{status}',\n      '\"awaiting_questionnaire_confirmation\"'\n    ),\n    '{property_found}',\n    '{{ $('Parse: Information').item.json.data[0].toJsonString() }}'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1536, -96],
+			"position": [1008, -240],
 			"id": "a6ea2378-3cb7-4c7f-8e02-6093873e1552",
 			"name": "Update: Customer Context",
 			"credentials": {
@@ -171,12 +96,12 @@
 				"genericAuthType": "httpHeaderAuth",
 				"sendBody": true,
 				"specifyBody": "json",
-				"jsonBody": "={\n  \"inmueble_id\": {{ $('Parse: Property Information').item.json.propertyData.id }}\n}",
+				"jsonBody": "={\n  \"inmueble_id\": {{ $json.context_data.property_found.id }}\n}",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [1744, -96],
+			"position": [1216, -240],
 			"id": "c8683ced-25e3-444a-b9f4-167ab4f1f0ec",
 			"name": "API - Add Property Interest",
 			"credentials": {
@@ -188,11 +113,11 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const propertyData = $('Parse: Property Information').item.json.propertyData;\nconst contextData = $('Update: Customer Context').item.json.context_data.property_found;\nconst nombre = $('Parse: Property Information').item.json.nombre.split(' ')[0];\n\nconst mensaje = '¡Listo ' + nombre + '! 🙌\\n\\n' +\n'Aquí tienes la información del inmueble que buscas 🏡✨\\n\\n' +\n'📍 ' + contextData.title + '\\n' +\n'🏘️ ' + contextData.colonia + ', ' + contextData.municipio + '\\n' +\n'💰 ' + contextData.operacion + ': ' + contextData.ammount + '\\n' +\n'🛏️ ' + contextData.rooms + ' recámaras | 🚿 ' + contextData.baths + ' baños | 🚗 ' + contextData.parkings + ' estacionamientos\\n' +\n'📐 ' + contextData.m2 + ' m² construidos\\n\\n' +\n'Para continuar con el proceso, necesito hacerte unas breves preguntas para confirmar que cumples con los requisitos del arrendador. ¿Estás listo/a? 😊';\n\nreturn {\n  wa_id: $('Parse: Property Information').item.json.wa_id,\n  formatted_message: mensaje\n};"
+				"jsCode": "const propertyData = $('Parse: Property Information').item.json.propertyData;\nconst nombre = $('Parse: Property Information').item.json.nombre?.split(' ')?.[0] ?? '';\n\nconst mensaje = '¡Listo ' + nombre + '! 🙌\\n\\n' +\n'Aquí tienes la información del inmueble que buscas 🏡✨\\n\\n' +\n'📍 ' + propertyData.title + '\\n' +\n'🏘️ ' + propertyData.colonia + ', ' + propertyData.municipio + '\\n' +\n'💰 ' + propertyData.operacion + ': ' + propertyData.ammount + '\\n' +\n'🛏️ ' + propertyData.rooms + ' recámaras | 🚿 ' + propertyData.baths + ' baños | 🚗 ' + propertyData.parkings + ' estacionamientos\\n' +\n'📐 ' + propertyData.m2 + ' m² construidos\\n\\n' +\n'Para continuar con el proceso, necesito hacerte unas breves preguntas para confirmar que cumples con los requisitos del arrendador. ¿Estás listo/a? 😊';\n\nreturn {\n  wa_id: $('Parse: Property Information').item.json.wa_id,\n  formatted_message: mensaje\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1952, -96],
+			"position": [1424, -240],
 			"id": "75288daa-89d4-4562-91fe-dbcb563f455e",
 			"name": "Parse: Message w Property Info"
 		},
@@ -204,7 +129,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [2352, -96],
+			"position": [1824, -240],
 			"id": "f9218777-07c5-4ca4-9c2e-005628a36073",
 			"name": "Update Bot: Free (Invalid)",
 			"credentials": {
@@ -224,7 +149,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [2160, -96],
+			"position": [1632, -240],
 			"id": "6e55c481-12ab-4bf7-a20c-4507ad256804",
 			"name": "Message: Property Info",
 			"webhookId": "95aba4b6-7a26-49a7-a4cb-d7403fb97f32",
@@ -234,6 +159,218 @@
 					"name": "WhatsApp account"
 				}
 			}
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5",
+					"mode": "list",
+					"cachedResultName": "GPT-5"
+				},
+				"responses": {
+					"values": [
+						{
+							"content": "={{ $('Prepare for Property Search').item.json.userPrompt }}"
+						},
+						{
+							"role": "system",
+							"content": "=You are a **real estate search term extractor for property searches**.\n\nYour job is to extract **ONLY relevant search terms** from a natural language phrase and return them as a **JSON array**.\n\n### Rules:\n\n1. **IGNORE and REMOVE** generic property types:\n   - apartment, departamento, depa, casa, house, propiedad, property, inmueble, local, oficina, penthouse, studio\n\n2. **EXTRACT ONLY**:\n   - 🏙️ Locations: colonias, neighborhoods, municipalities, states, landmarks\n   - 🔢 Specific features: \"2 recámaras\", \"con terraza\", \"amueblado\", \"estacionamiento\"\n   - 💰 Price ranges: \"menos de 15k\", \"entre 10-20k\", \"máximo 12000\"\n   - 📍 Street names or specific addresses\n\n3. **Combine** multi-word names into a single element:\n   - ✅ \"san pablo tepetlapa\" (not separate words)\n   - ✅ \"del valle\" (not separate)\n\n4. **If NO relevant terms** are found (only generic property types), return: `[]`\n\n5. Respond **ONLY** with a valid JSON array\n6. **NO** Markdown code blocks (no ```json)\n7. **NO** explanations or extra text\n\n### Examples:\n\nInput: \"busco departamento en museo\"\nOutput: [\"museo\"]\n\nInput: \"apartment cerca del parque coyoacán\"\nOutput: [\"parque\", \"coyoacán\"]\n\nInput: \"casa en polanco con 3 recámaras\"\nOutput: [\"polanco\", \"3 recámaras\"]\n\nInput: \"quiero rentar un depa\"\nOutput: []\n\nInput: \"departamento amueblado en roma norte menos de 12k\"\nOutput: [\"roma norte\", \"amueblado\", \"menos de 12k\"]\n\nNow process this text and respond **ONLY** with the JSON array:\n{{ $json.termino }}"
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [1040, -496],
+			"id": "bb3c42eb-cc5f-4328-b8ea-54024c480ff7",
+			"name": "Term Extractor",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"url": "=https://vg.g210512.com/api/v1/inmuebles?search={{ $json['terminos_array[0]'] }}",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [2032, -480],
+			"id": "e0917d6f-91e6-415f-8df2-4b2193dbfcac",
+			"name": "HTTP Request",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"id": "8a60ba01-1f89-4532-9b05-65a7305342b0",
+							"name": "title",
+							"value": "={{ $json.data[0].titulo }}",
+							"type": "string"
+						},
+						{
+							"id": "e5a36cc1-8b50-44fe-bbe7-7754c26d839d",
+							"name": "slug",
+							"value": "={{ $json.data[0].slug }}",
+							"type": "string"
+						},
+						{
+							"id": "8598b0be-fff7-4cc5-8f86-8a4a97ed7625",
+							"name": "description",
+							"value": "={{ $json.data[0].descripcion }}",
+							"type": "string"
+						},
+						{
+							"id": "48696d22-f7b0-432b-9d88-dac04b824198",
+							"name": "ammount",
+							"value": "={{ $json.data[0].precio_formateado }}",
+							"type": "string"
+						},
+						{
+							"id": "1d33593b-daa3-4de9-8167-e00cf697877d",
+							"name": "colonia",
+							"value": "={{ $json.data[0].colonia }}",
+							"type": "string"
+						},
+						{
+							"id": "982242bf-83a0-49b7-8e8d-f24b6ddda50d",
+							"name": "municipio",
+							"value": "={{ $json.data[0].municipio }}",
+							"type": "string"
+						},
+						{
+							"id": "5d494b4e-9113-4954-80ba-e315abb077a6",
+							"name": "estado",
+							"value": "={{ $json.data[0].estado }}",
+							"type": "string"
+						},
+						{
+							"id": "8e6b3f9d-b5fa-461b-9e60-d464ed7bd189",
+							"name": "type",
+							"value": "={{ $json.data[0].tipo }}",
+							"type": "string"
+						},
+						{
+							"id": "120107ec-da28-4633-a3c2-c0f41e80fa31",
+							"name": "operacion",
+							"value": "={{ $json.data[0].operacion }}",
+							"type": "string"
+						},
+						{
+							"id": "55a1293d-b8d4-4066-a89c-c4235bf89af0",
+							"name": "estatus",
+							"value": "={{ $json.data[0].estatus.nombre }}",
+							"type": "string"
+						},
+						{
+							"id": "535a1579-0c3b-4522-91cf-bb3710c238d6",
+							"name": "rooms",
+							"value": "={{ $json.data[0].habitaciones }}",
+							"type": "number"
+						},
+						{
+							"id": "ca88d032-3c7b-4149-94cc-9c06ca0039d3",
+							"name": "baths",
+							"value": "={{ $json.data[0].banos }}",
+							"type": "number"
+						},
+						{
+							"id": "04ff9b34-4e8f-432d-a44c-9fe74259557f",
+							"name": "parkings",
+							"value": "={{ $json.data[0].estacionamientos }}",
+							"type": "number"
+						},
+						{
+							"id": "8f063d58-fcda-4f80-adc3-110d727fcf73",
+							"name": "m2",
+							"value": "={{ $json.data[0].metros_cuadrados }}",
+							"type": "string"
+						},
+						{
+							"id": "0b2b4602-2ab4-4c95-aea5-8a3e86c386cc",
+							"name": "restrictions",
+							"value": "={{ $json.data[0].restricciones }}",
+							"type": "object"
+						},
+						{
+							"id": "f0c43edb-c009-43ea-ad5a-5a0c57132af3",
+							"name": "id",
+							"value": "={{ $json.data[0].id }}",
+							"type": "number"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [592, -240],
+			"id": "eb328867-ce26-4b18-bcad-ec35001d3052",
+			"name": "Edit Fields"
+		},
+		{
+			"parameters": {
+				"fieldToSplitOut": "terminos_array[0]",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.splitOut",
+			"typeVersion": 1,
+			"position": [1552, -496],
+			"id": "f14f84c8-e644-43a2-9b9f-ddd42bf97a38",
+			"name": "Split Out"
+		},
+		{
+			"parameters": {
+				"options": {}
+			},
+			"type": "n8n-nodes-base.splitInBatches",
+			"typeVersion": 3,
+			"position": [1760, -496],
+			"id": "ef03f614-e6c7-496f-a4b0-43af6b82de09",
+			"name": "Loop Over Items"
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.noOp",
+			"name": "Replace Me",
+			"typeVersion": 1,
+			"position": [2256, -480],
+			"id": "e60c1a6f-aace-42e5-9d9d-bf15a8f24401"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Recolectar todos los items del loop\nconst allItems = $input.all();\n\n// Objeto para trackear IDs únicos\nconst uniqueInmuebles = new Map();\n\n// Procesar cada respuesta\nallItems.forEach(item => {\n  const data = item.json.data || [];\n  \n  data.forEach(inmueble => {\n    // Si no existe este ID, agregarlo\n    if (!uniqueInmuebles.has(inmueble.id)) {\n      uniqueInmuebles.set(inmueble.id, inmueble);\n    }\n  });\n});\n\n// Convertir Map a array\nconst inmueblesDeduplicated = Array.from(uniqueInmuebles.values());\n\n// Retornar en el formato esperado\nreturn [{\n  json: {\n    data: inmueblesDeduplicated,\n    total: inmueblesDeduplicated.length,\n    terminos_buscados: allItems.map(i => i.json.url).filter(Boolean)\n  }\n}];"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [416, -240],
+			"id": "14701e1b-9fd2-455c-91cd-45af7f74615d",
+			"name": "Parse: Information"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Parsear el array JSON de la AI\nlet terminos = [];\ntry {\n  let aiResponse = $input.first().json.output.trim();\n  \n  // Limpiar markdown si la AI lo agrega (por si acaso)\n  aiResponse = aiResponse.replace(/```json\\n?/g, '');\n  aiResponse = aiResponse.replace(/```\\n?/g, '');\n  aiResponse = aiResponse.trim();\n  \n  // Parsear el JSON\n  terminos = JSON.parse(aiResponse);\n  \n  // Asegurarse de que sea un array\n  if (!Array.isArray(terminos)) {\n    terminos = [aiResponse];\n  }\n  \n} catch (e) {\n  // Si falla, usar el texto completo limpio\n  const cleanText = $input.first().json.output[0].content[0].text\n    .replace(/```json\\n?/g, '')\n    .replace(/```\\n?/g, '')\n    .replace(/[\\[\\]\"]/g, '')\n    .trim();\n  terminos = [cleanText];\n}\n\n// Convertir array a objeto con keys numerados\nconst terminosObj = {};\nterminos.forEach((termino, index) => {\n  terminosObj[`termino_${index + 1}`] = termino.trim();\n});\n\n// También crear el string para búsqueda\nconst searchQuery = terminos.join(' ');\n\nreturn [{\n  json: {\n    ...terminosObj,              // Spread de termino_1, termino_2, etc.\n    search_query: searchQuery,   // String para API\n    terminos_array: terminos     // Array por si lo necesitas\n  }\n}];\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1360, -496],
+			"id": "48e46aef-c787-48c4-8352-cc23b969ade1",
+			"name": "Terms Parser"
 		}
 	],
 	"connections": {
@@ -252,41 +389,8 @@
 			"main": [
 				[
 					{
-						"node": "AI Agent - Get Property",
+						"node": "Term Extractor",
 						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"AI Agent - Get Property": {
-			"main": [
-				[
-					{
-						"node": "Parse: Property Information",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"OpenAI Chat Model1": {
-			"ai_languageModel": [
-				[
-					{
-						"node": "AI Agent - Get Property",
-						"type": "ai_languageModel",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Call 'InmuebleFinderTool'1": {
-			"ai_tool": [
-				[
-					{
-						"node": "AI Agent - Get Property",
-						"type": "ai_tool",
 						"index": 0
 					}
 				]
@@ -352,6 +456,101 @@
 				[
 					{
 						"node": "Update Bot: Free (Invalid)",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Term Extractor": {
+			"main": [
+				[
+					{
+						"node": "Terms Parser",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"HTTP Request": {
+			"main": [
+				[
+					{
+						"node": "Replace Me",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Edit Fields": {
+			"main": [
+				[
+					{
+						"node": "Parse: Property Information",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Split Out": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Loop Over Items": {
+			"main": [
+				[
+					{
+						"node": "Parse: Information",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "HTTP Request",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Replace Me": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse: Information": {
+			"main": [
+				[
+					{
+						"node": "Edit Fields",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Terms Parser": {
+			"main": [
+				[
+					{
+						"node": "Split Out",
 						"type": "main",
 						"index": 0
 					}

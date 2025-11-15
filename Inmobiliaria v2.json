@@ -633,7 +633,7 @@
 								"combinator": "and"
 							},
 							"renameOutput": true,
-							"outputKey": "⏱️ Progress"
+							"outputKey": "⏸️ In Progress"
 						},
 						{
 							"conditions": {
@@ -787,7 +787,7 @@
 			},
 			"type": "n8n-nodes-base.executeWorkflow",
 			"typeVersion": 1.3,
-			"position": [1456, -464],
+			"position": [1472, -464],
 			"id": "0daedbdf-c356-4002-9e56-50195b1c6a7c",
 			"name": "Call 'IntentionDetector'"
 		},
@@ -950,7 +950,7 @@
 			},
 			"type": "n8n-nodes-base.executeWorkflow",
 			"typeVersion": 1.3,
-			"position": [1472, -272],
+			"position": [1472, -288],
 			"id": "3b74f593-4877-4807-bb16-343f2d08562a",
 			"name": "Call 'QuestionnaireConfirmationHandler'"
 		},
@@ -1021,9 +1021,151 @@
 			},
 			"type": "n8n-nodes-base.executeWorkflow",
 			"typeVersion": 1.3,
-			"position": [1392, 144],
+			"position": [1008, 176],
 			"id": "c52fbbbb-01dd-4f89-a0a4-d28e3468d1e8",
 			"name": "Call 'QuestionnaireAnswerHandler'"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "4olj37zILEOtyBt8",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/4olj37zILEOtyBt8",
+					"cachedResultName": "ApprovedContactHandler"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $json.wa_id }}",
+						"userPrompt": "={{ $json.userPrompt }}",
+						"context_data": "={{ $json.context_data }}",
+						"api_contact": "={{ $json.api_contact }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [1472, 96],
+			"id": "ccf1bffb-a600-40ca-937d-0b8366aff1ef",
+			"name": "Call 'ApprovedContactHandler'"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "mqV7reY3C3IxWfje",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/mqV7reY3C3IxWfje",
+					"cachedResultName": "HandleRejected"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $json.wa_id }}",
+						"userPrompt": "={{ $json.userPrompt }}",
+						"context_data": "={{ $json.context_data }}",
+						"api_contact": "={{ $json.api_contact }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [1472, -96],
+			"id": "06ed2003-47b9-4ca4-bc2d-5104dac86cea",
+			"name": "Call 'HandleRejected'"
 		}
 	],
 	"connections": {
@@ -1170,8 +1312,20 @@
 					}
 				],
 				[],
-				[],
-				[],
+				[
+					{
+						"node": "Call 'HandleRejected'",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call 'ApprovedContactHandler'",
+						"type": "main",
+						"index": 0
+					}
+				],
 				[
 					{
 						"node": "Call 'QuestionnaireAnswerHandler'",
@@ -1184,6 +1338,7 @@
 	},
 	"pinData": {},
 	"meta": {
+		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
 	}
 }

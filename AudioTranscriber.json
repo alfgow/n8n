@@ -21,19 +21,6 @@
 		},
 		{
 			"parameters": {
-				"content": "## -> Audio",
-				"height": 256,
-				"width": 560,
-				"color": 6
-			},
-			"type": "n8n-nodes-base.stickyNote",
-			"position": [224, -80],
-			"typeVersion": 1,
-			"id": "34cbbf67-eccd-45d0-b96e-dca096cda2b4",
-			"name": "Sticky Note6"
-		},
-		{
-			"parameters": {
 				"resource": "audio",
 				"modelId": {
 					"__rl": true,

@@ -235,34 +235,13 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "// Obtener datos del nodo anterior\nconst previousData = $('Prepare Questionnaire Context').item.json;\nconst propertyData = previousData.updatedContext.property_found;\nconst contextData = previousData.updatedContext;\n\nconst TEMPLATE = {\n  caracteristicas_fisicas: [\n    {\n      condition: () => !propertyData.parkings || propertyData.parkings === 0,\n      field: \"necesita_estacionamiento\",\n      question: \"El inmueble no cuenta con estacionamiento. ¿Estás de acuerdo con esto?\"\n    }\n  ],\n  \n  restricciones_convivencia: [\n    {\n      condition: () => propertyData.restrictions?.acepta_niños === \"no\",\n      field: \"tiene_ninos\",\n      question: \"¿Entre las personas que vivirían en el inmueble habría niños?\"\n    },\n    {\n      condition: () => propertyData.restrictions?.acepta_mascotas === \"no\",\n      field: \"tiene_mascotas\",\n      question: \"El arrendador no acepta mascotas, es una restricción no negociable. ¿Tienes inconveniente con esto?\"\n    },\n    {\n      condition: () => propertyData.restrictions?.acepta_roomies === \"no\",\n      field: \"tiene_roomies\",\n      question: \"Platícame con quien vivirás ¿solo/a, con pareja, familia o con roomies?\"\n    }\n  ],\n  \n  condiciones_contratacion: [\n    {\n      condition: () => propertyData.restrictions?.precio_poliza > 0,\n      field: \"acepta_poliza\",\n      question: `Se solicita una póliza jurídica de $${parseFloat(propertyData.restrictions.precio_poliza).toLocaleString('es-MX')} que se paga anualmente, es decir, cada año que renueves el contrato. ¿Estás de acuerdo?`\n    },\n    {\n      condition: () => true,\n      field: \"acepta_deposito_renta\",\n      question: \"Los pagos iniciales que se requieren son: Primer mes de renta y un mes de renta como depósito en garantía. ¿Estás de acuerdo con éste requisito?\"\n    }\n  ],\n  \n  validacion_ingresos: [\n    {\n      condition: () => propertyData.restrictions?.ingresos_minimos > 0,\n      field: \"cumple_ingresos\",\n      question: `Se pide un ingreso mínimo de $${parseFloat(propertyData.restrictions.ingresos_minimos).toLocaleString('es-MX')} mensuales, puede ser individual o mancomunado si vivirás en pareja. ¿Cumples con éste requisito?`\n    },\n    {\n      condition: () => true,\n      field: \"ocupacion\",\n      question: \"Para conocer mejor tu perfil, ¿a qué te dedicas actualmente?\"\n    },\n    {\n      condition: () => propertyData.restrictions?.requiere_comprobantes_ingresos === true,\n      field: \"tipo_comprobante\",\n      question: \"¿Qué tipo de comprobantes de ingresos tienes? (Recibo de nómina timbrado por el SAT, estados de cuenta completos o facturas?)\"\n    }\n  ]\n};\n\n// Generar cuestionario\nconst questionnaire = [];\n\nfor (const [section, questions] of Object.entries(TEMPLATE)) {\n  questions.forEach(q => {\n    if (q.condition()) {\n      questionnaire.push({\n        section: section,\n        field: q.field,\n        question: q.question,\n        type: \"text\"\n      });\n    }\n  });\n}\n\n// Obtener primera pregunta\nconst firstQuestion = questionnaire[0] || null;\n\n// Validar que hay al menos una pregunta\nif (!firstQuestion) {\n  throw new Error('No se generaron preguntas para este inmueble');\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  questionnaire: questionnaire,\n  total_questions: questionnaire.length,\n  first_question: firstQuestion,    // ← ESTO FALTABA\n  context_data: contextData          // ← ESTO FALTABA\n};"
+				"jsCode": "// Obtener datos del nodo anterior\nconst previousData = $('Prepare Questionnaire Context').item.json;\nconst propertyData = previousData.updatedContext.property_found;\nconst contextData = previousData.updatedContext;\n\nconst TEMPLATE = {\n  caracteristicas_fisicas: [\n    {\n      condition: () => !propertyData.estacionamientos || propertyData.estacionamientos === 0,\n      field: \"necesita_estacionamiento\",\n      question: \"El inmueble no cuenta con estacionamiento. ¿Estás de acuerdo con esto?\"\n    }\n  ],\n  \n  restricciones_convivencia: [\n    {\n      condition: () => propertyData.restricciones?.acepta_niños === \"no\",\n      field: \"tiene_ninos\",\n      question: \"¿Entre las personas que vivirían en el inmueble habría niños?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.acepta_mascotas === \"no\",\n      field: \"tiene_mascotas\",\n      question: \"El arrendador no acepta mascotas, es una restricción no negociable. ¿Tienes inconveniente con esto?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.acepta_roomies === \"no\",\n      field: \"tiene_roomies\",\n      question: \"Platícame con quien vivirás ¿solo/a, con pareja, familia o con roomies?\"\n    }\n  ],\n  \n  condiciones_contratacion: [\n    {\n      condition: () => propertyData.restricciones?.precio_poliza > 0,\n      field: \"acepta_poliza\",\n      question: `Se solicita una póliza jurídica de $${parseFloat(propertyData.restricciones.precio_poliza).toLocaleString('es-MX')} que se paga anualmente, es decir, cada año que renueves el contrato. ¿Estás de acuerdo?`\n    },\n    {\n      condition: () => true,\n      field: \"acepta_deposito_renta\",\n      question: \"Los pagos iniciales que se requieren son: Primer mes de renta y un mes de renta como depósito en garantía. ¿Estás de acuerdo con éste requisito?\"\n    }\n  ],\n  \n  validacion_ingresos: [\n    {\n      condition: () => propertyData.restricciones?.ingresos_minimos > 0,\n      field: \"cumple_ingresos\",\n      question: `Se pide un ingreso mínimo de $${parseFloat(propertyData.restricciones.ingresos_minimos).toLocaleString('es-MX')} mensuales, puede ser individual o mancomunado si vivirás en pareja. ¿Cumples con éste requisito?`\n    },\n    {\n      condition: () => true,\n      field: \"ocupacion\",\n      question: \"Para conocer mejor tu perfil, ¿a qué te dedicas actualmente?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.requiere_comprobantes_ingresos === true,\n      field: \"tipo_comprobante\",\n      question: \"¿Qué tipo de comprobantes de ingresos tienes? (Recibo de nómina timbrado por el SAT, estados de cuenta completos o facturas?)\"\n    }\n  ]\n};\n\n// Generar cuestionario\nconst questionnaire = [];\n\nfor (const [section, questions] of Object.entries(TEMPLATE)) {\n  questions.forEach(q => {\n    if (q.condition()) {\n      questionnaire.push({\n        section: section,\n        field: q.field,\n        question: q.question,\n        type: \"text\"\n      });\n    }\n  });\n}\n\n// Obtener primera pregunta\nconst firstQuestion = questionnaire[0] || null;\n\n// Validar que hay al menos una pregunta\nif (!firstQuestion) {\n  throw new Error('No se generaron preguntas para este inmueble');\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  questionnaire: questionnaire,\n  total_questions: questionnaire.length,\n  first_question: firstQuestion,    // ← ESTO FALTABA\n  context_data: contextData          // ← ESTO FALTABA\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
 			"position": [928, -224],
 			"id": "728f00a9-217e-412d-ab66-ff2db7ad8dec",
 			"name": "Generate Static Questionnaire"
-		},
-		{
-			"parameters": {
-				"operation": "send",
-				"phoneNumberId": "812415788624920",
-				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
-				"textBody": "¡Perfecto! 👍  Sin problema, cuando estés listo/a para continuar con el cuestionario me avisas.  Puedes seguir preguntando lo que necesites o buscar otra propiedad si lo prefieres 😊",
-				"additionalFields": {}
-			},
-			"type": "n8n-nodes-base.whatsApp",
-			"typeVersion": 1.1,
-			"position": [1168, 0],
-			"id": "7bc30494-3d22-4ab2-a43b-1d8cd6b8c8a6",
-			"name": "Senda Message Negative",
-			"webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
-			"credentials": {
-				"whatsAppApi": {
-					"id": "DpdLgHZCEJ199330",
-					"name": "WhatsApp account"
-				}
-			}
 		},
 		{
 			"parameters": {
@@ -332,27 +311,6 @@
 		},
 		{
 			"parameters": {
-				"operation": "send",
-				"phoneNumberId": "812415788624920",
-				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
-				"textBody": "Disculpa, no entendí tu respuesta 🤔\n\n¿Estás listo/a para responder el cuestionario sobre \"{{ $('Handle Ambiguous Response').item.json.property_title }}\"?\n",
-				"additionalFields": {}
-			},
-			"type": "n8n-nodes-base.whatsApp",
-			"typeVersion": 1.1,
-			"position": [1168, 192],
-			"id": "d9d47a5b-f4e7-48d7-a98d-f6cf9fdbc6c3",
-			"name": "Senda Message Negative1",
-			"webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
-			"credentials": {
-				"whatsAppApi": {
-					"id": "DpdLgHZCEJ199330",
-					"name": "WhatsApp account"
-				}
-			}
-		},
-		{
-			"parameters": {
 				"jsCode": "return {\n  success: true,\n  action: 'clarification_requested',\n  wa_id: $('Handle Ambiguous Response').item.json.wa_id,\n  status_maintained: 'awaiting_questionnaire_confirmation',\n  message_sent: true,\n  bot_freed: true,\n  awaiting_clear_response: true\n};"
 			},
 			"type": "n8n-nodes-base.code",
@@ -394,6 +352,48 @@
 				"postgres": {
 					"id": "qyR2OAIR7tUEVcQf",
 					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+				"textBody": "¡Perfecto! 👍  Sin problema, cuando estés listo/a para continuar con el cuestionario me avisas.  Puedes seguir preguntando lo que necesites o buscar otra propiedad si lo prefieres 😊",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1168, 0],
+			"id": "7bc30494-3d22-4ab2-a43b-1d8cd6b8c8a6",
+			"name": "Send a Message Negative",
+			"webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+				"textBody": "Disculpa, no entendí tu respuesta 🤔\n\n¿Estás listo/a para responder el cuestionario sobre \"{{ $('Handle Ambiguous Response').item.json.property_title }}\"?\n",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1168, 192],
+			"id": "d9d47a5b-f4e7-48d7-a98d-f6cf9fdbc6c3",
+			"name": "Send a Message Negative1",
+			"webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
 				}
 			}
 		}
@@ -512,17 +512,6 @@
 				]
 			]
 		},
-		"Senda Message Negative": {
-			"main": [
-				[
-					{
-						"node": "Free bot to negative",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
 		"Handle Postponement": {
 			"main": [
 				[
@@ -538,7 +527,7 @@
 			"main": [
 				[
 					{
-						"node": "Senda Message Negative",
+						"node": "Send a Message Negative",
 						"type": "main",
 						"index": 0
 					}
@@ -560,18 +549,7 @@
 			"main": [
 				[
 					{
-						"node": "Senda Message Negative1",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Senda Message Negative1": {
-			"main": [
-				[
-					{
-						"node": "Free Bot for Clarification",
+						"node": "Send a Message Negative1",
 						"type": "main",
 						"index": 0
 					}
@@ -594,6 +572,28 @@
 				[
 					{
 						"node": "Format Success Output1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send a Message Negative": {
+			"main": [
+				[
+					{
+						"node": "Free bot to negative",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send a Message Negative1": {
+			"main": [
+				[
+					{
+						"node": "Free Bot for Clarification",
 						"type": "main",
 						"index": 0
 					}

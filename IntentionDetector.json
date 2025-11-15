@@ -499,43 +499,7 @@
 			]
 		}
 	},
-	"pinData": {
-		"When Executed by Another Workflow": [
-			{
-				"wa_id": "5215559177781",
-				"userPrompt": "Hola quiero un info del depa en museo",
-				"context_data": {
-					"personaje": "Ale",
-					"statusBot": "working",
-					"interacciones": [
-						{
-							"tipo": "mensaje_recibido",
-							"actor": "usuario",
-							"canal": "whatsapp",
-							"mensaje": "Hola quiero un info del depa en museo",
-							"detalles": {
-								"tipo_mensaje": "text"
-							},
-							"timestamp": "2025-11-13T13:55:35.908Z"
-						}
-					],
-					"ultima_interaccion": "2025-11-13T13:55:35.908Z"
-				},
-				"api_contact": {
-					"id": 628,
-					"nombre": "🤖 - Sin nombre",
-					"email": null,
-					"telefono": "5559177781",
-					"estado": "nuevo",
-					"fuente": "WhatsApp Bot",
-					"created_at": "2025-11-13T07:55:35-06:00",
-					"updated_at": "2025-11-13T07:55:35-06:00",
-					"last_interaction_at": "2025-11-13T07:55:35-06:00",
-					"interes_reciente": null
-				}
-			}
-		]
-	},
+	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"

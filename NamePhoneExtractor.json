@@ -160,11 +160,11 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const userPrompt = $json.userPrompt;\n\nlet nombre = '';\nlet telefono = '';\n\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0].replace(/\\D/g, '');\n  if (telefono.length > 10) {\n    telefono = telefono.slice(-10);\n  }\n}\n\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: $json.userPrompt,\n  context_data: $json.context_data,\n  api_contact: $json.api_contact,\n  nombre_extracted: nombre,\n  telefono_extracted: telefono,\n  has_valid_data: hasValidData\n};"
+				"jsCode": "// Extract Name & Phone - CORREGIDO\nconst userPrompt = $json.userPrompt || '';\n\nlet nombre = '';\nlet telefono = '';\n\nif (!userPrompt || typeof userPrompt !== 'string') {\n  return {\n    wa_id: $json.wa_id,\n    userPrompt: userPrompt,\n    context_data: $json.context_data,\n    api_contact: $json.api_contact,\n    nombre: '',\n    telefono: '',\n    hasValidData: false\n  };\n}\n\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0].replace(/\\D/g, '');\n  if (telefono.length > 10) {\n    telefono = telefono.slice(-10);\n  }\n}\n\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: $json.userPrompt,\n  context_data: $json.context_data,\n  api_contact: $json.api_contact,\n  nombre,\n  telefono,\n  hasValidData\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [688, 256],
+			"position": [688, 224],
 			"id": "0cc01798-f346-4196-8605-554f58bd7cad",
 			"name": "Extract Name & Phone"
 		},
@@ -182,7 +182,7 @@
 								},
 								"conditions": [
 									{
-										"leftValue": "={{ $json.has_valid_data }}",
+										"leftValue": "={{ $json.hasValidData }}",
 										"rightValue": "",
 										"operator": {
 											"type": "boolean",
@@ -206,7 +206,7 @@
 								},
 								"conditions": [
 									{
-										"leftValue": "={{ $json.has_valid_data }}",
+										"leftValue": "={{ $json.hasValidData }}",
 										"rightValue": "",
 										"operator": {
 											"type": "boolean",
@@ -227,7 +227,7 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [912, 352],
+			"position": [928, 224],
 			"id": "37a7dfe2-14b4-4dc1-93eb-bb7f33147dc6",
 			"name": "Switch: Data Valid?"
 		},
@@ -241,7 +241,7 @@
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [1168, 464],
+			"position": [-32, 480],
 			"id": "0a357d73-defd-41fa-8ffb-484804dfaed9",
 			"name": "Send Invalid Data Message",
 			"webhookId": "invalid-data-001",
@@ -260,7 +260,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1456, 464],
+			"position": [160, 480],
 			"id": "28260a7b-70d5-4b9d-9b5c-48e708b5941d",
 			"name": "Update Bot: Free (Invalid)",
 			"credentials": {
@@ -278,12 +278,12 @@
 				"genericAuthType": "httpHeaderAuth",
 				"sendBody": true,
 				"specifyBody": "json",
-				"jsonBody": "={\n  \"nombre\": \"🤖 - {{ $json.nombre_extracted }}\",\n  \"telefono\": \"{{ $json.telefono_extracted }}\",\n  \"estado\": \"en_contacto\",\n  \"fuente\": \"🤖 - WhatsApp Bot\"\n}",
+				"jsonBody": "={\n  \"nombre\": \"🤖 - {{ $json.nombre }}\",\n  \"telefono\": \"{{ $json.telefono }}\",\n  \"estado\": \"en_contacto\",\n  \"fuente\": \"🤖 - WhatsApp Bot\"\n}",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [1184, 256],
+			"position": [432, 480],
 			"id": "6e29d27c-2b5b-4efd-8998-d50a9e9d0f35",
 			"name": "API: Create/Update Contact",
 			"credentials": {
@@ -295,11 +295,11 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "const apiResponse = $('API: Create/Update Contact').item.json;\nconst extractData = $('Extract Name & Phone').item.json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(extractData.context_data || {}));\n\nupdatedContext.nombre = extractData.nombre_extracted;\nupdatedContext.telefono = extractData.telefono_extracted;\nupdatedContext.status = 'in_progress';\nupdatedContext.api_contact_id = apiResponse.data?.id || updatedContext.api_contact_id;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'datos_recibidos',\n  mensaje: 'Datos del contacto recibidos y validados',\n  detalles: {\n    nombre: extractData.nombre_extracted,\n    telefono: extractData.telefono_extracted,\n    api_contact_id: apiResponse.data?.id\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: extractData.wa_id,\n  userPrompt: updatedContext.original_search || extractData.userPrompt,\n  nombre: extractData.nombre_extracted,\n  telefono: extractData.telefono_extracted,\n  updatedContext: updatedContext,\n  readyForPropertySearch: true\n};"
+				"jsCode": "const apiResponse = $('API: Create/Update Contact').item.json;\nconst extractData = $('Extract Name & Phone').item.json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(extractData.context_data || {}));\n\nupdatedContext.nombre = extractData.nombre;  // ✅ Corregido\nupdatedContext.telefono = extractData.telefono;  // ✅ Corregido\nupdatedContext.status = 'in_progress';\nupdatedContext.api_contact_id = apiResponse.data?.id || updatedContext.api_contact_id;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'datos_recibidos',\n  mensaje: 'Datos del contacto recibidos y validados',\n  detalles: {\n    nombre: extractData.nombre,  // ✅ Corregido\n    telefono: extractData.telefono,  // ✅ Corregido\n    api_contact_id: apiResponse.data?.id\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: extractData.wa_id,\n  userPrompt: updatedContext.original_search || extractData.userPrompt,\n  nombre: extractData.nombre,  // ✅ Corregido\n  telefono: extractData.telefono,  // ✅ Corregido\n  context_data: updatedContext,  // ✅ Agregado para el PropertySearcher\n  updatedContext: updatedContext,\n  readyForPropertySearch: true\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1440, 256],
+			"position": [624, 480],
 			"id": "d548cf00-24b9-4183-9a8f-6c0c5d05ef80",
 			"name": "Prepare Complete Context"
 		},
@@ -311,7 +311,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1664, 256],
+			"position": [832, 480],
 			"id": "b469bed7-caf9-44f3-9640-8f6a8879c643",
 			"name": "Save Complete Context",
 			"credentials": {
@@ -399,7 +399,7 @@
 			},
 			"type": "n8n-nodes-base.executeWorkflow",
 			"typeVersion": 1.3,
-			"position": [1872, 256],
+			"position": [1072, 480],
 			"id": "858259cf-8713-4dd1-8b13-1c0f82747802",
 			"name": "Call 'PropertySearcher'"
 		}
