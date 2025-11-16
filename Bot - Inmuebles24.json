@@ -412,6 +412,430 @@
 					"name": "Postgres-neon"
 				}
 			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// Obtener datos de ambas fuentes\nconst apiContact = $('Get API Contact').first()?.json;\nconst contextStatus = $('Check Context Status').first()?.json;\n\n// Determinar de dónde sacar el estado\nlet status = null;\nlet contactData = null;\n\n// Prioridad: PostgreSQL context (más actualizado)\nif (contextStatus && Object.keys(contextStatus).length > 0) {\n  status = contextStatus.context_data?.status || 'unknown';\n  contactData = {\n    source: 'postgresql',\n    wa_id: contextStatus.wa_id,\n    status: status,\n    statusBot: contextStatus.context_data?.statusBot,\n    context_data: contextStatus.context_data,\n    has_api_contact: contextStatus.context_data?.api_contact_id ? true : false\n  };\n}\n// Si no hay en PostgreSQL, revisar API\nelse if (apiContact && apiContact.data && apiContact.data.length > 0) {\n  const contact = apiContact.data[0];\n  status = contact.estado || 'unknown';\n  contactData = {\n    source: 'api',\n    api_contact_id: contact.id,\n    status: status,\n    contact: contact,\n    has_context: false\n  };\n}\n// No debería pasar, pero por seguridad\nelse {\n  status = 'unknown';\n  contactData = {\n    source: 'none',\n    status: 'unknown',\n    error: 'Contact exists but no data found'\n  };\n}\n\nreturn {\n  status: status,\n  contact_data: contactData,\n  // Datos del email para usar después\n  email_data: {\n    nombre: $('Extract: data').item.json.nombre,\n    telefono: $('Extract: data').item.json.telefono,\n    wa_id: $('Extract: data').item.json.wa_id,\n    correo: $('Extract: data').item.json.correo,\n    aviso: $('Extract: data').item.json.aviso,\n    tipo: $('Extract: data').item.json.tipo\n  }\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [688, 384],
+			"id": "a4f5c838-04c1-4e40-acbb-7a892b4ce6f1",
+			"name": "Get Contact Status"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "blocked",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "c22f99dd-9578-47ca-8c1a-2bc3c59736ce"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "blocked"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "93456442-01ea-4be5-83a3-3e4a2433382a",
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "rejected",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "rejected"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "465ecdf2-7e88-4bce-9b6e-b65628932beb",
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "approved",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "approved"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "0cc8136a-f42a-469e-9029-53b7cf70e677",
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "in_progress",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "in_progress"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "d88ccf89-16c9-4e2f-98e5-3cd32ff7ea3b",
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "mail_contact",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "mail_contact"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "cd9f0f85-5834-4bda-a2c2-26f9a17e03e0",
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "data",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "data "
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "4e67f737-a5d6-475c-8a11-48adbfb1db51",
+										"leftValue": "={{ $json.contact_data.status }}",
+										"rightValue": "quest",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "quest"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [880, 384],
+			"id": "fa1e74f4-84cb-4909-acf0-9122347474e9",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "4olj37zILEOtyBt8",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/4olj37zILEOtyBt8",
+					"cachedResultName": "ApprovedContactHandler"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $('Get Contact Status').item.json.contact_data.wa_id }}",
+						"userPrompt": "={{ $('Get Contact Status').item.json.contact_data.context_data.aviso }}",
+						"context_data": "={{ $('Get Contact Status').item.json.contact_data.context_data }}",
+						"api_contact": "={{ $('If: Is New?').item.json.api_data }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [448, 288],
+			"id": "3d33e537-dd45-4f5d-af92-65196e086832",
+			"name": "Call 'ApprovedContactHandler'"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "T0zJapgDBTCWQcXT",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/T0zJapgDBTCWQcXT",
+					"cachedResultName": "InProgressHandler"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [160, 128],
+			"id": "84eb54ab-1102-4328-9c69-ceb80713c00a",
+			"name": "Call 'InProgressHandler'"
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [448, 128],
+			"id": "dbc0a013-398b-4d6f-a83c-d4e1a7d2fb67",
+			"name": "No Operation, do nothing"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "mqV7reY3C3IxWfje",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/mqV7reY3C3IxWfje",
+					"cachedResultName": "HandleRejected"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $('Switch').item.json.contact_data.wa_id }}",
+						"userPrompt": "={{ $('Switch').item.json.contact_data.context_data.aviso }}",
+						"context_data": "={{ $('Switch').item.json.contact_data.context_data }}",
+						"api_contact": "={{ $json.api_contact }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "array",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [160, 304],
+			"id": "011ec735-fca6-4b37-8682-9dabbcbebda6",
+			"name": "Call 'HandleRejected'"
+		},
+		{
+			"parameters": {
+				"jsCode": "const apiContact = $('Get API Contact').first()?.json;\nconst extractData = $('Extract: data').item.json;\n\nlet contactArray = [];\n\nif (Array.isArray(apiContact?.data)) {\n  contactArray = apiContact.data;\n} else if (apiContact?.data) {\n  contactArray = [apiContact.data];\n}\n\nreturn [\n  {\n    json: {\n      api_contact: contactArray,   // <-- array SIEMPRE\n      email_data: {\n        nombre: extractData.nombre,\n        telefono: extractData.telefono,\n        wa_id: extractData.wa_id,\n        correo: extractData.correo,\n        aviso: extractData.aviso,\n        tipo: extractData.tipo\n      },\n      status: contactArray[0]?.estado || 'unknown'\n    }\n  }\n];\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [192, 672],
+			"id": "7cbb334c-20c2-4ea1-ace2-6418e196859d",
+			"name": "Transform API Contact Data"
 		}
 	],
 	"connections": {
@@ -567,6 +991,13 @@
 						"type": "main",
 						"index": 0
 					}
+				],
+				[
+					{
+						"node": "Get Contact Status",
+						"type": "main",
+						"index": 0
+					}
 				]
 			]
 		},
@@ -635,56 +1066,75 @@
 					}
 				]
 			]
+		},
+		"Get Contact Status": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "No Operation, do nothing",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Transform API Contact Data",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call 'ApprovedContactHandler'",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[]
+			]
+		},
+		"Transform API Contact Data": {
+			"main": [
+				[
+					{
+						"node": "Call 'HandleRejected'",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
 		}
 	},
 	"pinData": {
-		"Get many messages": [
-			{
-				"id": "19a6c49f9f4a8a16",
-				"threadId": "19a6c49f9f4a8a16",
-				"snippet": "inmuebles24.com ¡Hola, Inmobiliaria Villanueva García! Hay interesados que están haciendo consultas por el siguiente aviso: ¡Hola, Inmobiliaria Villanueva García! Hay interesados que están haciendo",
-				"payload": {
-					"mimeType": "text/html"
-				},
-				"sizeEstimate": 58591,
-				"historyId": "1448202",
-				"internalDate": "1762753378000",
-				"labels": [
-					{
-						"id": "INBOX",
-						"name": "INBOX"
-					},
-					{
-						"id": "CATEGORY_PROMOTIONS",
-						"name": "CATEGORY_PROMOTIONS"
-					},
-					{
-						"id": "UNREAD",
-						"name": "UNREAD"
-					}
-				],
-				"From": "Alf mediante Inmuebles24 <alfgow.reviews@usuarios.inmuebles24.com>",
-				"Subject": "📩 ¡Recibiste una nueva consulta por el aviso Hermoso Departamento Ideal Para Pareja – 2 Per ...! CÓD:62PCQ1 - REF:#481107713#",
-				"To": "alfonsovillanueva.ibiza@gmail.com"
-			}
-		],
 		"Schedule Trigger": [
 			{
-				"timestamp": "2025-11-16T00:06:30.055-06:00",
-				"Readable date": "November 16th 2025, 12:06:30 am",
-				"Readable time": "12:06:30 am",
+				"timestamp": "2025-11-16T16:40:30.005-06:00",
+				"Readable date": "November 16th 2025, 4:40:30 pm",
+				"Readable time": "4:40:30 pm",
 				"Day of week": "Sunday",
 				"Year": "2025",
 				"Month": "November",
 				"Day of month": "16",
-				"Hour": "00",
-				"Minute": "06",
+				"Hour": "16",
+				"Minute": "40",
 				"Second": "30",
 				"Timezone": "America/Mexico_City (UTC-06:00)"
 			}
 		]
 	},
 	"meta": {
+		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
 	}
 }
