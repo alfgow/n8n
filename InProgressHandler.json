@@ -1,0 +1,359 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "28d8b4bb-21ff-4dd4-a5ea-6da67428910f",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "ready_to_continue",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "d27dc14d-74bc-482b-8692-2b9a61190aaa"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "✅ Ready"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "98a1c45e-8e5c-4148-83dd-94df8241db4f",
+										"leftValue": "={{ $json.intent }}",
+										"rightValue": "other_intent",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🔄 Other"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [976, 0],
+			"id": "783db5d1-cb89-40d5-8be1-fff3a28f675d",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"jsCode": "const aiOutput = $json.output?.[0]?.content?.[0]?.text || '';\nconst intent = aiOutput.trim().toLowerCase();\n\nconsole.log('🤖 AI clasificó como:', intent);\n\nreturn {\n  wa_id: $('Parse Data Input').item.json.wa_id,\n  userPrompt: $('Parse Data Input').item.json.userPrompt,\n  context_data: $('Parse Data Input').item.json.context_data,\n  api_contact: $('Parse Data Input').item.json.api_contact,\n  intent: intent\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [768, 0],
+			"id": "8749f73a-0301-4b32-82b6-f8153ecd8a33",
+			"name": "Parse AI Response"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "5fTXdJCWEnQ280dS",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/5fTXdJCWEnQ280dS",
+					"cachedResultName": "QuestionnaireConfirmationHandler"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $json.wa_id }}",
+						"userPrompt ": "={{ $json.userPrompt }}",
+						"context_data": "={{ $json.context_data }}",
+						"api_contact": "={{ $json.api_contact }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt ",
+							"displayName": "userPrompt ",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [1232, -176],
+			"id": "e5f23213-5572-4818-bbbb-8f6926676b59",
+			"name": "Call 'QuestionnaireConfirmationHandler'"
+		},
+		{
+			"parameters": {
+				"workflowId": {
+					"__rl": true,
+					"value": "w0a7qMLi8m4TSdUQ",
+					"mode": "list",
+					"cachedResultUrl": "/workflow/w0a7qMLi8m4TSdUQ",
+					"cachedResultName": "IntentionDetector"
+				},
+				"workflowInputs": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"wa_id": "={{ $json.wa_id }}",
+						"userPrompt": "={{ $json.userPrompt }}",
+						"context_data": "={{ $json.context_data }}",
+						"api_contact": "={{ $json.api_contact }}"
+					},
+					"matchingColumns": [],
+					"schema": [
+						{
+							"id": "wa_id",
+							"displayName": "wa_id",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "userPrompt",
+							"displayName": "userPrompt",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "string",
+							"removed": false
+						},
+						{
+							"id": "context_data",
+							"displayName": "context_data",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						},
+						{
+							"id": "api_contact",
+							"displayName": "api_contact",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"canBeUsedToMatch": true,
+							"type": "object",
+							"removed": false
+						}
+					],
+					"attemptToConvertTypes": false,
+					"convertFieldsToString": true
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.executeWorkflow",
+			"typeVersion": 1.3,
+			"position": [1232, 96],
+			"id": "e2ed58fe-8757-4127-9829-2d75e18cb2f4",
+			"name": "Call 'IntentionDetector'"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"content": "={{ $json.userPrompt }}"
+						},
+						{
+							"role": "system",
+							"content": "=\"prompt\",\"Eres un clasificador de intenciones. Un usuario que previamente postponó un cuestionario sobre un inmueble ha vuelto a escribir. CONTEXTO: - Usuario: {{ $json.nombre }} - Inmueble de interés: {{ $json.property_title }} - Situación: Se le preguntó si quería responder un cuestionario y dijo \"\"NO, después\"\". - Ahora volvió a escribir: \"\"{{ $json.userPrompt }}\"\". TU TAREA: Clasifica la intención del usuario en UNA de estas DOS categorías: 1. \"\"ready_to_continue\"\" - El usuario indica que SÍ quiere continuar con el cuestionario ahora. Ejemplos: \"\"ya estoy listo\"\", \"\"adelante\"\", \"\"sí\"\", \"\"ok empecemos\"\", \"\"continuemos\"\", \"\"ya puedo\"\", \"\"ahora sí\"\". 2. \"\"other_intent\"\" - El usuario tiene OTRA intención diferente. Ejemplos: saludos como \"\"hola\"\" o \"\"buenas tardes\"\"; nueva búsqueda como \"\"quiero buscar otro depa\"\" o \"\"me interesa una casa\"\"; preguntas como \"\"cuánto cuesta\"\" o \"\"qué documentos necesito\"\"; negociación como \"\"se puede bajar el precio\"\"; o cualquier otra cosa que NO sea confirmar que está listo para el cuestionario. RESPONDE ÚNICAMENTE con una de estas dos palabras: ready_to_continue o other_intent. No agregues explicaciones.\"\n"
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [416, 0],
+			"id": "97e47200-29ec-49dc-a1e5-1741871e46b0",
+			"name": "Detect Intention",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const contextData = $json.context_data;\nconst userPrompt = $json.userPrompt;\n\nconst nombre = contextData.nombre?.split(' ')[0] || 'usuario';\nconst property_title = contextData.pending_property?.title || contextData.property_found?.title || 'el inmueble';\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: userPrompt,\n  nombre: nombre,\n  property_title: property_title,\n  context_data: contextData,\n  api_contact: $json.api_contact\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [208, 0],
+			"id": "30b44bbd-e33a-43c5-9ddb-6c0d2a168094",
+			"name": "Parse Data Input"
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Parse Data Input",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "Call 'QuestionnaireConfirmationHandler'",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Call 'IntentionDetector'",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse AI Response": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Detect Intention": {
+			"main": [
+				[
+					{
+						"node": "Parse AI Response",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Data Input": {
+			"main": [
+				[
+					{
+						"node": "Detect Intention",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}

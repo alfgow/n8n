@@ -1,0 +1,690 @@
+{
+	"nodes": [
+		{
+			"parameters": {
+				"jsCode": "// Texto del cuerpo limpio\nconst texto = $json.cuerpo_limpio || \"\";\n\n// Buscar campos clave\nconst nombreMatch = texto.match(/Nombre y apellido:\\s*([A-Za-zÁÉÍÓÚÑáéíóúüÜ\\s]+)/i);\nconst telefonoMatch = texto.match(/Tel[eé]fono:\\s*(\\d{10,15})/i);\nconst correoMatch = texto.match(/E-?mail:\\s*([\\w\\.-]+@[\\w\\.-]+\\.\\w+)/i);\nconst codigoAvisoMatch = texto.match(/Código de aviso:\\s*([A-Z0-9]+)/i);\n\n// Detectar bloque del aviso (Renta o Venta)\nconst avisoMatch = texto.match(\n  /aviso:\\s*((?:Renta|Venta)\\s*\\|[^]+?)(?=(Código de aviso:|Código del anunciante:|Este es el mensaje))/i\n);\n\nlet aviso = avisoMatch ? avisoMatch[1].trim() : null;\n\nif (aviso) {\n  // Limpiar texto y eliminar repeticiones de encabezado\n  aviso = aviso\n    .replace(/¡Hola, Inmobiliaria Villanueva García! Hay interesados que están haciendo consultas por el siguiente aviso:/gi, \"\")\n    .replace(/\\s+/g, \" \")\n    .trim();\n\n  // Extraer solo la parte DESPUÉS del primer pipe \"|\"\n  const innerMatch = aviso.match(/^\\s*(?:Renta|Venta)\\s*\\|\\s*(.*)$/i);\n  if (innerMatch) aviso = innerMatch[1].trim();\n\n  // Opcional: eliminar fragmentos irrelevantes como “Ver aviso”\n  aviso = aviso.replace(/Ver aviso/gi, \"\").trim();\n}\n\n// Normalizar teléfono (quitar prefijo 52 si lo tiene)\nlet telefono = telefonoMatch ? telefonoMatch[1].trim() : null;\nif (telefono?.startsWith(\"52\") && telefono.length === 12) {\n  telefono = telefono.slice(2);\n}\n\n// Generar wa_id con formato internacional 521XXXXXXXXXX\nconst wa_id = telefono ? `521${telefono}` : null;\n\n// Crear objeto final\nreturn [{\n  nombre: nombreMatch ? nombreMatch[1].trim().replace(/Tel[eé]fono/i, \"\").trim() : null,\n  telefono,\n  wa_id,\n  correo: correoMatch ? correoMatch[1].trim() : null,\n  aviso,\n  codigo_aviso: codigoAvisoMatch ? codigoAvisoMatch[1].trim() : null,\n  tipo: texto.includes(\"Renta |\") ? \"renta\" : texto.includes(\"Venta |\") ? \"venta\" : null\n}];\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1472, -64],
+			"id": "e2cd7e5c-0fa7-447c-be51-3ecb78ac20e4",
+			"name": "Extract: data"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Obtener el HTML del campo actual\nlet raw = $json.html || \"\";\n\n// Limpiar etiquetas HTML, estilos, scripts y espacios\nlet clean = raw\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, \"\")  // Quita CSS embebido\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, \"\") // Quita scripts\n  .replace(/<[^>]+>/g, \" \")                  // Quita todas las etiquetas HTML\n  .replace(/&nbsp;/gi, \" \")                  // Reemplaza espacios especiales\n  .replace(/&[a-z]+;/gi, \"\")                 // Quita entidades HTML (&lt;, &gt;, etc.)\n  .replace(/\\s+/g, \" \")                      // Limpia espacios y saltos múltiples\n  .trim();\n\n// Retornar el texto limpio\nreturn [{\n  cuerpo_limpio: clean || \"(sin contenido detectado)\",\n  longitud: clean.length\n}];\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1296, -64],
+			"id": "c082ef26-75cb-4c10-9084-88a11fbda1e4",
+			"name": "Clean HTML"
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"id": "55e2b36c-f91c-4ec7-9a0d-3191a0b8cff1",
+							"name": "html",
+							"value": "={{ $json.html }}",
+							"type": "string"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [1136, -64],
+			"id": "1aa73b2e-82b3-46a4-966c-ef00b536a397",
+			"name": "Get HTML"
+		},
+		{
+			"parameters": {
+				"operation": "get",
+				"messageId": "={{ $json.id }}",
+				"simple": false,
+				"options": {}
+			},
+			"type": "n8n-nodes-base.gmail",
+			"typeVersion": 2.1,
+			"position": [944, -64],
+			"id": "ce6d93b9-9dbb-4b37-83d4-1f8e8a655ba7",
+			"name": "Get Individual message",
+			"webhookId": "c452504e-6899-4056-892d-25af7836bca8",
+			"credentials": {
+				"gmailOAuth2": {
+					"id": "hiED6cmTiyWIyKwY",
+					"name": "Gmail account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"options": {}
+			},
+			"type": "n8n-nodes-base.splitInBatches",
+			"typeVersion": 3,
+			"position": [688, -80],
+			"id": "8be9fde6-f731-4c63-8401-882544ec67f9",
+			"name": "Loop Over Items"
+		},
+		{
+			"parameters": {
+				"operation": "getAll",
+				"limit": 10,
+				"filters": {
+					"q": "from:@usuarios.inmuebles24.com"
+				}
+			},
+			"type": "n8n-nodes-base.gmail",
+			"typeVersion": 2.1,
+			"position": [416, -80],
+			"id": "4789670e-80b5-4477-802e-8f17a67454fd",
+			"name": "Get many messages",
+			"webhookId": "e1a3b5d7-6044-4a22-ad31-bb50eb8b6707",
+			"credentials": {
+				"gmailOAuth2": {
+					"id": "hiED6cmTiyWIyKwY",
+					"name": "Gmail account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rule": {
+					"interval": [
+						{
+							"field": "minutes",
+							"minutesInterval": 1
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.scheduleTrigger",
+			"typeVersion": 1.2,
+			"position": [160, -80],
+			"id": "2a3cd36a-c8cb-4c4b-b7d8-54f04007865c",
+			"name": "Schedule Trigger"
+		},
+		{
+			"parameters": {
+				"url": "=https://vg.g210512.com/api/v1/contactos?telefono={{ $json.telefono }}",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1648, -64],
+			"id": "4e8b9d31-fd67-444b-8f58-25fbc5bfa7d2",
+			"name": "Get API Contact",
+			"alwaysOutputData": true,
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract: data').item.json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1840, -64],
+			"id": "8142bb73-5b85-44bc-a8b5-51fcd7adc970",
+			"name": "Check Context Status",
+			"alwaysOutputData": true,
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// ✅ Acceder de forma segura al primer item de cada nodo\nconst apiContact = $('Get API Contact').first()?.json ?? {};\nconst contextStatus = $('Check Context Status').first()?.json ?? {};\n\n// 🧠 Validar si vienen vacíos o con data útil\nconst isApiEmpty =\n  !apiContact ||\n  Object.keys(apiContact).length === 0 ||\n  (apiContact.data && Array.isArray(apiContact.data) && apiContact.data.length === 0);\n\nconst isContextEmpty =\n  !contextStatus ||\n  Object.keys(contextStatus).length === 0 ||\n  (Array.isArray(contextStatus) && contextStatus.length === 0) ||\n  (contextStatus.data && Array.isArray(contextStatus.data) && contextStatus.data.length === 0);\n\n// ✅ Si ambos están vacíos => nuevo contacto\nconst isNew = isApiEmpty && isContextEmpty;\n\n// 🔄 Retornar resultado para usar en el siguiente IF\nreturn [{\n  is_new: isNew,\n  api_empty: isApiEmpty,\n  context_empty: isContextEmpty,\n  api_data: apiContact,\n  context_data: contextStatus\n}];\n"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [2048, -64],
+			"id": "499ad2a8-9de4-468f-9295-abbfc3f599df",
+			"name": "Is New Contact?"
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"id": "2a1aa539-e7c5-4460-8400-d2c9785e7d92",
+							"name": "nombre",
+							"value": "={{ $('Extract: data').item.json.nombre }}",
+							"type": "string"
+						},
+						{
+							"id": "543c6b74-bd90-4b17-8a8b-bac0eb505dab",
+							"name": "telefono",
+							"value": "={{ $('Extract: data').item.json.telefono }}",
+							"type": "string"
+						},
+						{
+							"id": "90be3ec4-5823-4080-bd6f-0f4a42226a29",
+							"name": "wa_id",
+							"value": "={{ $('Extract: data').item.json.wa_id }}",
+							"type": "string"
+						},
+						{
+							"id": "e4f8d8d3-6d3e-4143-bd4c-596028ae2d9d",
+							"name": "correo",
+							"value": "={{ $('Extract: data').item.json.correo }}",
+							"type": "string"
+						},
+						{
+							"id": "0d1abc8d-cb92-4970-be18-44ae7b2aca7c",
+							"name": "aviso",
+							"value": "={{ $('Extract: data').item.json.aviso }}",
+							"type": "string"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [720, 144],
+			"id": "924aa5f5-dcce-4180-bcad-ba6df0e2ec6b",
+			"name": "Edit Fields"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"messages": {
+					"values": [
+						{
+							"content": "=Genera un mensaje corto (1 o 2 líneas máximo) para enviar por WhatsApp, escrito con tono amable, humano y profesional.\n\nContexto del lead:\n\nNombre: {{ $json.nombre || \"cliente\" }}\n\nAnuncio de interés: {{ $json.aviso }} (incluye dirección, colonia o zona, operación y precio, si están disponibles).\n\nObjetivo:\nTu único propósito es dar la primera bienvenida y preguntar si desea recibir más información.\nNo ofrezcas citas, recorridos, ni detalles adicionales. No inventes información que no esté en el aviso.\n\nInstrucciones de redacción:\n\n👋 Hola te escribe Regi de Inmobiliaria Villanueva García, recibimos tu interés por el inmueble ubicado en: X que tenemos en: Operacion $Monto, deseas recibir más Inforamción?",
+							"role": "system"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 1.8,
+			"position": [880, 144],
+			"id": "f23ca7ce-14c2-4b51-b3f5-014034dc7970",
+			"name": "Message a model",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "812415788624920",
+				"recipientPhoneNumber": "={{ $('Extract: data').item.json.wa_id }}",
+				"textBody": "={{ $json.message.content }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1184, 144],
+			"id": "cbb93af7-ca16-43f9-bc8a-16e8cb53c836",
+			"name": "Send message and wait for response",
+			"webhookId": "37d127c2-aa60-46d8-af60-5c88e1158331",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "fe5e2071-a4da-4b80-afa8-6dcea69cdb41",
+							"leftValue": "={{ $json.is_new }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [2224, -64],
+			"id": "96356a1d-c911-4385-b004-017b6234e9d4",
+			"name": "If: Is New?"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Extract: data').item.json.wa_id }}',\n  jsonb_build_object(\n    'status', 'mail_contact',\n    'statusBot', 'waiting_response',\n    'nombre', '{{ $('Extract: data').item.json.nombre }}',\n    'telefono', '{{ $('Extract: data').item.json.telefono }}',\n    'correo', '{{ $('Extract: data').item.json.correo }}',\n    'aviso', '{{ $('Extract: data').item.json.aviso }}',\n    'tipo', '{{ $('Extract: data').item.json.tipo }}',\n    'mail_sent_at', CURRENT_TIMESTAMP,\n    'ultima_interaccion', CURRENT_TIMESTAMP,\n    'interacciones', jsonb_build_array(\n      jsonb_build_object(\n        'timestamp', CURRENT_TIMESTAMP,\n        'actor', 'sistema',\n        'canal', 'email_to_whatsapp',\n        'tipo', 'contacto_email_inmuebles24',\n        'mensaje', 'Contacto recibido vía email de Inmuebles24',\n        'detalles', jsonb_build_object(\n          'aviso', '{{ $('Extract: data').item.json.aviso }}',\n          'tipo', '{{ $('Extract: data').item.json.tipo }}',\n          'correo', '{{ $('Extract: data').item.json.correo }}',\n          'mensaje_enviado', '{{ $('Message a model').item.json.message.content }}'\n        )\n      )\n    )\n  ),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1584, 144],
+			"id": "ac10d19f-f18d-4e78-b36c-9bccb7f8ee5c",
+			"name": "Create User Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const extractData = $('Extract: data').item.json;\nconst aiMessage = $('Message a model').item.json.message.content;\n\n// Escapar comillas simples\nconst escapeQuotes = (str) => {\n  if (!str) return '';\n  return str.replace(/'/g, \"''\");\n};\n\nreturn {\n  wa_id: extractData.wa_id,\n  nombre: escapeQuotes(extractData.nombre),\n  telefono: extractData.telefono,\n  correo: escapeQuotes(extractData.correo),\n  aviso: escapeQuotes(extractData.aviso),\n  tipo: extractData.tipo,\n  mensaje_enviado: escapeQuotes(aiMessage)\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1392, 144],
+			"id": "7bd929d2-6e0a-4f84-8ffc-efc0fd4b9d38",
+			"name": "Prepare Context Data"
+		},
+		{
+			"parameters": {
+				"jsCode": "const extractData = $('Extract: data').item.json;\nconst aiData = $('Message a model').item.json;\nconst apiContactData = $('Create API Contact').item.json;\n\nconst mensaje = aiData.message.content;\n\nconst comment = `📧 CONTACTO VÍA EMAIL INMUEBLES24\n\n📋 INFORMACIÓN:\nTipo: ${extractData.tipo}\nAviso: ${extractData.aviso}\n\n💬 MENSAJE ENVIADO POR WHATSAPP:\n${mensaje}\n\n✅ Estado: Esperando respuesta del contacto`;\n\nreturn {\n  api_contact_id: apiContactData.data.id,\n  comment: comment\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [2000, 144],
+			"id": "cf32ecb6-4c0e-4b69-9a15-695d94b493ef",
+			"name": "Prepare Comment"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "https://vg.g210512.com/api/v1/contactos",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "nombre",
+							"value": "=🤖📧 - {{ $('Extract: data').item.json.nombre }}"
+						},
+						{
+							"name": "telefono",
+							"value": "={{ $('Extract: data').item.json.telefono }}"
+						},
+						{
+							"name": "email",
+							"value": "={{ $('Extract: data').item.json.correo }}"
+						},
+						{
+							"name": "estado",
+							"value": "en_contacto"
+						},
+						{
+							"name": "fuente",
+							"value": "🤖📧 - Inmuebles24 Email"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [1792, 144],
+			"id": "5ca6e323-fd01-462e-a6c7-4f5137cde32a",
+			"name": "Create API Contact",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact_id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "={{ $json.comment }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [2208, 144],
+			"id": "b0d070f4-5698-4717-98a2-bf443cc2cc3b",
+			"name": "Add API Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts\nSET \n  context_data = jsonb_set(\n    context_data,\n    '{api_contact_id}',\n    to_jsonb({{ $('Create API Contact').item.json.data.id }}::integer)\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Extract: data').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [2400, 144],
+			"id": "d1464dec-49d8-4fad-93fd-f34accc6b224",
+			"name": "Update Context with API ID",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		}
+	],
+	"connections": {
+		"Extract: data": {
+			"main": [
+				[
+					{
+						"node": "Get API Contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Clean HTML": {
+			"main": [
+				[
+					{
+						"node": "Extract: data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get HTML": {
+			"main": [
+				[
+					{
+						"node": "Clean HTML",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get Individual message": {
+			"main": [
+				[
+					{
+						"node": "Get HTML",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Loop Over Items": {
+			"main": [
+				[],
+				[
+					{
+						"node": "Get Individual message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get many messages": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Schedule Trigger": {
+			"main": [
+				[
+					{
+						"node": "Get many messages",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get API Contact": {
+			"main": [
+				[
+					{
+						"node": "Check Context Status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Context Status": {
+			"main": [
+				[
+					{
+						"node": "Is New Contact?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is New Contact?": {
+			"main": [
+				[
+					{
+						"node": "If: Is New?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Edit Fields": {
+			"main": [
+				[
+					{
+						"node": "Message a model",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message a model": {
+			"main": [
+				[
+					{
+						"node": "Send message and wait for response",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send message and wait for response": {
+			"main": [
+				[
+					{
+						"node": "Prepare Context Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"If: Is New?": {
+			"main": [
+				[
+					{
+						"node": "Edit Fields",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Create User Context": {
+			"main": [
+				[
+					{
+						"node": "Create API Contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Context Data": {
+			"main": [
+				[
+					{
+						"node": "Create User Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Comment": {
+			"main": [
+				[
+					{
+						"node": "Add API Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Create API Contact": {
+			"main": [
+				[
+					{
+						"node": "Prepare Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Add API Comment": {
+			"main": [
+				[
+					{
+						"node": "Update Context with API ID",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Context with API ID": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {
+		"Get many messages": [
+			{
+				"id": "19a6c49f9f4a8a16",
+				"threadId": "19a6c49f9f4a8a16",
+				"snippet": "inmuebles24.com ¡Hola, Inmobiliaria Villanueva García! Hay interesados que están haciendo consultas por el siguiente aviso: ¡Hola, Inmobiliaria Villanueva García! Hay interesados que están haciendo",
+				"payload": {
+					"mimeType": "text/html"
+				},
+				"sizeEstimate": 58591,
+				"historyId": "1448202",
+				"internalDate": "1762753378000",
+				"labels": [
+					{
+						"id": "INBOX",
+						"name": "INBOX"
+					},
+					{
+						"id": "CATEGORY_PROMOTIONS",
+						"name": "CATEGORY_PROMOTIONS"
+					},
+					{
+						"id": "UNREAD",
+						"name": "UNREAD"
+					}
+				],
+				"From": "Alf mediante Inmuebles24 <alfgow.reviews@usuarios.inmuebles24.com>",
+				"Subject": "📩 ¡Recibiste una nueva consulta por el aviso Hermoso Departamento Ideal Para Pareja – 2 Per ...! CÓD:62PCQ1 - REF:#481107713#",
+				"To": "alfonsovillanueva.ibiza@gmail.com"
+			}
+		],
+		"Schedule Trigger": [
+			{
+				"timestamp": "2025-11-16T00:06:30.055-06:00",
+				"Readable date": "November 16th 2025, 12:06:30 am",
+				"Readable time": "12:06:30 am",
+				"Day of week": "Sunday",
+				"Year": "2025",
+				"Month": "November",
+				"Day of month": "16",
+				"Hour": "00",
+				"Minute": "06",
+				"Second": "30",
+				"Timezone": "America/Mexico_City (UTC-06:00)"
+			}
+		]
+	},
+	"meta": {
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
+}
