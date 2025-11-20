@@ -1,548 +1,590 @@
 {
-	"nodes": [
-		{
-			"parameters": {
-				"workflowInputs": {
-					"values": [
-						{
-							"name": "wa_id"
-						},
-						{
-							"name": "userPrompt"
-						},
-						{
-							"name": "context_data",
-							"type": "json"
-						},
-						{
-							"name": "api_contact",
-							"type": "json"
-						},
-						{
-							"name": "intent"
-						},
-						{
-							"name": "needsNamePhone",
-							"type": "boolean"
-						}
-					]
-				}
-			},
-			"id": "46dde6d3-31eb-47a1-ae31-ca418df6664c",
-			"name": "When Executed by Another Workflow",
-			"type": "n8n-nodes-base.executeWorkflowTrigger",
-			"typeVersion": 1.1,
-			"position": [-48, 144]
-		},
-		{
-			"parameters": {
-				"jsCode": "// Check Existing Data - SIMPLIFICADO\nconst data = $json;\nconst contextData = data.context_data || {};\nconst userPrompt = data.userPrompt || '';\n\n// Buscar nombre y teléfono en el mensaje ACTUAL\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\n\nconst messageHasData = nombreMatch && telefonoMatch;\n\nconsole.log('📨 Mensaje tiene datos:', messageHasData);\n\nreturn {\n  wa_id: data.wa_id,\n  userPrompt: userPrompt,\n  context_data: contextData,\n  api_contact: data.api_contact,\n  messageHasData: messageHasData || false\n};"
-			},
-			"type": "n8n-nodes-base.code",
-			"typeVersion": 2,
-			"position": [160, 144],
-			"id": "448ae3b5-dd63-428b-87c2-ae5b94022440",
-			"name": "Check Existing Data"
-		},
-		{
-			"parameters": {
-				"rules": {
-					"values": [
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "loose",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"id": "f8e22bf5-9079-43f4-b3d2-dc1e0d3492a0",
-										"leftValue": "={{ $json.messageHasData }}",
-										"rightValue": "",
-										"operator": {
-											"type": "boolean",
-											"operation": "false",
-											"singleValue": true
-										}
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Request Data"
-						},
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "loose",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"id": "80da3e6e-5872-4954-a2bc-9d38706c49b1",
-										"leftValue": "={{ $json.messageHasData }}",
-										"rightValue": "",
-										"operator": {
-											"type": "boolean",
-											"operation": "true",
-											"singleValue": true
-										}
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Extract Data"
-						}
-					]
-				},
-				"looseTypeValidation": true,
-				"options": {}
-			},
-			"type": "n8n-nodes-base.switch",
-			"typeVersion": 3.3,
-			"position": [368, 144],
-			"id": "06e669f4-ddac-44cc-9a71-7b919745e49a",
-			"name": "Switch: Data Status"
-		},
-		{
-			"parameters": {
-				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data || {}));\n\nupdatedContext.status = 'awaiting_data';\nupdatedContext.original_search = data.userPrompt;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'solicitud_datos',\n  mensaje: 'Se solicitaron datos del contacto',\n  detalles: {\n    intent: data.intent,\n    original_message: data.userPrompt\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext: updatedContext\n};"
-			},
-			"type": "n8n-nodes-base.code",
-			"typeVersion": 2,
-			"position": [704, 16],
-			"id": "4bf63509-21d4-44f3-a155-0d35de197749",
-			"name": "Prepare Request Context"
-		},
-		{
-			"parameters": {
-				"operation": "executeQuery",
-				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
-				"options": {}
-			},
-			"type": "n8n-nodes-base.postgres",
-			"typeVersion": 2.6,
-			"position": [896, 16],
-			"id": "643c4e5f-996a-4927-9f8b-c2c674863d02",
-			"name": "Update Context: Awaiting Data",
-			"credentials": {
-				"postgres": {
-					"id": "qyR2OAIR7tUEVcQf",
-					"name": "Postgres-neon"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"operation": "send",
-				"phoneNumberId": "812415788624920",
-				"recipientPhoneNumber": "={{ $json.wa_id }}",
-				"textBody": "¡Perfecto! Para ayudarte con la información del inmueble que buscas, necesito que me compartas:\n\n📝 Tu nombre completo\n📱 Tu número de teléfono\n\nPor favor compártelos en un solo mensaje 😊",
-				"additionalFields": {}
-			},
-			"type": "n8n-nodes-base.whatsApp",
-			"typeVersion": 1.1,
-			"position": [1088, 16],
-			"id": "9d956f8e-0bf4-426b-9467-9af78c9f1af0",
-			"name": "Send Data Request",
-			"webhookId": "data-request-001",
-			"credentials": {
-				"whatsAppApi": {
-					"id": "DpdLgHZCEJ199330",
-					"name": "WhatsApp account"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"jsCode": "// Extract Name & Phone - CORREGIDO\nconst userPrompt = $json.userPrompt || '';\n\nlet nombre = '';\nlet telefono = '';\n\nif (!userPrompt || typeof userPrompt !== 'string') {\n  return {\n    wa_id: $json.wa_id,\n    userPrompt: userPrompt,\n    context_data: $json.context_data,\n    api_contact: $json.api_contact,\n    nombre: '',\n    telefono: '',\n    hasValidData: false\n  };\n}\n\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0].replace(/\\D/g, '');\n  if (telefono.length > 10) {\n    telefono = telefono.slice(-10);\n  }\n}\n\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: $json.userPrompt,\n  context_data: $json.context_data,\n  api_contact: $json.api_contact,\n  nombre,\n  telefono,\n  hasValidData\n};"
-			},
-			"type": "n8n-nodes-base.code",
-			"typeVersion": 2,
-			"position": [688, 224],
-			"id": "0cc01798-f346-4196-8605-554f58bd7cad",
-			"name": "Extract Name & Phone"
-		},
-		{
-			"parameters": {
-				"rules": {
-					"values": [
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "loose",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"leftValue": "={{ $json.hasValidData }}",
-										"rightValue": "",
-										"operator": {
-											"type": "boolean",
-											"operation": "true"
-										},
-										"id": "valid-data"
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Valid"
-						},
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "loose",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"leftValue": "={{ $json.hasValidData }}",
-										"rightValue": "",
-										"operator": {
-											"type": "boolean",
-											"operation": "false"
-										},
-										"id": "invalid-data"
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Invalid"
-						}
-					]
-				},
-				"looseTypeValidation": true,
-				"options": {}
-			},
-			"type": "n8n-nodes-base.switch",
-			"typeVersion": 3.3,
-			"position": [928, 224],
-			"id": "37a7dfe2-14b4-4dc1-93eb-bb7f33147dc6",
-			"name": "Switch: Data Valid?"
-		},
-		{
-			"parameters": {
-				"operation": "send",
-				"phoneNumberId": "812415788624920",
-				"recipientPhoneNumber": "={{ $json.wa_id }}",
-				"textBody": "Para continuar, necesito por favor me proporciones en un solo mensaje:|📝 Nombre Completo📱 Número de teléfono Sigo al pendiente.",
-				"additionalFields": {}
-			},
-			"type": "n8n-nodes-base.whatsApp",
-			"typeVersion": 1.1,
-			"position": [-32, 480],
-			"id": "0a357d73-defd-41fa-8ffb-484804dfaed9",
-			"name": "Send Invalid Data Message",
-			"webhookId": "invalid-data-001",
-			"credentials": {
-				"whatsAppApi": {
-					"id": "DpdLgHZCEJ199330",
-					"name": "WhatsApp account"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"operation": "executeQuery",
-				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
-				"options": {}
-			},
-			"type": "n8n-nodes-base.postgres",
-			"typeVersion": 2.6,
-			"position": [160, 480],
-			"id": "28260a7b-70d5-4b9d-9b5c-48e708b5941d",
-			"name": "Update Bot: Free (Invalid)",
-			"credentials": {
-				"postgres": {
-					"id": "qyR2OAIR7tUEVcQf",
-					"name": "Postgres-neon"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"method": "PUT",
-				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact.id }}",
-				"authentication": "genericCredentialType",
-				"genericAuthType": "httpHeaderAuth",
-				"sendBody": true,
-				"specifyBody": "json",
-				"jsonBody": "={\n  \"nombre\": \"🤖 - {{ $json.nombre }}\",\n  \"telefono\": \"{{ $json.telefono }}\",\n  \"estado\": \"en_contacto\",\n  \"fuente\": \"🤖 - WhatsApp Bot\"\n}",
-				"options": {}
-			},
-			"type": "n8n-nodes-base.httpRequest",
-			"typeVersion": 4.2,
-			"position": [432, 480],
-			"id": "6e29d27c-2b5b-4efd-8998-d50a9e9d0f35",
-			"name": "API: Create/Update Contact",
-			"credentials": {
-				"httpHeaderAuth": {
-					"id": "rzmCtJN8Vtwv6AO3",
-					"name": "API Key Inmuebles"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"jsCode": "const apiResponse = $('API: Create/Update Contact').item.json;\nconst extractData = $('Extract Name & Phone').item.json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(extractData.context_data || {}));\n\nupdatedContext.nombre = extractData.nombre;  // ✅ Corregido\nupdatedContext.telefono = extractData.telefono;  // ✅ Corregido\nupdatedContext.api_contact_id = apiResponse.data?.id || updatedContext.api_contact_id;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'datos_recibidos',\n  mensaje: 'Datos del contacto recibidos y validados',\n  detalles: {\n    nombre: extractData.nombre,  // ✅ Corregido\n    telefono: extractData.telefono,  // ✅ Corregido\n    api_contact_id: apiResponse.data?.id\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: extractData.wa_id,\n  userPrompt: updatedContext.original_search || extractData.userPrompt,\n  nombre: extractData.nombre,  // ✅ Corregido\n  telefono: extractData.telefono,  // ✅ Corregido\n  context_data: updatedContext,  // ✅ Agregado para el PropertySearcher\n  updatedContext: updatedContext,\n  readyForPropertySearch: true\n};"
-			},
-			"type": "n8n-nodes-base.code",
-			"typeVersion": 2,
-			"position": [624, 480],
-			"id": "d548cf00-24b9-4183-9a8f-6c0c5d05ef80",
-			"name": "Prepare Complete Context"
-		},
-		{
-			"parameters": {
-				"operation": "executeQuery",
-				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
-				"options": {}
-			},
-			"type": "n8n-nodes-base.postgres",
-			"typeVersion": 2.6,
-			"position": [832, 480],
-			"id": "b469bed7-caf9-44f3-9640-8f6a8879c643",
-			"name": "Save Complete Context",
-			"credentials": {
-				"postgres": {
-					"id": "qyR2OAIR7tUEVcQf",
-					"name": "Postgres-neon"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"workflowId": {
-					"__rl": true,
-					"value": "SMuIwjcWFadhcw8A",
-					"mode": "list",
-					"cachedResultUrl": "/workflow/SMuIwjcWFadhcw8A",
-					"cachedResultName": "PropertySearcher"
-				},
-				"workflowInputs": {
-					"mappingMode": "defineBelow",
-					"value": {
-						"wa_id": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
-						"userPrompt": "={{ $('When Executed by Another Workflow').item.json.userPrompt }}",
-						"context_data": "={{ $json.context_data }}",
-						"nombre": "={{ $json.context_data.nombre }}",
-						"telefono": "={{ $json.context_data.telefono }}"
-					},
-					"matchingColumns": [],
-					"schema": [
-						{
-							"id": "wa_id",
-							"displayName": "wa_id",
-							"required": false,
-							"defaultMatch": false,
-							"display": true,
-							"canBeUsedToMatch": true,
-							"type": "string",
-							"removed": false
-						},
-						{
-							"id": "userPrompt",
-							"displayName": "userPrompt",
-							"required": false,
-							"defaultMatch": false,
-							"display": true,
-							"canBeUsedToMatch": true,
-							"type": "string",
-							"removed": false
-						},
-						{
-							"id": "context_data",
-							"displayName": "context_data",
-							"required": false,
-							"defaultMatch": false,
-							"display": true,
-							"canBeUsedToMatch": true,
-							"type": "json",
-							"removed": false
-						},
-						{
-							"id": "nombre",
-							"displayName": "nombre",
-							"required": false,
-							"defaultMatch": false,
-							"display": true,
-							"canBeUsedToMatch": true,
-							"type": "string",
-							"removed": false
-						},
-						{
-							"id": "telefono",
-							"displayName": "telefono",
-							"required": false,
-							"defaultMatch": false,
-							"display": true,
-							"canBeUsedToMatch": true,
-							"type": "string",
-							"removed": false
-						}
-					],
-					"attemptToConvertTypes": false,
-					"convertFieldsToString": true
-				},
-				"options": {}
-			},
-			"type": "n8n-nodes-base.executeWorkflow",
-			"typeVersion": 1.3,
-			"position": [1072, 480],
-			"id": "858259cf-8713-4dd1-8b13-1c0f82747802",
-			"name": "Call 'PropertySearcher'"
-		}
-	],
-	"connections": {
-		"When Executed by Another Workflow": {
-			"main": [
-				[
-					{
-						"node": "Check Existing Data",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Check Existing Data": {
-			"main": [
-				[
-					{
-						"node": "Switch: Data Status",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Switch: Data Status": {
-			"main": [
-				[
-					{
-						"node": "Prepare Request Context",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Extract Name & Phone",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Prepare Request Context": {
-			"main": [
-				[
-					{
-						"node": "Update Context: Awaiting Data",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Update Context: Awaiting Data": {
-			"main": [
-				[
-					{
-						"node": "Send Data Request",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Extract Name & Phone": {
-			"main": [
-				[
-					{
-						"node": "Switch: Data Valid?",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Switch: Data Valid?": {
-			"main": [
-				[
-					{
-						"node": "API: Create/Update Contact",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Send Invalid Data Message",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Send Invalid Data Message": {
-			"main": [
-				[
-					{
-						"node": "Update Bot: Free (Invalid)",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"API: Create/Update Contact": {
-			"main": [
-				[
-					{
-						"node": "Prepare Complete Context",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Prepare Complete Context": {
-			"main": [
-				[
-					{
-						"node": "Save Complete Context",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Save Complete Context": {
-			"main": [
-				[
-					{
-						"node": "Call 'PropertySearcher'",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		}
-	},
-	"pinData": {},
-	"meta": {
-		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
-	}
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "wa_id"
+            },
+            {
+              "name": "userPrompt"
+            },
+            {
+              "name": "context_data",
+              "type": "json"
+            },
+            {
+              "name": "api_contact",
+              "type": "json"
+            },
+            {
+              "name": "intent"
+            },
+            {
+              "name": "needsNamePhone",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "id": "46dde6d3-31eb-47a1-ae31-ca418df6664c",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check Existing Data - SIMPLIFICADO\nconst data = $json;\nconst contextData = data.context_data || {};\nconst userPrompt = data.userPrompt || '';\n\n// Buscar nombre y teléfono en el mensaje ACTUAL\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\n\nconst messageHasData = nombreMatch && telefonoMatch;\n\nconsole.log('📨 Mensaje tiene datos:', messageHasData);\n\nreturn {\n  wa_id: data.wa_id,\n  userPrompt: userPrompt,\n  context_data: contextData,\n  api_contact: data.api_contact,\n  messageHasData: messageHasData || false\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        144
+      ],
+      "id": "448ae3b5-dd63-428b-87c2-ae5b94022440",
+      "name": "Check Existing Data"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f8e22bf5-9079-43f4-b3d2-dc1e0d3492a0",
+                    "leftValue": "={{ $json.messageHasData }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Request Data"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "80da3e6e-5872-4954-a2bc-9d38706c49b1",
+                    "leftValue": "={{ $json.messageHasData }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Extract Data"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        368,
+        144
+      ],
+      "id": "06e669f4-ddac-44cc-9a71-7b919745e49a",
+      "name": "Switch: Data Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data || {}));\n\nupdatedContext.status = 'awaiting_data';\nupdatedContext.original_search = data.userPrompt;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'solicitud_datos',\n  mensaje: 'Se solicitaron datos del contacto',\n  detalles: {\n    intent: data.intent,\n    original_message: data.userPrompt\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: data.wa_id,\n  updatedContext: updatedContext\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        16
+      ],
+      "id": "4bf63509-21d4-44f3-a155-0d35de197749",
+      "name": "Prepare Request Context"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        16
+      ],
+      "id": "643c4e5f-996a-4927-9f8b-c2c674863d02",
+      "name": "Update Context: Awaiting Data",
+      "credentials": {
+        "postgres": {
+          "id": "qyR2OAIR7tUEVcQf",
+          "name": "Postgres-neon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "848665645000888",
+        "recipientPhoneNumber": "={{ $json.wa_id }}",
+        "textBody": "¡Perfecto! Para ayudarte con la información del inmueble que buscas, necesito que me compartas:\n\n📝 Tu nombre completo\n📱 Tu número de teléfono\n\nPor favor compártelos en un solo mensaje 😊",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        16
+      ],
+      "id": "9d956f8e-0bf4-426b-9467-9af78c9f1af0",
+      "name": "Send Data Request",
+      "webhookId": "data-request-001",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "DpdLgHZCEJ199330",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Name & Phone - CORREGIDO\nconst userPrompt = $json.userPrompt || '';\n\nlet nombre = '';\nlet telefono = '';\n\nif (!userPrompt || typeof userPrompt !== 'string') {\n  return {\n    wa_id: $json.wa_id,\n    userPrompt: userPrompt,\n    context_data: $json.context_data,\n    api_contact: $json.api_contact,\n    nombre: '',\n    telefono: '',\n    hasValidData: false\n  };\n}\n\nconst nombreMatch = userPrompt.match(/([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\nconst telefonoMatch = userPrompt.match(/(\\d{10,})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0].replace(/\\D/g, '');\n  if (telefono.length > 10) {\n    telefono = telefono.slice(-10);\n  }\n}\n\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: $json.userPrompt,\n  context_data: $json.context_data,\n  api_contact: $json.api_contact,\n  nombre,\n  telefono,\n  hasValidData\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        224
+      ],
+      "id": "0cc01798-f346-4196-8605-554f58bd7cad",
+      "name": "Extract Name & Phone"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.hasValidData }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true"
+                    },
+                    "id": "valid-data"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Valid"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.hasValidData }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false"
+                    },
+                    "id": "invalid-data"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Invalid"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        928,
+        224
+      ],
+      "id": "37a7dfe2-14b4-4dc1-93eb-bb7f33147dc6",
+      "name": "Switch: Data Valid?"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "848665645000888",
+        "recipientPhoneNumber": "={{ $json.wa_id }}",
+        "textBody": "Para continuar, necesito por favor me proporciones en un solo mensaje:|📝 Nombre Completo📱 Número de teléfono en un solo mensaje. Sigo al pendiente.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        480
+      ],
+      "id": "0a357d73-defd-41fa-8ffb-484804dfaed9",
+      "name": "Send Invalid Data Message",
+      "webhookId": "invalid-data-001",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "DpdLgHZCEJ199330",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        160,
+        480
+      ],
+      "id": "28260a7b-70d5-4b9d-9b5c-48e708b5941d",
+      "name": "Update Bot: Free (Invalid)",
+      "credentials": {
+        "postgres": {
+          "id": "qyR2OAIR7tUEVcQf",
+          "name": "Postgres-neon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://vg.g210512.com/api/v1/contactos/{{ $json.api_contact.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"nombre\": \"🤖 - {{ $json.nombre }}\",\n  \"telefono\": \"{{ $json.telefono }}\",\n  \"estado\": \"en_contacto\",\n  \"fuente\": \"🤖 - WhatsApp Bot\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        480
+      ],
+      "id": "6e29d27c-2b5b-4efd-8998-d50a9e9d0f35",
+      "name": "API: Create/Update Contact",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rzmCtJN8Vtwv6AO3",
+          "name": "API Key Inmuebles"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const apiResponse = $('API: Create/Update Contact').item.json;\nconst extractData = $('Extract Name & Phone').item.json;\nconst timestamp = new Date().toISOString();\n\nconst updatedContext = JSON.parse(JSON.stringify(extractData.context_data || {}));\n\nupdatedContext.nombre = extractData.nombre;  // ✅ Corregido\nupdatedContext.telefono = extractData.telefono;  // ✅ Corregido\nupdatedContext.api_contact_id = apiResponse.data?.id || updatedContext.api_contact_id;\nupdatedContext.ultima_interaccion = timestamp;\n\nconst interactions = Array.isArray(updatedContext.interacciones) ? updatedContext.interacciones : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'datos_recibidos',\n  mensaje: 'Datos del contacto recibidos y validados',\n  detalles: {\n    nombre: extractData.nombre,  // ✅ Corregido\n    telefono: extractData.telefono,  // ✅ Corregido\n    api_contact_id: apiResponse.data?.id\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: extractData.wa_id,\n  userPrompt: updatedContext.original_search || extractData.userPrompt,\n  nombre: extractData.nombre,  // ✅ Corregido\n  telefono: extractData.telefono,  // ✅ Corregido\n  context_data: updatedContext,  // ✅ Agregado para el PropertySearcher\n  updatedContext: updatedContext,\n  readyForPropertySearch: true\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        480
+      ],
+      "id": "d548cf00-24b9-4183-9a8f-6c0c5d05ef80",
+      "name": "Prepare Complete Context"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        832,
+        480
+      ],
+      "id": "b469bed7-caf9-44f3-9640-8f6a8879c643",
+      "name": "Save Complete Context",
+      "credentials": {
+        "postgres": {
+          "id": "qyR2OAIR7tUEVcQf",
+          "name": "Postgres-neon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SMuIwjcWFadhcw8A",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/SMuIwjcWFadhcw8A",
+          "cachedResultName": "PropertySearcher"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "wa_id": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+            "userPrompt": "={{ $('When Executed by Another Workflow').item.json.userPrompt }}",
+            "context_data": "={{ $json.context_data }}",
+            "nombre": "={{ $json.context_data.nombre }}",
+            "telefono": "={{ $json.context_data.telefono }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "wa_id",
+              "displayName": "wa_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "userPrompt",
+              "displayName": "userPrompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "context_data",
+              "displayName": "context_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "json",
+              "removed": false
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        480
+      ],
+      "id": "858259cf-8713-4dd1-8b13-1c0f82747802",
+      "name": "Call 'PropertySearcher'"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check Existing Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing Data": {
+      "main": [
+        [
+          {
+            "node": "Switch: Data Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Data Status": {
+      "main": [
+        [
+          {
+            "node": "Prepare Request Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Name & Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Request Context": {
+      "main": [
+        [
+          {
+            "node": "Update Context: Awaiting Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Context: Awaiting Data": {
+      "main": [
+        [
+          {
+            "node": "Send Data Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Name & Phone": {
+      "main": [
+        [
+          {
+            "node": "Switch: Data Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Data Valid?": {
+      "main": [
+        [
+          {
+            "node": "API: Create/Update Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Invalid Data Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Invalid Data Message": {
+      "main": [
+        [
+          {
+            "node": "Update Bot: Free (Invalid)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API: Create/Update Contact": {
+      "main": [
+        [
+          {
+            "node": "Prepare Complete Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Complete Context": {
+      "main": [
+        [
+          {
+            "node": "Save Complete Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Complete Context": {
+      "main": [
+        [
+          {
+            "node": "Call 'PropertySearcher'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+  }
 }
