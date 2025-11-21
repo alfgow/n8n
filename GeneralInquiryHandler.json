@@ -1,729 +1,678 @@
 {
-  "nodes": [
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "wa_id"
-            },
-            {
-              "name": "userPrompt"
-            },
-            {
-              "name": "context_data",
-              "type": "object"
-            },
-            {
-              "name": "api_contact",
-              "type": "object"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -160,
-        528
-      ],
-      "id": "9bf69e2b-40db-47ce-a840-1a3a45157fd8",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
-        "jsCode": "const contextData = $json.context_data;\nconst userMessage = $json.userPrompt;\nconst nombre = contextData.nombre ? contextData.nombre.split(' ')[0] : 'Usuario';\nconst personaje = contextData.personaje || 'Dany';\n\n// Context para el AI\nconst aiContext = `Eres un clasificador de consultas generales para Inmobiliaria Villanueva García.\n\nEl usuario pregunta: \"${userMessage}\"\n\nClasifica su consulta en UNA de estas categorías:\n\n1. \"services_info\" - Pregunta sobre qué servicios ofrece la inmobiliaria\n2. \"areas_coverage\" - Pregunta sobre zonas, colonias o áreas donde trabajan\n3. \"requirements_general\" - Pregunta sobre documentos o requisitos generales\n4. \"pricing_info\" - Pregunta sobre precios, rangos de renta, costos\n5. \"company_info\" - Pregunta sobre la empresa, trayectoria, contacto\n6. \"process_info\" - Pregunta sobre cómo funciona el proceso de renta\n7. \"general_question\" - Cualquier otra consulta relacionada con inmobiliaria\n8. \"out_of_scope\" - Temas NO relacionados con inmobiliaria (clima, política, chistes, salud, tecnología, etc)\n\nEjemplos:\n- \"¿Qué servicios ofrecen?\" → services_info\n- \"¿En qué colonias tienen casas?\" → areas_coverage\n- \"¿Qué documentos necesito?\" → requirements_general\n- \"¿Cuánto cuestan las rentas?\" → pricing_info\n- \"¿Quiénes son ustedes?\" → company_info\n- \"¿Cómo es el proceso?\" → process_info\n- \"¿Cómo está el clima?\" → out_of_scope\n- \"Cuéntame un chiste\" → out_of_scope\n- \"¿Qué opinas de la política?\" → out_of_scope\n\nResponde SOLO con la categoría, sin explicaciones.`;\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: userMessage,\n  context_data: contextData,\n  api_contact: $json.api_contact,\n  ai_context: aiContext,\n  nombre: nombre,\n  personaje: personaje\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        48,
-        528
-      ],
-      "id": "d4dd8310-01db-4c96-a0ae-8bca9001e757",
-      "name": "Detect Intent (AI)"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Obtener respuesta del AI\nconst aiOutput = $json.output[0].content[0].text.toLowerCase().trim();\n\n// Buscar el nodo \"Detect Intent (AI)\"\nconst detectIntentNode = $('Detect Intent (AI)').first().json;\n\n// Limpiar respuesta del AI\nlet intent = 'general_question'; // default\n\nif (aiOutput.includes('services_info')) intent = 'services_info';\nelse if (aiOutput.includes('areas_coverage')) intent = 'areas_coverage';\nelse if (aiOutput.includes('requirements_general')) intent = 'requirements_general';\nelse if (aiOutput.includes('pricing_info')) intent = 'pricing_info';\nelse if (aiOutput.includes('company_info')) intent = 'company_info';\nelse if (aiOutput.includes('process_info')) intent = 'process_info';\n\nconsole.log('🎯 General Inquiry clasificada como:', intent);\n\nreturn {\n  wa_id: detectIntentNode.wa_id,\n  userPrompt: detectIntentNode.userPrompt,\n  context_data: detectIntentNode.context_data,\n  api_contact: detectIntentNode.api_contact,\n  nombre: detectIntentNode.nombre,\n  personaje: detectIntentNode.personaje,\n  detected_intent: intent\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        608,
-        528
-      ],
-      "id": "48e16002-ec36-4dd3-a02b-0b9aad46241e",
-      "name": "Parse AI Response"
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-5-nano",
-          "mode": "list",
-          "cachedResultName": "GPT-5-NANO"
-        },
-        "responses": {
-          "values": [
-            {
-              "role": "system",
-              "content": "={{ $json.ai_context }}"
-            }
-          ]
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2,
-      "position": [
-        256,
-        528
-      ],
-      "id": "e0c52d3e-8301-467b-975e-dd7d306b40e1",
-      "name": "Call AI for Intent",
-      "credentials": {
-        "openAiApi": {
-          "id": "g8OPzRDvvB6YO7mf",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "services_info",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "intent-services"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "📋 Services"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "intent-areas",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "areas_coverage",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "🏘️ Areas"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "intent-requirements",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "requirements_general",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "📄 Requirements"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "intent-pricing",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "pricing_info",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "💰 Pricing"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "intent-company",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "company_info",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "🏢 Company"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "intent-process",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "process_info",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "🔍 Process"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "intent-general",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "general_question",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "💬 General"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "a8e528de-dd19-4f15-abf5-f43227e02a18",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "out_of_scope",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "OutScope"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        816,
-        432
-      ],
-      "id": "88896928-83d2-4856-9458-e0266a43da38",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `¡Hola${nombre !== 'Usuario' ? ' ' + nombre : ''}! 👋\n\nSoy ${personaje}, asistente virtual de Inmobiliaria Villanueva García.\n\nNuestros servicios incluyen:\n\n🏠 **Renta de Inmuebles:**\n   • Departamentos\n   • Casas\n   • Locales comerciales\n\n📋 **Servicios adicionales:**\n   • Asesoría personalizada\n   • Proceso de aplicación simplificado\n   • Gestión de documentación\n   • Atención profesional\n\n¿Te gustaría buscar algún inmueble en particular? Puedo ayudarte a encontrar lo que necesitas 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'services_info'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        -32
-      ],
-      "id": "5f38b019-c125-4c2a-aad6-fd6e211adb9c",
-      "name": "Handle Services"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Hola${nombre !== 'Usuario' ? ' ' + nombre : ''} 👋\n\nInmobiliaria Villanueva García tiene presencia en varias zonas de la Ciudad de México:\n\n🏘️ **Principales áreas de cobertura:**\n   • Polanco\n   • Condesa\n   • Roma Norte y Sur\n   • Del Valle\n   • Narvarte\n   • Nápoles\n   • Benito Juárez\n   • Miguel Hidalgo\n   • Cuauhtémoc\n   • Y más...\n\nPuedo ayudarte a buscar inmuebles en la zona que prefieras.\n\n¿En qué colonia o zona te gustaría buscar? 🔍`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'areas_coverage'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        160
-      ],
-      "id": "037bbe85-aa82-4829-a574-786cb423c0e5",
-      "name": "Handle Areas"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Perfecto${nombre !== 'Usuario' ? ' ' + nombre : ''} 📄\n\nTe explico los **documentos y requisitos generales** para rentar:\n\n📋 **Documentación básica:**\n\n1️⃣ **Identificación oficial vigente**\n   • INE o Pasaporte\n\n2️⃣ **Comprobante de ingresos:**\n   • Recibos de nómina timbrados (últimos 3 meses)\n   • Estados de cuenta bancarios, o\n   • Facturas (si eres independiente)\n\n3️⃣ **Comprobante de domicilio**\n   • No mayor a 3 meses\n\n4️⃣ **Referencias**\n   • Personales y/o laborales\n\n💰 **Pagos iniciales:**\n   • Primer mes de renta\n   • Depósito en garantía (1 mes)\n   • Póliza jurídica anual\n\n*Los requisitos específicos pueden variar según la propiedad.\n\n¿Te gustaría buscar un inmueble? Puedo ayudarte 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'requirements_general'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        336
-      ],
-      "id": "7346d87a-374a-4e2d-a33c-debf19f414a3",
-      "name": "Handle Requirements"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Hola${nombre !== 'Usuario' ? ' ' + nombre : ''} 💰\n\nLos precios de renta varían según:\n\n📍 **Ubicación** - Colonia y zona\n🏠 **Tipo de inmueble** - Depa, casa, local\n📐 **Tamaño** - Metros cuadrados\n🛏️ **Características** - Recámaras, baños, amenidades\n\n**Rangos aproximados en CDMX:**\n   • Departamentos: desde $8,000 hasta $50,000+ mensuales\n   • Casas: desde $15,000 hasta $80,000+ mensuales\n   • Locales comerciales: Variables según ubicación\n\nPara darte información exacta, ¿me compartes qué tipo de inmueble buscas y en qué zona?\n\nAsí puedo mostrarte opciones específicas con precios reales 🔍✨`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'pricing_info'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        512
-      ],
-      "id": "992ddbcc-1a9f-4a66-8bb1-448dacf84c4c",
-      "name": "Handle Pricing"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `¡Hola${nombre !== 'Usuario' ? ' ' + nombre : ''}! 🏢\n\nTe cuento sobre nosotros:\n\nEn *Inmobiliaria Villanueva García* somos una empresa dedicada a la renta y venta de inmuebles en la Ciudad de México, con amplia experiencia en nuestro ramo.\n\n✨ *Nos caracterizamos por:*\n   • Atención personalizada\n   • Proceso transparente y profesional\n   • Amplio portafolio de propiedades\n   • Asesoría durante todo el proceso\n\n📞 *Contacto:*\n   • WhatsApp: Este mismo número\n   • Correo: ventas@villanuevagarcia.com\n   • Atención: Lunes a Viernes (9.00am a 6.00pm), Sábado y Domingo (10.00am a 1.00pm)\n\nEstamos para servirte`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'company_info'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        704
-      ],
-      "id": "66221f04-c890-4547-bdad-e628ffa478c7",
-      "name": "Handle Company"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Perfecto${nombre !== 'Usuario' ? ' ' + nombre : ''}, te explico nuestro proceso 🔍\n\n**Proceso de Renta - Paso a Paso:**\n\n1️⃣ **Búsqueda**\n   → Me dices qué inmueble es el que te interesa\n\n2️⃣ **Información**\n   → Te comparto detalles del inmueble que te interesó\n\n3️⃣ **Cuestionario de Pre-calificación**\n   → Breve cuestionario para verificar requisitos\n\n4️⃣ **Revisión**\n   → Evaluamos tu perfil con los requisitos del arrendador\n\n5️⃣ **Aprobación**\n   → Si cumples requisitos, nuestro equipo te contacta\n\n6️⃣ **Documentación**\n   → Entrega de documentos y firma de contrato\n\n7️⃣ **¡Listo!**\n   → Recibe las llaves de tu nuevo hogar 🏡🔑\n\nTodo el proceso es rápido y transparente.`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'process_info'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        880
-      ],
-      "id": "94a94a7a-d82a-4ac7-a439-49aa5c2223e8",
-      "name": "Handle Process"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Hola${nombre !== 'Usuario' ? ' ' + nombre : ''} 👋\n\nSoy ${personaje} de Inmobiliaria Villanueva García.\n\nEstoy aquí para ayudarte con información sobre:\n\n🏠 Búsqueda de inmuebles\n📋 Servicios y procesos\n📄 Requisitos y documentación\n💰 Precios y zonas disponibles\n🏢 Información de la empresa\n\n¿En qué puedo ayudarte específicamente?\n\nTambién puedes decirme específicamente aquí qué inmueble buscas y te doy la información 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'general_question'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1040,
-        1056
-      ],
-      "id": "328ccf63-84e6-4273-8cc1-3f89191b4450",
-      "name": "Handle General"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar context_data\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data));\n\n// Obtener interacciones existentes\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\n// Agregar interacción del mensaje recibido\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"usuario\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_recibido\",\n  mensaje: data.userPrompt,\n  detalles: {\n    tipo_mensaje: \"text\",\n    classified_as: \"general_inquiry\",\n    sub_intent: data.intent\n  }\n});\n\n// Agregar interacción del bot respondiendo\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"bot\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_enviado\",\n  mensaje: data.message,\n  detalles: {\n    intent: data.intent,\n    personaje: updatedContext.personaje || \"Dany\",\n    workflow: \"GeneralInquiryHandler\"\n  }\n});\n\n// Actualizar contexto\nupdatedContext.interacciones = interactions;\nupdatedContext.ultima_interaccion = timestamp;\nupdatedContext.last_intent = \"general_inquiry\";\n\nreturn {\n  wa_id: data.wa_id,\n  message: data.message,\n  updatedContext: updatedContext\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1248,
-        512
-      ],
-      "id": "e0aee8c4-5981-42b4-9536-782bf9593fd2",
-      "name": "Update Interaction"
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "848665645000888",
-        "recipientPhoneNumber": "={{ $json.wa_id }}",
-        "textBody": "={{ $json.message }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        1456,
-        512
-      ],
-      "id": "a6018c6c-5223-43f5-8d6e-f8dc7b1945c1",
-      "name": "Send Message",
-      "webhookId": "general-inquiry-webhook-001",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $('Update Interaction').item.json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Update Interaction').item.json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        1664,
-        512
-      ],
-      "id": "dff81d71-78b8-47a1-80b4-7c0b5bd1eef4",
-      "name": "Update Postgres",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://vg.g210512.com/api/v1/contactos/{{ $('When Executed by Another Workflow').item.json.api_contact.id }}/comentarios",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "comentario",
-              "value": "=`💬 Consulta General Recibida\n\nTipo: {{ $('Call AI for Intent').item.json.output[0].content[0].text }}\n\n😎: {{ $('When Executed by Another Workflow').item.json.userPrompt }}\n\n🤖: {{ $('Update Interaction').item.json.message }}\n\nTimestamp: ${new Date().toISOString()}`"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        1872,
-        512
-      ],
-      "id": "1242a18a-f187-479c-ab7f-510e7b359936",
-      "name": "Add API Comment",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "rzmCtJN8Vtwv6AO3",
-          "name": "API Key Inmuebles"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "848665645000888",
-        "recipientPhoneNumber": "={{ $('Parse AI Response').item.json.wa_id }}",
-        "textBody": "Lo siento, únicamente te puedo ayudar con temas relacionados a Inmobiliaria Villanueva García",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        -224,
-        256
-      ],
-      "id": "c266dc5c-6743-49ff-a3ed-4b9ba49a20f5",
-      "name": "OutScope Message",
-      "webhookId": "77757eb5-61c1-4fb8-9764-b9b1fdb7fb16",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    }
-  ],
-  "connections": {
-    "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Detect Intent (AI)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Detect Intent (AI)": {
-      "main": [
-        [
-          {
-            "node": "Call AI for Intent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse AI Response": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Call AI for Intent": {
-      "main": [
-        [
-          {
-            "node": "Parse AI Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Handle Services",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Areas",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Requirements",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Pricing",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Company",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Process",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle General",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "OutScope Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Services": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Areas": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Requirements": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Pricing": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Company": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Process": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle General": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Interaction": {
-      "main": [
-        [
-          {
-            "node": "Send Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Message": {
-      "main": [
-        [
-          {
-            "node": "Update Postgres",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Postgres": {
-      "main": [
-        [
-          {
-            "node": "Add API Comment",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {},
-  "meta": {
-    "instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
-  }
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [-160, 528],
+			"id": "9bf69e2b-40db-47ce-a840-1a3a45157fd8",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const contextData = $json.context_data;\nconst userMessage = $json.userPrompt;\nconst nombre = contextData.nombre ? contextData.nombre.split(' ')[0] : 'Usuario';\nconst personaje = contextData.personaje || 'Dany';\n\n// Context para el AI\nconst aiContext = `Eres un clasificador de consultas generales para Inmobiliaria Villanueva García.\n\nEl usuario pregunta: \"${userMessage}\"\n\nClasifica su consulta en UNA de estas categorías:\n\n1. \"services_info\" - Pregunta sobre qué servicios ofrece la inmobiliaria\n2. \"areas_coverage\" - Pregunta sobre zonas, colonias o áreas donde trabajan\n3. \"requirements_general\" - Pregunta sobre documentos o requisitos generales\n4. \"pricing_info\" - Pregunta sobre precios, rangos de renta, costos\n5. \"company_info\" - Pregunta sobre la empresa, trayectoria, contacto\n6. \"process_info\" - Pregunta sobre cómo funciona el proceso de renta\n7. \"general_question\" - Cualquier otra consulta relacionada con inmobiliaria\n8. \"out_of_scope\" - Temas NO relacionados con inmobiliaria (clima, política, chistes, salud, tecnología, etc)\n\nEjemplos:\n- \"¿Qué servicios ofrecen?\" → services_info\n- \"¿En qué colonias tienen casas?\" → areas_coverage\n- \"¿Qué documentos necesito?\" → requirements_general\n- \"¿Cuánto cuestan las rentas?\" → pricing_info\n- \"¿Quiénes son ustedes?\" → company_info\n- \"¿Cómo es el proceso?\" → process_info\n- \"¿Cómo está el clima?\" → out_of_scope\n- \"Cuéntame un chiste\" → out_of_scope\n- \"¿Qué opinas de la política?\" → out_of_scope\n\nResponde SOLO con la categoría, sin explicaciones.`;\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: userMessage,\n  context_data: contextData,\n  api_contact: $json.api_contact,\n  ai_context: aiContext,\n  nombre: nombre,\n  personaje: personaje\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [48, 528],
+			"id": "d4dd8310-01db-4c96-a0ae-8bca9001e757",
+			"name": "Detect Intent (AI)"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Obtener respuesta del AI\nconst aiOutput = $json.output[0].content[0].text.toLowerCase().trim();\n\n// Buscar el nodo \"Detect Intent (AI)\"\nconst detectIntentNode = $('Detect Intent (AI)').first().json;\n\n// Limpiar respuesta del AI\nlet intent = 'general_question'; // default\n\nif (aiOutput.includes('services_info')) intent = 'services_info';\nelse if (aiOutput.includes('areas_coverage')) intent = 'areas_coverage';\nelse if (aiOutput.includes('requirements_general')) intent = 'requirements_general';\nelse if (aiOutput.includes('pricing_info')) intent = 'pricing_info';\nelse if (aiOutput.includes('company_info')) intent = 'company_info';\nelse if (aiOutput.includes('process_info')) intent = 'process_info';\n\nconsole.log('🎯 General Inquiry clasificada como:', intent);\n\nreturn {\n  wa_id: detectIntentNode.wa_id,\n  userPrompt: detectIntentNode.userPrompt,\n  context_data: detectIntentNode.context_data,\n  api_contact: detectIntentNode.api_contact,\n  nombre: detectIntentNode.nombre,\n  personaje: detectIntentNode.personaje,\n  detected_intent: intent\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [608, 528],
+			"id": "48e16002-ec36-4dd3-a02b-0b9aad46241e",
+			"name": "Parse AI Response"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "={{ $json.ai_context }}"
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [256, 528],
+			"id": "e0c52d3e-8301-467b-975e-dd7d306b40e1",
+			"name": "Call AI for Intent",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "services_info",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "intent-services"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "📋 Services"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "intent-areas",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "areas_coverage",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🏘️ Areas"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "intent-requirements",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "requirements_general",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "📄 Requirements"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "intent-pricing",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "pricing_info",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "💰 Pricing"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "intent-company",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "company_info",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🏢 Company"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "intent-process",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "process_info",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🔍 Process"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "intent-general",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "general_question",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "💬 General"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "a8e528de-dd19-4f15-abf5-f43227e02a18",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "out_of_scope",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "OutScope"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [816, 432],
+			"id": "88896928-83d2-4856-9458-e0266a43da38",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `¡Hola${nombre !== 'Usuario' ? ' ' + nombre : ''}! 👋\n\nSoy ${personaje}, asistente virtual de Inmobiliaria Villanueva García.\n\nNuestros servicios incluyen:\n\n🏠 **Renta de Inmuebles:**\n   • Departamentos\n   • Casas\n   • Locales comerciales\n\n📋 **Servicios adicionales:**\n   • Asesoría personalizada\n   • Proceso de aplicación simplificado\n   • Gestión de documentación\n   • Atención profesional\n\n¿Te gustaría buscar algún inmueble en particular? Puedo ayudarte a encontrar lo que necesitas 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'services_info'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, -32],
+			"id": "5f38b019-c125-4c2a-aad6-fd6e211adb9c",
+			"name": "Handle Services"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Hola${nombre !== 'Usuario' ? ' ' + nombre : ''} 👋\n\nInmobiliaria Villanueva García tiene presencia en varias zonas de la Ciudad de México:\n\n🏘️ **Principales áreas de cobertura:**\n   • Polanco\n   • Condesa\n   • Roma Norte y Sur\n   • Del Valle\n   • Narvarte\n   • Nápoles\n   • Benito Juárez\n   • Miguel Hidalgo\n   • Cuauhtémoc\n   • Y más...\n\nPuedo ayudarte a buscar inmuebles en la zona que prefieras.\n\n¿En qué colonia o zona te gustaría buscar? 🔍`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'areas_coverage'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, 160],
+			"id": "037bbe85-aa82-4829-a574-786cb423c0e5",
+			"name": "Handle Areas"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Perfecto${nombre !== 'Usuario' ? ' ' + nombre : ''} 📄\n\nTe explico los **documentos y requisitos generales** para rentar:\n\n📋 **Documentación básica:**\n\n1️⃣ **Identificación oficial vigente**\n   • INE o Pasaporte\n\n2️⃣ **Comprobante de ingresos:**\n   • Recibos de nómina timbrados (últimos 3 meses)\n   • Estados de cuenta bancarios, o\n   • Facturas (si eres independiente)\n\n3️⃣ **Comprobante de domicilio**\n   • No mayor a 3 meses\n\n4️⃣ **Referencias**\n   • Personales y/o laborales\n\n💰 **Pagos iniciales:**\n   • Primer mes de renta\n   • Depósito en garantía (1 mes)\n   • Póliza jurídica anual\n\n*Los requisitos específicos pueden variar según la propiedad.\n\n¿Te gustaría buscar un inmueble? Puedo ayudarte 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'requirements_general'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, 336],
+			"id": "7346d87a-374a-4e2d-a33c-debf19f414a3",
+			"name": "Handle Requirements"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Hola${nombre !== 'Usuario' ? ' ' + nombre : ''} 💰\n\nLos precios de renta varían según:\n\n📍 **Ubicación** - Colonia y zona\n🏠 **Tipo de inmueble** - Depa, casa, local\n📐 **Tamaño** - Metros cuadrados\n🛏️ **Características** - Recámaras, baños, amenidades\n\n**Rangos aproximados en CDMX:**\n   • Departamentos: desde $8,000 hasta $50,000+ mensuales\n   • Casas: desde $15,000 hasta $80,000+ mensuales\n   • Locales comerciales: Variables según ubicación\n\nPara darte información exacta, ¿me compartes qué tipo de inmueble buscas y en qué zona?\n\nAsí puedo mostrarte opciones específicas con precios reales 🔍✨`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'pricing_info'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, 512],
+			"id": "992ddbcc-1a9f-4a66-8bb1-448dacf84c4c",
+			"name": "Handle Pricing"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `¡Hola${nombre !== 'Usuario' ? ' ' + nombre : ''}! 🏢\n\nTe cuento sobre nosotros:\n\nEn *Inmobiliaria Villanueva García* somos una empresa dedicada a la renta y venta de inmuebles en la Ciudad de México, con amplia experiencia en nuestro ramo.\n\n✨ *Nos caracterizamos por:*\n   • Atención personalizada\n   • Proceso transparente y profesional\n   • Amplio portafolio de propiedades\n   • Asesoría durante todo el proceso\n\n📞 *Contacto:*\n   • WhatsApp: Este mismo número\n   • Correo: ventas@villanuevagarcia.com\n   • Atención: Lunes a Viernes (9.00am a 6.00pm), Sábado y Domingo (10.00am a 1.00pm)\n\nEstamos para servirte`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'company_info'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, 704],
+			"id": "66221f04-c890-4547-bdad-e628ffa478c7",
+			"name": "Handle Company"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Perfecto${nombre !== 'Usuario' ? ' ' + nombre : ''}, te explico nuestro proceso 🔍\n\n**Proceso de Renta - Paso a Paso:**\n\n1️⃣ **Búsqueda**\n   → Me dices qué inmueble es el que te interesa\n\n2️⃣ **Información**\n   → Te comparto detalles del inmueble que te interesó\n\n3️⃣ **Cuestionario de Pre-calificación**\n   → Breve cuestionario para verificar requisitos\n\n4️⃣ **Revisión**\n   → Evaluamos tu perfil con los requisitos del arrendador\n\n5️⃣ **Aprobación**\n   → Si cumples requisitos, nuestro equipo te contacta\n\n6️⃣ **Documentación**\n   → Entrega de documentos y firma de contrato\n\n7️⃣ **¡Listo!**\n   → Recibe las llaves de tu nuevo hogar 🏡🔑\n\nTodo el proceso es rápido y transparente.`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'process_info'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, 880],
+			"id": "94a94a7a-d82a-4ac7-a439-49aa5c2223e8",
+			"name": "Handle Process"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst personaje = data.personaje;\n\nconst message = `Hola${nombre !== 'Usuario' ? ' ' + nombre : ''} 👋\n\nSoy ${personaje} de Inmobiliaria Villanueva García.\n\nEstoy aquí para ayudarte con información sobre:\n\n🏠 Búsqueda de inmuebles\n📋 Servicios y procesos\n📄 Requisitos y documentación\n💰 Precios y zonas disponibles\n🏢 Información de la empresa\n\n¿En qué puedo ayudarte específicamente?\n\nRecuerda que para buscar inmuebles debes decirme exactamente que propiedad buscas 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'general_question'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1040, 1056],
+			"id": "328ccf63-84e6-4273-8cc1-3f89191b4450",
+			"name": "Handle General"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar context_data\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data));\n\n// Obtener interacciones existentes\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\n// Agregar interacción del mensaje recibido\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"usuario\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_recibido\",\n  mensaje: data.userPrompt,\n  detalles: {\n    tipo_mensaje: \"text\",\n    classified_as: \"general_inquiry\",\n    sub_intent: data.intent\n  }\n});\n\n// Agregar interacción del bot respondiendo\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"bot\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_enviado\",\n  mensaje: data.message,\n  detalles: {\n    intent: data.intent,\n    personaje: updatedContext.personaje || \"Dany\",\n    workflow: \"GeneralInquiryHandler\"\n  }\n});\n\n// Actualizar contexto\nupdatedContext.interacciones = interactions;\nupdatedContext.ultima_interaccion = timestamp;\nupdatedContext.last_intent = \"general_inquiry\";\n\nreturn {\n  wa_id: data.wa_id,\n  message: data.message,\n  updatedContext: updatedContext\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1248, 512],
+			"id": "e0aee8c4-5981-42b4-9536-782bf9593fd2",
+			"name": "Update Interaction"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "848665645000888",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $json.message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1456, 512],
+			"id": "a6018c6c-5223-43f5-8d6e-f8dc7b1945c1",
+			"name": "Send Message",
+			"webhookId": "general-inquiry-webhook-001",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $('Update Interaction').item.json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Update Interaction').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1664, 512],
+			"id": "dff81d71-78b8-47a1-80b4-7c0b5bd1eef4",
+			"name": "Update Postgres",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('When Executed by Another Workflow').item.json.api_contact.id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "=`💬 Consulta General Recibida\n\nTipo: {{ $('Call AI for Intent').item.json.output[0].content[0].text }}\n\n😎: {{ $('When Executed by Another Workflow').item.json.userPrompt }}\n\n🤖: {{ $('Update Interaction').item.json.message }}\n\nTimestamp: ${new Date().toISOString()}`"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [1872, 512],
+			"id": "1242a18a-f187-479c-ab7f-510e7b359936",
+			"name": "Add API Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "848665645000888",
+				"recipientPhoneNumber": "={{ $('Parse AI Response').item.json.wa_id }}",
+				"textBody": "Lo siento, únicamente te puedo ayudar con temas relacionados a Inmobiliaria Villanueva García",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [-224, 256],
+			"id": "c266dc5c-6743-49ff-a3ed-4b9ba49a20f5",
+			"name": "OutScope Message",
+			"webhookId": "77757eb5-61c1-4fb8-9764-b9b1fdb7fb16",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Detect Intent (AI)",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Detect Intent (AI)": {
+			"main": [
+				[
+					{
+						"node": "Call AI for Intent",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse AI Response": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call AI for Intent": {
+			"main": [
+				[
+					{
+						"node": "Parse AI Response",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "Handle Services",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Areas",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Requirements",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Pricing",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Company",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Process",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle General",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "OutScope Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Services": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Areas": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Requirements": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Pricing": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Company": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Process": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle General": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Interaction": {
+			"main": [
+				[
+					{
+						"node": "Send Message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Message": {
+			"main": [
+				[
+					{
+						"node": "Update Postgres",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Postgres": {
+			"main": [
+				[
+					{
+						"node": "Add API Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
 }

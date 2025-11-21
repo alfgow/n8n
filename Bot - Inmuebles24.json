@@ -6,7 +6,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1472, -64],
+			"position": [1680, -64],
 			"id": "e2cd7e5c-0fa7-447c-be51-3ecb78ac20e4",
 			"name": "Extract: data"
 		},
@@ -16,7 +16,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1296, -64],
+			"position": [1504, -64],
 			"id": "c082ef26-75cb-4c10-9084-88a11fbda1e4",
 			"name": "Clean HTML"
 		},
@@ -36,7 +36,7 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [1136, -64],
+			"position": [1344, -64],
 			"id": "1aa73b2e-82b3-46a4-966c-ef00b536a397",
 			"name": "Get HTML"
 		},
@@ -49,7 +49,7 @@
 			},
 			"type": "n8n-nodes-base.gmail",
 			"typeVersion": 2.1,
-			"position": [944, -64],
+			"position": [1152, -64],
 			"id": "ce6d93b9-9dbb-4b37-83d4-1f8e8a655ba7",
 			"name": "Get Individual message",
 			"webhookId": "c452504e-6899-4056-892d-25af7836bca8",
@@ -72,44 +72,6 @@
 		},
 		{
 			"parameters": {
-				"operation": "getAll",
-				"limit": 10,
-				"filters": {
-					"q": "from:@usuarios.inmuebles24.com"
-				}
-			},
-			"type": "n8n-nodes-base.gmail",
-			"typeVersion": 2.1,
-			"position": [416, -80],
-			"id": "4789670e-80b5-4477-802e-8f17a67454fd",
-			"name": "Get many messages",
-			"webhookId": "e1a3b5d7-6044-4a22-ad31-bb50eb8b6707",
-			"credentials": {
-				"gmailOAuth2": {
-					"id": "hiED6cmTiyWIyKwY",
-					"name": "Gmail account"
-				}
-			}
-		},
-		{
-			"parameters": {
-				"rule": {
-					"interval": [
-						{
-							"field": "minutes",
-							"minutesInterval": 1
-						}
-					]
-				}
-			},
-			"type": "n8n-nodes-base.scheduleTrigger",
-			"typeVersion": 1.2,
-			"position": [160, -80],
-			"id": "2a3cd36a-c8cb-4c4b-b7d8-54f04007865c",
-			"name": "Schedule Trigger"
-		},
-		{
-			"parameters": {
 				"url": "=https://vg.g210512.com/api/v1/contactos?telefono={{ $json.telefono }}",
 				"authentication": "genericCredentialType",
 				"genericAuthType": "httpHeaderAuth",
@@ -117,7 +79,7 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [1648, -64],
+			"position": [1856, -64],
 			"id": "4e8b9d31-fd67-444b-8f58-25fbc5bfa7d2",
 			"name": "Get API Contact",
 			"alwaysOutputData": true,
@@ -136,7 +98,7 @@
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [1840, -64],
+			"position": [2048, -64],
 			"id": "8142bb73-5b85-44bc-a8b5-51fcd7adc970",
 			"name": "Check Context Status",
 			"alwaysOutputData": true,
@@ -153,7 +115,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2048, -64],
+			"position": [2256, -64],
 			"id": "499ad2a8-9de4-468f-9295-abbfc3f599df",
 			"name": "Is New Contact?"
 		},
@@ -197,7 +159,7 @@
 			},
 			"type": "n8n-nodes-base.set",
 			"typeVersion": 3.4,
-			"position": [720, 144],
+			"position": [928, 144],
 			"id": "924aa5f5-dcce-4180-bcad-ba6df0e2ec6b",
 			"name": "Edit Fields"
 		},
@@ -221,7 +183,7 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.openAi",
 			"typeVersion": 1.8,
-			"position": [880, 144],
+			"position": [1088, 144],
 			"id": "f23ca7ce-14c2-4b51-b3f5-014034dc7970",
 			"name": "Message a model",
 			"credentials": {
@@ -234,14 +196,14 @@
 		{
 			"parameters": {
 				"operation": "send",
-				"phoneNumberId": "812415788624920",
+				"phoneNumberId": "848665645000888",
 				"recipientPhoneNumber": "={{ $('Extract: data').item.json.wa_id }}",
 				"textBody": "={{ $json.message.content }}",
 				"additionalFields": {}
 			},
 			"type": "n8n-nodes-base.whatsApp",
 			"typeVersion": 1.1,
-			"position": [1184, 144],
+			"position": [1392, 144],
 			"id": "cbb93af7-ca16-43f9-bc8a-16e8cb53c836",
 			"name": "Send message and wait for response",
 			"webhookId": "37d127c2-aa60-46d8-af60-5c88e1158331",
@@ -279,27 +241,9 @@
 			},
 			"type": "n8n-nodes-base.if",
 			"typeVersion": 2.2,
-			"position": [2224, -64],
+			"position": [2432, -64],
 			"id": "96356a1d-c911-4385-b004-017b6234e9d4",
 			"name": "If: Is New?"
-		},
-		{
-			"parameters": {
-				"operation": "executeQuery",
-				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Extract: data').item.json.wa_id }}',\n  jsonb_build_object(\n    'status', 'mail_contact',\n    'statusBot', 'waiting_response',\n    'nombre', '{{ $('Extract: data').item.json.nombre }}',\n    'telefono', '{{ $('Extract: data').item.json.telefono }}',\n    'correo', '{{ $('Extract: data').item.json.correo }}',\n    'aviso', '{{ $('Extract: data').item.json.aviso }}',\n    'tipo', '{{ $('Extract: data').item.json.tipo }}',\n    'mail_sent_at', CURRENT_TIMESTAMP,\n    'ultima_interaccion', CURRENT_TIMESTAMP,\n    'interacciones', jsonb_build_array(\n      jsonb_build_object(\n        'timestamp', CURRENT_TIMESTAMP,\n        'actor', 'sistema',\n        'canal', 'email_to_whatsapp',\n        'tipo', 'contacto_email_inmuebles24',\n        'mensaje', 'Contacto recibido vía email de Inmuebles24',\n        'detalles', jsonb_build_object(\n          'aviso', '{{ $('Extract: data').item.json.aviso }}',\n          'tipo', '{{ $('Extract: data').item.json.tipo }}',\n          'correo', '{{ $('Extract: data').item.json.correo }}',\n          'mensaje_enviado', '{{ $('Message a model').item.json.message.content }}'\n        )\n      )\n    )\n  ),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nRETURNING *;",
-				"options": {}
-			},
-			"type": "n8n-nodes-base.postgres",
-			"typeVersion": 2.6,
-			"position": [1584, 144],
-			"id": "ac10d19f-f18d-4e78-b36c-9bccb7f8ee5c",
-			"name": "Create User Context",
-			"credentials": {
-				"postgres": {
-					"id": "qyR2OAIR7tUEVcQf",
-					"name": "Postgres-neon"
-				}
-			}
 		},
 		{
 			"parameters": {
@@ -307,7 +251,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1392, 144],
+			"position": [1600, 144],
 			"id": "7bd929d2-6e0a-4f84-8ffc-efc0fd4b9d38",
 			"name": "Prepare Context Data"
 		},
@@ -317,7 +261,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2000, 144],
+			"position": [2208, 144],
 			"id": "cf32ecb6-4c0e-4b69-9a15-695d94b493ef",
 			"name": "Prepare Comment"
 		},
@@ -356,7 +300,7 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.3,
-			"position": [1792, 144],
+			"position": [2000, 144],
 			"id": "5ca6e323-fd01-462e-a6c7-4f5137cde32a",
 			"name": "Create API Contact",
 			"credentials": {
@@ -385,7 +329,7 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.3,
-			"position": [2208, 144],
+			"position": [2416, 144],
 			"id": "b0d070f4-5698-4717-98a2-bf443cc2cc3b",
 			"name": "Add API Comment",
 			"credentials": {
@@ -398,12 +342,12 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts\nSET \n  context_data = jsonb_set(\n    context_data,\n    '{api_contact_id}',\n    to_jsonb({{ $('Create API Contact').item.json.data.id }}::integer)\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Extract: data').item.json.wa_id }}'\nRETURNING *;",
+				"query": "UPDATE user_contexts\nSET \n  context_data = jsonb_set(\n    jsonb_set(\n      jsonb_set(\n        context_data,\n        '{api_contact_id}',\n        to_jsonb({{ $('Create API Contact').item.json.data.id }}::integer)\n      ),\n      '{i24,0,insnew}',\n      'false'::jsonb\n    ),\n    '{status}',\n    '\"awaiting_data\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Extract: data').item.json.wa_id }}'\nRETURNING *;",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
 			"typeVersion": 2.6,
-			"position": [2400, 144],
+			"position": [2608, 144],
 			"id": "d1464dec-49d8-4fad-93fd-f34accc6b224",
 			"name": "Update Context with API ID",
 			"credentials": {
@@ -419,7 +363,7 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [688, 384],
+			"position": [896, 384],
 			"id": "a4f5c838-04c1-4e40-acbb-7a892b4ce6f1",
 			"name": "Get Contact Status"
 		},
@@ -607,7 +551,7 @@
 			},
 			"type": "n8n-nodes-base.switch",
 			"typeVersion": 3.3,
-			"position": [880, 384],
+			"position": [1296, 384],
 			"id": "fa1e74f4-84cb-4909-acf0-9122347474e9",
 			"name": "Switch"
 		},
@@ -769,8 +713,8 @@
 					"mappingMode": "defineBelow",
 					"value": {
 						"wa_id": "={{ $('Switch').item.json.contact_data.wa_id }}",
-						"userPrompt": "={{ $('Switch').item.json.contact_data.context_data.aviso }}",
-						"context_data": "={{ $('Switch').item.json.contact_data.context_data }}",
+						"userPrompt": "=email_I24",
+						"context_data": "={{ $('Check Context Status1').item.json.context_data }}",
 						"api_contact": "={{ $json.api_contact }}"
 					},
 					"matchingColumns": [],
@@ -833,9 +777,121 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [192, 672],
+			"position": [624, 656],
 			"id": "7cbb334c-20c2-4ea1-ace2-6418e196859d",
 			"name": "Transform API Contact Data"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{i24}',\n    jsonb_build_array(\n      jsonb_build_object(\n        'insnew', true,\n        'timestamp', to_char(CURRENT_TIMESTAMP, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n        'aviso', '{{ $json.email_data.aviso }}',\n        'tipo', '{{ $json.email_data.tipo }}'\n      )\n    )\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.contact_data.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [256, 656],
+			"id": "d74aa5de-47cf-4d4e-a441-7f53956c1bfa",
+			"name": "Update Status: Email Contact",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "SELECT \n  id,\n  wa_id,\n  context_data,\n  created_at,\n  updated_at\nFROM user_contexts \nWHERE wa_id = '{{ $('Extract: data').item.json.wa_id }}'\nLIMIT 1;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [448, 656],
+			"id": "3e6172d3-b184-44cb-82a0-eb310d703db0",
+			"name": "Check Context Status1",
+			"alwaysOutputData": true,
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Extract: data').item.json.wa_id }}',\n  jsonb_build_object(\n    'status', 'mail_contact',\n    'statusBot', 'waiting_response',\n    'nombre', '{{ $('Extract: data').item.json.nombre }}',\n    'telefono', '{{ $('Extract: data').item.json.telefono }}',\n    'correo', '{{ $('Extract: data').item.json.correo }}',\n    'aviso', '{{ $('Extract: data').item.json.aviso }}',\n    'tipo', '{{ $('Extract: data').item.json.tipo }}',\n    'mail_sent_at', CURRENT_TIMESTAMP,\n    'ultima_interaccion', CURRENT_TIMESTAMP,\n    'interacciones', jsonb_build_array(\n      jsonb_build_object(\n        'timestamp', CURRENT_TIMESTAMP,\n        'actor', 'sistema',\n        'canal', 'email_to_whatsapp',\n        'tipo', 'contacto_email_inmuebles24',\n        'mensaje', 'Contacto recibido vía email de Inmuebles24',\n        'detalles', jsonb_build_object(\n          'aviso', '{{ $('Extract: data').item.json.aviso }}',\n          'tipo', '{{ $('Extract: data').item.json.tipo }}',\n          'correo', '{{ $('Extract: data').item.json.correo }}',\n          'mensaje_enviado', '{{ $('Message a model').item.json.message.content }}'\n        )\n      )\n    )\n  ),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1792, 144],
+			"id": "ac10d19f-f18d-4e78-b36c-9bccb7f8ee5c",
+			"name": "Create User Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rule": {
+					"interval": [
+						{
+							"field": "minutes",
+							"minutesInterval": 1
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.scheduleTrigger",
+			"typeVersion": 1.2,
+			"position": [208, -80],
+			"id": "2a3cd36a-c8cb-4c4b-b7d8-54f04007865c",
+			"name": "Schedule Trigger"
+		},
+		{
+			"parameters": {
+				"operation": "getAll",
+				"limit": 10,
+				"filters": {
+					"q": "from:@usuarios.inmuebles24.com",
+					"readStatus": "unread"
+				}
+			},
+			"type": "n8n-nodes-base.gmail",
+			"typeVersion": 2.1,
+			"position": [416, -80],
+			"id": "4789670e-80b5-4477-802e-8f17a67454fd",
+			"name": "Get many messages",
+			"webhookId": "e1a3b5d7-6044-4a22-ad31-bb50eb8b6707",
+			"credentials": {
+				"gmailOAuth2": {
+					"id": "hiED6cmTiyWIyKwY",
+					"name": "Gmail account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "markAsRead",
+				"messageId": "={{ $json.id }}"
+			},
+			"type": "n8n-nodes-base.gmail",
+			"typeVersion": 2.1,
+			"position": [928, -64],
+			"id": "f5089488-4796-4091-bd73-94ecb63e5d55",
+			"name": "Mark a message as read",
+			"webhookId": "1b2d8011-4159-4960-9da6-fd9947826ab2",
+			"credentials": {
+				"gmailOAuth2": {
+					"id": "hiED6cmTiyWIyKwY",
+					"name": "Gmail account"
+				}
+			}
 		}
 	],
 	"connections": {
@@ -888,29 +944,7 @@
 				[],
 				[
 					{
-						"node": "Get Individual message",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Get many messages": {
-			"main": [
-				[
-					{
-						"node": "Loop Over Items",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Schedule Trigger": {
-			"main": [
-				[
-					{
-						"node": "Get many messages",
+						"node": "Mark a message as read",
 						"type": "main",
 						"index": 0
 					}
@@ -1001,17 +1035,6 @@
 				]
 			]
 		},
-		"Create User Context": {
-			"main": [
-				[
-					{
-						"node": "Create API Contact",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
 		"Prepare Context Data": {
 			"main": [
 				[
@@ -1089,7 +1112,7 @@
 				],
 				[
 					{
-						"node": "Transform API Contact Data",
+						"node": "Update Status: Email Contact",
 						"type": "main",
 						"index": 0
 					}
@@ -1114,25 +1137,75 @@
 					}
 				]
 			]
+		},
+		"Update Status: Email Contact": {
+			"main": [
+				[
+					{
+						"node": "Check Context Status1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Context Status1": {
+			"main": [
+				[
+					{
+						"node": "Transform API Contact Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Create User Context": {
+			"main": [
+				[
+					{
+						"node": "Create API Contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Schedule Trigger": {
+			"main": [
+				[
+					{
+						"node": "Get many messages",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get many messages": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Mark a message as read": {
+			"main": [
+				[
+					{
+						"node": "Get Individual message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
 		}
 	},
-	"pinData": {
-		"Schedule Trigger": [
-			{
-				"timestamp": "2025-11-16T16:40:30.005-06:00",
-				"Readable date": "November 16th 2025, 4:40:30 pm",
-				"Readable time": "4:40:30 pm",
-				"Day of week": "Sunday",
-				"Year": "2025",
-				"Month": "November",
-				"Day of month": "16",
-				"Hour": "16",
-				"Minute": "40",
-				"Second": "30",
-				"Timezone": "America/Mexico_City (UTC-06:00)"
-			}
-		]
-	},
+	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"

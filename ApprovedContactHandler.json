@@ -1,543 +1,502 @@
 {
-  "nodes": [
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "wa_id"
-            },
-            {
-              "name": "userPrompt"
-            },
-            {
-              "name": "context_data",
-              "type": "object"
-            },
-            {
-              "name": "api_contact",
-              "type": "object"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -80,
-        -416
-      ],
-      "id": "98869499-5666-4fc0-9d59-df2b32726054",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
-        "jsCode": "const contextData = $json.context_data;\nconst userMessage = $json.userPrompt;\nconst nombre = contextData.nombre.split(' ')[0];\n\n// Context para el AI\nconst aiContext = `\n\"variable\",\"valor\"\n\"prompt\",\"El usuario ${nombre} ya fue APROBADO para el inmueble \"\"${contextData.property_found.title}\"\". Fue aprobado el: ${contextData.approval_timestamp}. Historial reciente: - Completó cuestionario exitosamente - Recibió mensaje de aprobación - Ahora vuelve a escribir: \"\"${userMessage}\"\". Clasifica su intención en UNA de estas categorías: 1. \"\"followup\"\" - Pregunta sobre el estatus de su proceso, cuándo lo contactan, etc 2. \"\"new_search\"\" - Quiere buscar OTRO inmueble diferente 3. \"\"document_question\"\" - Pregunta sobre qué documentos necesita 4. \"\"general_question\"\" - Otras consultas generales 5. \"\"greeting\"\" - Solo saluda o dice algo casual. Responde SOLO con la categoría, sin explicaciones.\"\n\n`;\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: userMessage,\n  context_data: contextData,\n  api_contact: $json.api_contact,\n  ai_context: aiContext,\n  nombre: nombre\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        128,
-        -416
-      ],
-      "id": "3d051796-9710-446a-9216-268446a2abaa",
-      "name": "Detect Intent (AI)"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Obtener respuesta del AI correctamente\nconst aiOutput = $json.output[0].content[0].text.toLowerCase().trim();\n\n// Buscar el nodo \"Detect Intent (AI)\" que tiene todos los datos\nconst detectIntentNode = $('Detect Intent (AI)').first().json;\n\n// Limpiar respuesta del AI\nlet intent = 'general_question'; // default\n\nif (aiOutput.includes('followup')) intent = 'followup';\nelse if (aiOutput.includes('new_search')) intent = 'new_search';\nelse if (aiOutput.includes('document')) intent = 'document_question';\nelse if (aiOutput.includes('greeting')) intent = 'greeting';\n\nreturn {\n  wa_id: detectIntentNode.wa_id,\n  userPrompt: detectIntentNode.userPrompt,\n  context_data: detectIntentNode.context_data,\n  api_contact: detectIntentNode.api_contact,\n  nombre: detectIntentNode.nombre,\n  detected_intent: intent\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        688,
-        -416
-      ],
-      "id": "963b3aa3-c797-4e7c-b666-12b8e7261ef1",
-      "name": "Parse AI Response"
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-5-nano",
-          "mode": "list",
-          "cachedResultName": "GPT-5-NANO"
-        },
-        "responses": {
-          "values": [
-            {
-              "role": "system",
-              "content": "={{ $json.ai_context }}"
-            }
-          ]
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2,
-      "position": [
-        336,
-        -416
-      ],
-      "id": "11026904-a302-4627-afd1-5e9a0006c75c",
-      "name": "Call AI for Intent",
-      "credentials": {
-        "openAiApi": {
-          "id": "g8OPzRDvvB6YO7mf",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "greeting",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "2485e634-f4ce-40f4-befe-9e3ca0980971"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "👋 Greeting"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "8d68d1c6-6e97-4421-a159-fbbfa89903db",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "followup",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "⏰ Followup"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "06885c25-089f-4e5c-95cb-3a71b27e3b4b",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "new_search",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "🔍 New Search"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "71376aad-0f15-4f9d-9f86-bab90f58f15a",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "document_question",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "📄 Documents"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "cb25bc6c-94b2-4b40-a741-8a08bb89f552",
-                    "leftValue": "={{ $json.detected_intent }}",
-                    "rightValue": "general_question",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "💬 General"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        896,
-        -464
-      ],
-      "id": "c226be08-9293-4dc1-bcd7-011a47c72bb3",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\n\n// Extraer datos necesarios\nconst nombre = data.nombre || data.context_data.nombre.split(' ')[0];\nconst propertyTitle = data.context_data.property_found?.title || 'el inmueble';\n\n// Mensaje cálido y personalizado\nconst message = `¡Hola de nuevo ${nombre}! 👋\n\nMe da gusto saludarte. Como recordarás, tu perfil ya fue aprobado para \"${propertyTitle}\" ✅\n\nNuestro equipo se pondrá en contacto contigo muy pronto para coordinar los siguientes pasos.\n\n¿Hay algo en lo que pueda ayudarte mientras tanto? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'greeting'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        16,
-        -160
-      ],
-      "id": "aa77edb2-e514-485c-9285-74ce27992f8c",
-      "name": "Handle Greeting"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar context_data\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data));\n\n// Obtener interacciones existentes\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\n// Agregar interacción del mensaje recibido\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"usuario\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_recibido\",\n  mensaje: data.userPrompt || data.context_data.interacciones[data.context_data.interacciones.length - 1].mensaje,\n  detalles: {\n    tipo_mensaje: \"text\",\n    status_contacto: \"approved\"\n  }\n});\n\n// Agregar interacción del bot respondiendo\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"bot\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_enviado\",\n  mensaje: data.message,\n  detalles: {\n    intent: data.intent,\n    personaje: updatedContext.personaje || \"Dany\"\n  }\n});\n\n// Actualizar contexto\nupdatedContext.interacciones = interactions;\nupdatedContext.ultima_interaccion = timestamp;\n\nreturn {\n  wa_id: data.wa_id,\n  message: data.message,\n  updatedContext: updatedContext\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        224,
-        -160
-      ],
-      "id": "ebc8aad4-931e-4257-a02f-921f810c0fc5",
-      "name": "Update Interaction"
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "848665645000888",
-        "recipientPhoneNumber": "={{ $json.wa_id }}",
-        "textBody": "={{ $json.message }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        432,
-        -160
-      ],
-      "id": "9c3f2d7d-c9e8-4637-b306-58fc138438cc",
-      "name": "Send message",
-      "webhookId": "0a410a92-0820-4d8a-9de2-19603a2ef4c4",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $('Update Interaction').item.json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Update Interaction').item.json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        640,
-        -160
-      ],
-      "id": "ddce42ac-1828-4836-8829-676ec22998cc",
-      "name": "Update Postgres",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Update Interaction').item.json.updatedContext.api_contact_id }}/comentarios",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "comentario",
-              "value": "={ \"💬 Contacto aprobado volvió a escribir\\n\\nMensaje: \" + $('Update Interaction').item.json.updatedContext.interacciones[$('Update Interaction').item.json.updatedContext.interacciones.length - 2].mensaje + \"\\n\\nRespuesta enviada exitosamente\\n\\nTimestamp: \" + new Date().toISOString() }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        848,
-        -160
-      ],
-      "id": "36bba685-8c0b-443f-8a5d-e59f76090f20",
-      "name": "Add API Comment",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "rzmCtJN8Vtwv6AO3",
-          "name": "API Key Inmuebles"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst propertyTitle = data.context_data.property_found?.title || 'el inmueble';\n\n// Mensaje de seguimiento profesional y tranquilizador\nconst message = `De acuerdo ${nombre}\n\nEntiendo que quieres saber sobre el estatus de tu proceso para \"${propertyTitle}\".\n\nTu perfil está aprobado y registrado en nuestro sistema ✅\n\nNuestro equipo de ventas se pondrá en contacto contigo en las próximas 24-48 horas para:\n📋 Coordinar la visita al inmueble\n📄 Revisar la documentación necesaria\n✍️ Avanzar con el proceso de contratación\n\nEn este momento he vuelto a enviar una solicitud de atención a nuestro equipo.\n\n¿Hay algo más en lo que pueda ayudarte? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'followup'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1120,
-        -624
-      ],
-      "id": "780c650b-e6b2-4250-8636-2315774764cd",
-      "name": "Handle Followup"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst propertyRestrictions = data.context_data.property_found?.restrictions || {};\n\n// Construir lista de documentos\nconst message = `Perfecto ${nombre},\n\nCon gusto te explico los documentos que necesitarás:\n\n📄 **Documentos Requeridos:**\n\n1️⃣ Identificación oficial vigente (INE/Pasaporte)\n\n2️⃣ Comprobante de ingresos:\n   - Recibos de nómina timbrados por el SAT (últimos 3 meses)\n   - Estados de cuenta completos, o\n   - Facturas (si eres independiente)\n\n3️⃣ Comprobante de domicilio reciente (no mayor a 3 meses)\n\n4️⃣ Referencias personales y/o laborales\n\n💰 **Pagos Iniciales:**\n   - Primer mes de renta\n   - Un mes de depósito en garantía\n   - Póliza jurídica: $${propertyRestrictions.precio_poliza || '4,100'} (anual)\n\nNuestro equipo te guiará en todo el proceso cuando te contacten.\n\n¿Tienes alguna otra duda? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'document_question'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1312,
-        -624
-      ],
-      "id": "dfd140ee-c9fd-4e20-9627-1bd0b0b04901",
-      "name": "Handle Documents"
-    },
-    {
-      "parameters": {
-        "jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst propertyTitle = data.context_data.property_found?.title || 'el inmueble';\n\n// Mensaje general amigable y útil\nconst message = `Hola ${nombre} 👋\n\nTu perfil ya está aprobado para \"${propertyTitle}\" ✅\n\nEstoy aquí para ayudarte. Puedo asistirte con:\n\n📋 Información sobre el estatus de tu proceso\n📄 Dudas sobre documentación requerida\n\nNuestro equipo de ventas también se pondrá en contacto contigo pronto para avanzar con el proceso.\n\n¿En qué puedo ayudarte específicamente? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'general_question'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1504,
-        -624
-      ],
-      "id": "64d26c59-e922-402a-8878-af5abf80d483",
-      "name": "Handle General"
-    }
-  ],
-  "connections": {
-    "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Detect Intent (AI)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Detect Intent (AI)": {
-      "main": [
-        [
-          {
-            "node": "Call AI for Intent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse AI Response": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Call AI for Intent": {
-      "main": [
-        [
-          {
-            "node": "Parse AI Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Handle Greeting",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Followup",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [],
-        [
-          {
-            "node": "Handle Documents",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle General",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Greeting": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Interaction": {
-      "main": [
-        [
-          {
-            "node": "Send message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send message": {
-      "main": [
-        [
-          {
-            "node": "Update Postgres",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Postgres": {
-      "main": [
-        [
-          {
-            "node": "Add API Comment",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add API Comment": {
-      "main": [
-        []
-      ]
-    },
-    "Handle Followup": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Documents": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle General": {
-      "main": [
-        [
-          {
-            "node": "Update Interaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {},
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
-  }
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt"
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [-80, -416],
+			"id": "98869499-5666-4fc0-9d59-df2b32726054",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"jsCode": "const contextData = $json.context_data;\nconst userMessage = $json.userPrompt;\nconst nombre = contextData.nombre.split(' ')[0];\n\n// Context para el AI\nconst aiContext = `\n\"variable\",\"valor\"\n\"prompt\",\"El usuario ${nombre} ya fue APROBADO para el inmueble \"\"${contextData.property_found.title}\"\". Fue aprobado el: ${contextData.approval_timestamp}. Historial reciente: - Completó cuestionario exitosamente - Recibió mensaje de aprobación - Ahora vuelve a escribir: \"\"${userMessage}\"\". Clasifica su intención en UNA de estas categorías: 1. \"\"followup\"\" - Pregunta sobre el estatus de su proceso, cuándo lo contactan, etc 2. \"\"new_search\"\" - Quiere buscar OTRO inmueble diferente 3. \"\"document_question\"\" - Pregunta sobre qué documentos necesita 4. \"\"general_question\"\" - Otras consultas generales 5. \"\"greeting\"\" - Solo saluda o dice algo casual. Responde SOLO con la categoría, sin explicaciones.\"\n\n`;\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: userMessage,\n  context_data: contextData,\n  api_contact: $json.api_contact,\n  ai_context: aiContext,\n  nombre: nombre\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [128, -416],
+			"id": "3d051796-9710-446a-9216-268446a2abaa",
+			"name": "Detect Intent (AI)"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Obtener respuesta del AI correctamente\nconst aiOutput = $json.output[0].content[0].text.toLowerCase().trim();\n\n// Buscar el nodo \"Detect Intent (AI)\" que tiene todos los datos\nconst detectIntentNode = $('Detect Intent (AI)').first().json;\n\n// Limpiar respuesta del AI\nlet intent = 'general_question'; // default\n\nif (aiOutput.includes('followup')) intent = 'followup';\nelse if (aiOutput.includes('new_search')) intent = 'new_search';\nelse if (aiOutput.includes('document')) intent = 'document_question';\nelse if (aiOutput.includes('greeting')) intent = 'greeting';\n\nreturn {\n  wa_id: detectIntentNode.wa_id,\n  userPrompt: detectIntentNode.userPrompt,\n  context_data: detectIntentNode.context_data,\n  api_contact: detectIntentNode.api_contact,\n  nombre: detectIntentNode.nombre,\n  detected_intent: intent\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [688, -416],
+			"id": "963b3aa3-c797-4e7c-b666-12b8e7261ef1",
+			"name": "Parse AI Response"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "={{ $json.ai_context }}"
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [336, -416],
+			"id": "11026904-a302-4627-afd1-5e9a0006c75c",
+			"name": "Call AI for Intent",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "greeting",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "2485e634-f4ce-40f4-befe-9e3ca0980971"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "👋 Greeting"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "8d68d1c6-6e97-4421-a159-fbbfa89903db",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "followup",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "⏰ Followup"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "06885c25-089f-4e5c-95cb-3a71b27e3b4b",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "new_search",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "🔍 New Search"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "71376aad-0f15-4f9d-9f86-bab90f58f15a",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "document_question",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "📄 Documents"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "cb25bc6c-94b2-4b40-a741-8a08bb89f552",
+										"leftValue": "={{ $json.detected_intent }}",
+										"rightValue": "general_question",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "💬 General"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [896, -464],
+			"id": "c226be08-9293-4dc1-bcd7-011a47c72bb3",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\n\n// Extraer datos necesarios\nconst nombre = data.nombre || data.context_data.nombre.split(' ')[0];\nconst propertyTitle = data.context_data.property_found?.title || 'el inmueble';\n\n// Mensaje cálido y personalizado\nconst message = `¡Hola de nuevo ${nombre}! 👋\n\nMe da gusto saludarte. Como recordarás, tu perfil ya fue aprobado para \"${propertyTitle}\" ✅\n\nNuestro equipo se pondrá en contacto contigo muy pronto para coordinar los siguientes pasos.\n\n¿Hay algo en lo que pueda ayudarte mientras tanto? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'greeting'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [16, -160],
+			"id": "aa77edb2-e514-485c-9285-74ce27992f8c",
+			"name": "Handle Greeting"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar context_data\nconst updatedContext = JSON.parse(JSON.stringify(data.context_data));\n\n// Obtener interacciones existentes\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\n// Agregar interacción del mensaje recibido\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"usuario\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_recibido\",\n  mensaje: data.userPrompt || data.context_data.interacciones[data.context_data.interacciones.length - 1].mensaje,\n  detalles: {\n    tipo_mensaje: \"text\",\n    status_contacto: \"approved\"\n  }\n});\n\n// Agregar interacción del bot respondiendo\ninteractions.push({\n  timestamp: timestamp,\n  actor: \"bot\",\n  canal: \"whatsapp\",\n  tipo: \"mensaje_enviado\",\n  mensaje: data.message,\n  detalles: {\n    intent: data.intent,\n    personaje: updatedContext.personaje || \"Dany\"\n  }\n});\n\n// Actualizar contexto\nupdatedContext.interacciones = interactions;\nupdatedContext.ultima_interaccion = timestamp;\n\nreturn {\n  wa_id: data.wa_id,\n  message: data.message,\n  updatedContext: updatedContext\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [224, -160],
+			"id": "ebc8aad4-931e-4257-a02f-921f810c0fc5",
+			"name": "Update Interaction"
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "848665645000888",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $json.message }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [432, -160],
+			"id": "9c3f2d7d-c9e8-4637-b306-58fc138438cc",
+			"name": "Send message",
+			"webhookId": "0a410a92-0820-4d8a-9de2-19603a2ef4c4",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    $${{ $('Update Interaction').item.json.updatedContext.toJsonString() }}$$::jsonb,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Update Interaction').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [640, -160],
+			"id": "ddce42ac-1828-4836-8829-676ec22998cc",
+			"name": "Update Postgres",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "=https://vg.g210512.com/api/v1/contactos/{{ $('Update Interaction').item.json.updatedContext.api_contact_id }}/comentarios",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"bodyParameters": {
+					"parameters": [
+						{
+							"name": "comentario",
+							"value": "={ \"💬 Contacto aprobado volvió a escribir\\n\\nMensaje: \" + $('Update Interaction').item.json.updatedContext.interacciones[$('Update Interaction').item.json.updatedContext.interacciones.length - 2].mensaje + \"\\n\\nRespuesta enviada exitosamente\\n\\nTimestamp: \" + new Date().toISOString() }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.3,
+			"position": [848, -160],
+			"id": "36bba685-8c0b-443f-8a5d-e59f76090f20",
+			"name": "Add API Comment",
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "rzmCtJN8Vtwv6AO3",
+					"name": "API Key Inmuebles"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst propertyTitle = data.context_data.property_found?.title || 'el inmueble';\n\n// Mensaje de seguimiento profesional y tranquilizador\nconst message = `De acuerdo ${nombre}\n\nEntiendo que quieres saber sobre el estatus de tu proceso para \"${propertyTitle}\".\n\nTu perfil está aprobado y registrado en nuestro sistema ✅\n\nNuestro equipo de ventas se pondrá en contacto contigo en las próximas 24-48 horas para:\n📋 Coordinar la visita al inmueble\n📄 Revisar la documentación necesaria\n✍️ Avanzar con el proceso de contratación\n\nEn este momento he vuelto a enviar una solicitud de atención a nuestro equipo.\n\n¿Hay algo más en lo que pueda ayudarte? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'followup'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1120, -624],
+			"id": "780c650b-e6b2-4250-8636-2315774764cd",
+			"name": "Handle Followup"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst propertyRestrictions = data.context_data.property_found?.restrictions || {};\n\n// Construir lista de documentos\nconst message = `Perfecto ${nombre},\n\nCon gusto te explico los documentos que necesitarás:\n\n📄 **Documentos Requeridos:**\n\n1️⃣ Identificación oficial vigente (INE/Pasaporte)\n\n2️⃣ Comprobante de ingresos:\n   - Recibos de nómina timbrados por el SAT (últimos 3 meses)\n   - Estados de cuenta completos, o\n   - Facturas (si eres independiente)\n\n3️⃣ Comprobante de domicilio reciente (no mayor a 3 meses)\n\n4️⃣ Referencias personales y/o laborales\n\n💰 **Pagos Iniciales:**\n   - Primer mes de renta\n   - Un mes de depósito en garantía\n   - Póliza jurídica: $${propertyRestrictions.precio_poliza || '4,100'} (anual)\n\nNuestro equipo te guiará en todo el proceso cuando te contacten.\n\n¿Tienes alguna otra duda? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'document_question'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1312, -624],
+			"id": "dfd140ee-c9fd-4e20-9627-1bd0b0b04901",
+			"name": "Handle Documents"
+		},
+		{
+			"parameters": {
+				"jsCode": "const data = $json;\nconst nombre = data.nombre;\nconst propertyTitle = data.context_data.property_found?.title || 'el inmueble';\n\n// Mensaje general amigable y útil\nconst message = `Hola ${nombre} 👋\n\nTu perfil ya está aprobado para \"${propertyTitle}\" ✅\n\nEstoy aquí para ayudarte. Puedo asistirte con:\n\n📋 Información sobre el estatus de tu proceso\n📄 Dudas sobre documentación requerida\n\nNuestro equipo de ventas también se pondrá en contacto contigo pronto para avanzar con el proceso.\n\n¿En qué puedo ayudarte específicamente? 😊`;\n\nreturn {\n  wa_id: data.wa_id,\n  context_data: data.context_data,\n  api_contact: data.api_contact,\n  message: message,\n  intent: 'general_question'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1504, -624],
+			"id": "64d26c59-e922-402a-8878-af5abf80d483",
+			"name": "Handle General"
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Detect Intent (AI)",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Detect Intent (AI)": {
+			"main": [
+				[
+					{
+						"node": "Call AI for Intent",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse AI Response": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Call AI for Intent": {
+			"main": [
+				[
+					{
+						"node": "Parse AI Response",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "Handle Greeting",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Followup",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[],
+				[
+					{
+						"node": "Handle Documents",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle General",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Greeting": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Interaction": {
+			"main": [
+				[
+					{
+						"node": "Send message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send message": {
+			"main": [
+				[
+					{
+						"node": "Update Postgres",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Postgres": {
+			"main": [
+				[
+					{
+						"node": "Add API Comment",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Add API Comment": {
+			"main": [[]]
+		},
+		"Handle Followup": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Documents": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle General": {
+			"main": [
+				[
+					{
+						"node": "Update Interaction",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
 }

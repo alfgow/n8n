@@ -1,160 +1,145 @@
 {
-  "nodes": [
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "audio_id"
-            },
-            {
-              "name": "wa_id"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        48,
-        0
-      ],
-      "id": "a7d553de-2c96-460a-a819-76d437382f0e",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
-        "resource": "audio",
-        "modelId": {
-          "__rl": true,
-          "value": "models/gemini-2.5-flash",
-          "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash"
-        },
-        "inputType": "binary",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1,
-      "position": [
-        640,
-        0
-      ],
-      "id": "004065f8-f0ed-42a3-a3ae-1e73e8ad9297",
-      "name": "Transcribe: audio",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "3Qw3858fHslDYr4D",
-          "name": "Gemini - alfgow"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "media",
-        "operation": "mediaUrlGet",
-        "mediaGetId": "={{ $json.audio_id }}"
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        256,
-        0
-      ],
-      "id": "8a17f25d-5f9e-4bbf-874e-55c833496856",
-      "name": "Download audio",
-      "webhookId": "02de1bd7-bb83-49da-baa6-392d89ed4096",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.url }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBearerAuth",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        448,
-        0
-      ],
-      "id": "8b33160d-afea-498d-bc01-61d8dbc59d54",
-      "name": "Get Audio",
-      "credentials": {
-        "httpBearerAuth": {
-          "id": "QigdAtAlBxHMmIsD",
-          "name": "WA - Bearer Token"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// ========================================\n// OBTENER TRANSCRIPCIÓN\n// ========================================\nconst transcriptionText = $json.content.parts[0].text;\n\nconsole.log('🎤 Transcripción obtenida:', transcriptionText);\n\n// ========================================\n// OBTENER DATOS DEL TRIGGER\n// ========================================\nconst triggerData = $('When Executed by Another Workflow').item.json;\nconst audioId = triggerData.audio_id || null;\nconst waId = triggerData.wa_id || 'unknown';\n\nconsole.log('📱 WA ID recibido:', waId);\nconsole.log('🎵 Audio ID:', audioId);\n\n// ========================================\n// VALIDACIÓN\n// ========================================\nif (!waId || waId === 'unknown') {\n  console.error('❌ No se recibió wa_id válido');\n  console.log('📋 Datos del trigger:', JSON.stringify(triggerData, null, 2));\n}\n\n// ========================================\n// CONSTRUIR FORMATO WHATSAPP\n// ========================================\nconst timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst adaptedFormat = {\n  messaging_product: \"whatsapp\",\n  metadata: {\n    display_phone_number: \"\",\n    phone_number_id: \"812415788624920\"\n  },\n  contacts: [\n    {\n      profile: { name: \"Usuario de Audio\" },\n      wa_id: waId\n    }\n  ],\n  messages: [\n    {\n      from: waId,\n      id: audioId || `audio_${Date.now()}`,\n      timestamp: timestamp,\n      text: {\n        body: transcriptionText\n      },\n      type: \"text\"\n    }\n  ],\n  field: \"messages\"\n};\n\n// ========================================\n// LOGS DE CONFIRMACIÓN\n// ========================================\nconsole.log('✅ Audio transcrito y adaptado correctamente');\nconsole.log('📝 Transcripción:', transcriptionText);\nconsole.log('👤 WA ID:', waId);\n\nreturn adaptedFormat;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        848,
-        0
-      ],
-      "id": "f222aca7-92b1-44d4-b954-987a32ffdc59",
-      "name": "Format Output"
-    }
-  ],
-  "connections": {
-    "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Download audio",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Transcribe: audio": {
-      "main": [
-        [
-          {
-            "node": "Format Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download audio": {
-      "main": [
-        [
-          {
-            "node": "Get Audio",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Audio": {
-      "main": [
-        [
-          {
-            "node": "Transcribe: audio",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {},
-  "meta": {
-    "instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
-  }
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "audio_id"
+						},
+						{
+							"name": "wa_id"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [48, 0],
+			"id": "a7d553de-2c96-460a-a819-76d437382f0e",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"resource": "audio",
+				"modelId": {
+					"__rl": true,
+					"value": "models/gemini-2.5-flash",
+					"mode": "list",
+					"cachedResultName": "models/gemini-2.5-flash"
+				},
+				"inputType": "binary",
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.googleGemini",
+			"typeVersion": 1,
+			"position": [640, 0],
+			"id": "004065f8-f0ed-42a3-a3ae-1e73e8ad9297",
+			"name": "Transcribe: audio",
+			"credentials": {
+				"googlePalmApi": {
+					"id": "3Qw3858fHslDYr4D",
+					"name": "Gemini - alfgow"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"resource": "media",
+				"operation": "mediaUrlGet",
+				"mediaGetId": "={{ $json.audio_id }}"
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [256, 0],
+			"id": "8a17f25d-5f9e-4bbf-874e-55c833496856",
+			"name": "Download audio",
+			"webhookId": "02de1bd7-bb83-49da-baa6-392d89ed4096",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"url": "={{ $json.url }}",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpBearerAuth",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [448, 0],
+			"id": "8b33160d-afea-498d-bc01-61d8dbc59d54",
+			"name": "Get Audio",
+			"credentials": {
+				"httpBearerAuth": {
+					"id": "QigdAtAlBxHMmIsD",
+					"name": "WA - Bearer Token"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// ========================================\n// OBTENER TRANSCRIPCIÓN\n// ========================================\nconst transcriptionText = $json.content.parts[0].text;\n\nconsole.log('🎤 Transcripción obtenida:', transcriptionText);\n\n// ========================================\n// OBTENER DATOS DEL TRIGGER\n// ========================================\nconst triggerData = $('When Executed by Another Workflow').item.json;\nconst audioId = triggerData.audio_id || null;\nconst waId = triggerData.wa_id || 'unknown';\n\nconsole.log('📱 WA ID recibido:', waId);\nconsole.log('🎵 Audio ID:', audioId);\n\n// ========================================\n// VALIDACIÓN\n// ========================================\nif (!waId || waId === 'unknown') {\n  console.error('❌ No se recibió wa_id válido');\n  console.log('📋 Datos del trigger:', JSON.stringify(triggerData, null, 2));\n}\n\n// ========================================\n// CONSTRUIR FORMATO WHATSAPP\n// ========================================\nconst timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst adaptedFormat = {\n  messaging_product: \"whatsapp\",\n  metadata: {\n    display_phone_number: \"\",\n    phone_number_id: \"812415788624920\"\n  },\n  contacts: [\n    {\n      profile: { name: \"Usuario de Audio\" },\n      wa_id: waId\n    }\n  ],\n  messages: [\n    {\n      from: waId,\n      id: audioId || `audio_${Date.now()}`,\n      timestamp: timestamp,\n      text: {\n        body: transcriptionText\n      },\n      type: \"text\"\n    }\n  ],\n  field: \"messages\"\n};\n\n// ========================================\n// LOGS DE CONFIRMACIÓN\n// ========================================\nconsole.log('✅ Audio transcrito y adaptado correctamente');\nconsole.log('📝 Transcripción:', transcriptionText);\nconsole.log('👤 WA ID:', waId);\n\nreturn adaptedFormat;"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [848, 0],
+			"id": "f222aca7-92b1-44d4-b954-987a32ffdc59",
+			"name": "Format Output"
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Download audio",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Transcribe: audio": {
+			"main": [
+				[
+					{
+						"node": "Format Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Download audio": {
+			"main": [
+				[
+					{
+						"node": "Get Audio",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get Audio": {
+			"main": [
+				[
+					{
+						"node": "Transcribe: audio",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
 }

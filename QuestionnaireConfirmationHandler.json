@@ -1,1140 +1,609 @@
 {
-  "nodes": [
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "wa_id"
-            },
-            {
-              "name": "userPrompt "
-            },
-            {
-              "name": "context_data",
-              "type": "object"
-            },
-            {
-              "name": "api_contact",
-              "type": "object"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "20db0ebd-fd3b-4738-bdc1-7d5e39a37818",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-5-nano",
-          "mode": "list",
-          "cachedResultName": "GPT-5-NANO"
-        },
-        "responses": {
-          "values": [
-            {
-              "role": "system",
-              "content": "=Clasifica la intención del usuario en una de tres categorías:\n\n1. afirmativa → El usuario claramente acepta continuar.\n2. negativa → El usuario claramente rechaza continuar.\n3. ambigua → No se puede saber si acepta o rechaza.\n\nREGLAS:\n- Palabras como \"si\", \"sí\", \"ok\", \"dale\", \"va\", \"claro\", \"adelante\", \"jalo\", \"de acuerdo\", \"perfecto\" → siempre son afirmativa.\n- Palabras como \"no\", \"nel\", \"nope\", \"ahorita no\", \"luego\", \"más tarde\", \"no puedo\", \"gracias pero no\" → siempre son negativa.\n- Si el mensaje cambia de tema, pide información, duda, saluda o no responde directamente → ambigua.\n- No interpretes emociones, sarcasmo ni emojis a menos que cambien claramente el significado.\n- Responde SOLO con una palabra: afirmativa, negativa o ambigua.\n\nMENSAJE: {{ $json['userPrompt '] }}\n"
-            }
-          ]
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2,
-      "position": [
-        208,
-        0
-      ],
-      "id": "aae2627e-9300-4346-b838-61e358de3b4b",
-      "name": "Message a model",
-      "credentials": {
-        "openAiApi": {
-          "id": "g8OPzRDvvB6YO7mf",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output[0].content[0].text }}",
-                    "rightValue": "afirmativa",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "491dc383-ce20-4348-8b6e-07e1be42e6a9"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "afirmativa"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "337cfbb5-5030-4b75-837a-1a036921e10e",
-                    "leftValue": "={{ $json.output[0].content[0].text }}",
-                    "rightValue": "negativa",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "negativa"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "36e19012-f41e-42e1-af7d-9d4127facc43",
-                    "leftValue": "={{ $json.output[0].content[0].text }}",
-                    "rightValue": "ambigua",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "ambigua"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        528,
-        -16
-      ],
-      "id": "e7431a44-8874-4993-a883-75a9f145fc29",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// Cambiar status e iniciar cuestionario\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire_step = 1;\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'confirmacion_cuestionario',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'afirmativa',\n    inicia_cuestionario: true\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta basada en restricciones\nconst property = updatedContext.property_found || {};\nconst restrictions = property.restrictions || {};\n\nlet firstQuestion = \"Perfecto, \\n\\n¿Cuántas personas vivirían en el inmueble?\";\n\n// Si la propiedad no acepta niños, agregar aclaración\nif (restrictions.acepta_niños === \"no\") {\n  firstQuestion += \"\\n\\n_(Solo adultos, la propiedad no acepta niños)_\";\n}\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  firstQuestion: firstQuestion,\n  api_contact_id: updatedContext.api_contact_id\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        736,
-        -224
-      ],
-      "id": "d60c91b8-f6ab-4da9-bf13-1081ca6b88a6",
-      "name": "Prepare Questionnaire Context"
-    },
-    {
-      "parameters": {
-        "jsCode": "const parseData = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(parseData.context_data || {}));\n\n// Agregar cuestionario y configuración\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire = parseData.questionnaire;\nupdatedContext.questionnaire_step = 1;\nupdatedContext.questionnaire_total = parseData.total_questions;\nupdatedContext.questionnaire_answers = []; // Array vacío para ir guardando respuestas\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción al historial\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'inicio_cuestionario',\n  mensaje: 'Cuestionario generado e iniciado',\n  detalles: {\n    total_preguntas: parseData.total_questions,\n    primera_pregunta: parseData.first_question.field\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta para WhatsApp\nconst firstQuestion = parseData.first_question;\nlet questionText = `Perfecto, empecemos 😊:\\n\\n${firstQuestion.question}`;\n\nreturn {\n  wa_id: parseData.wa_id,\n  updatedContext: updatedContext,\n  questionText: questionText,\n  current_question: firstQuestion\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1104,
-        -224
-      ],
-      "id": "a16d67b1-de75-4c14-8b2e-1bbb7add2462",
-      "name": "Prepare Context with Questionnaire"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        1280,
-        -224
-      ],
-      "id": "b710c8ce-7d44-48a0-9928-d5ad14e58a62",
-      "name": "Save Context with Questionnaire",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "848665645000888",
-        "recipientPhoneNumber": "={{ $json.wa_id }}",
-        "textBody": "={{ $('Prepare Context with Questionnaire').item.json.questionText }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        1440,
-        -224
-      ],
-      "id": "acad6a4d-9d2c-41a8-8404-8770dac05582",
-      "name": "Send message",
-      "webhookId": "aef0e0a7-bf3c-454a-9777-e7370c1fcf3b",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const prepareData = $('Prepare Context with Questionnaire').item.json;\n\nreturn {\n  success: true,\n  status: 'in_questionnaire',\n  questionnaire_started: true,\n  step: 1,\n  total_questions: prepareData.updatedContext.questionnaire_total,\n  wa_id: prepareData.wa_id,\n  message_sent: true\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1616,
-        -224
-      ],
-      "id": "d6b637d3-e110-4eea-8a0b-5a18bd155739",
-      "name": "Format Success Output"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Send message').item.json.contacts[0].wa_id }}',\n  jsonb_build_object('statusBot', 'working'),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = jsonb_set(\n    COALESCE(user_contexts.context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        1824,
-        -224
-      ],
-      "id": "e079643f-a93c-46a4-9981-52f391e597ac",
-      "name": "Update Bot to Free",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Obtener datos del nodo anterior\nconst previousData = $('Prepare Questionnaire Context').item.json;\nconst propertyData = previousData.updatedContext.property_found;\nconst contextData = previousData.updatedContext;\n\nconst TEMPLATE = {\n  caracteristicas_fisicas: [\n    {\n      condition: () => !propertyData.estacionamientos || propertyData.estacionamientos === 0,\n      field: \"necesita_estacionamiento\",\n      question: \"El inmueble no cuenta con estacionamiento. ¿Estás de acuerdo con esto?\"\n    }\n  ],\n  \n  restricciones_convivencia: [\n    {\n      condition: () => propertyData.restricciones?.acepta_niños === \"no\",\n      field: \"tiene_ninos\",\n      question: \"¿Entre las personas que vivirían en el inmueble habría niños?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.acepta_mascotas === \"no\",\n      field: \"tiene_mascotas\",\n      question: \"El arrendador no acepta mascotas, es una restricción no negociable. ¿Tienes inconveniente con esto?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.acepta_roomies === \"no\",\n      field: \"tiene_roomies\",\n      question: \"Platícame con quien vivirás ¿solo/a, con pareja, familia o con roomies?\"\n    }\n  ],\n  \n  condiciones_contratacion: [\n    {\n      condition: () => propertyData.restricciones?.precio_poliza > 0,\n      field: \"acepta_poliza\",\n      question: `Se solicita una póliza jurídica de $${parseFloat(propertyData.restricciones.precio_poliza).toLocaleString('es-MX')} que se paga anualmente, es decir, cada año que renueves el contrato. ¿Estás de acuerdo?`\n    },\n    {\n      condition: () => true,\n      field: \"acepta_deposito_renta\",\n      question: \"Los pagos iniciales que se requieren son: Primer mes de renta y un mes de renta como depósito en garantía. ¿Estás de acuerdo con éste requisito?\"\n    }\n  ],\n  \n  validacion_ingresos: [\n    {\n      condition: () => propertyData.restricciones?.ingresos_minimos > 0,\n      field: \"cumple_ingresos\",\n      question: `Se pide un ingreso mínimo de $${parseFloat(propertyData.restricciones.ingresos_minimos).toLocaleString('es-MX')} mensuales, puede ser individual o mancomunado si vivirás en pareja. ¿Cumples con éste requisito?`\n    },\n    {\n      condition: () => true,\n      field: \"ocupacion\",\n      question: \"Para conocer mejor tu perfil, ¿a qué te dedicas actualmente?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.requiere_comprobantes_ingresos === true,\n      field: \"tipo_comprobante\",\n      question: \"¿Qué tipo de comprobantes de ingresos tienes? (Recibo de nómina timbrado por el SAT, estados de cuenta completos o facturas?)\"\n    }\n  ]\n};\n\n// Generar cuestionario\nconst questionnaire = [];\n\nfor (const [section, questions] of Object.entries(TEMPLATE)) {\n  questions.forEach(q => {\n    if (q.condition()) {\n      questionnaire.push({\n        section: section,\n        field: q.field,\n        question: q.question,\n        type: \"text\"\n      });\n    }\n  });\n}\n\n// Obtener primera pregunta\nconst firstQuestion = questionnaire[0] || null;\n\n// Validar que hay al menos una pregunta\nif (!firstQuestion) {\n  throw new Error('No se generaron preguntas para este inmueble');\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  questionnaire: questionnaire,\n  total_questions: questionnaire.length,\n  first_question: firstQuestion,    // ← ESTO FALTABA\n  context_data: contextData          // ← ESTO FALTABA\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        928,
-        -224
-      ],
-      "id": "728f00a9-217e-412d-ab66-ff2db7ad8dec",
-      "name": "Generate Static Questionnaire"
-    },
-    {
-      "parameters": {
-        "jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// Cambiar a \"in_progress\" con acción pendiente\nupdatedContext.status = \"in_progress\";\nupdatedContext.pending_action = \"questionnaire_confirmation\";\nupdatedContext.pending_property = updatedContext.property_found;\nupdatedContext.postponed_at = timestamp;\nupdatedContext.postponed_reason = \"user_declined\";\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'cuestionario_pospuesto',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'negativa',\n    property_title: updatedContext.property_found?.title || 'inmueble'\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  property_title: updatedContext.property_found?.title || 'el inmueble'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        752,
-        0
-      ],
-      "id": "12862a47-0c5f-4872-b7d2-0077e0f3a7d3",
-      "name": "Handle Postponement"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        960,
-        0
-      ],
-      "id": "ca37dc53-f6dc-4a2c-80ff-dd4e9d9ca5ab",
-      "name": "Save Postponed Context",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "return {\n  success: true,\n  action: 'questionnaire_postponed',\n  wa_id: $('Handle Postponement').item.json.wa_id,\n  new_status: 'in_progress',\n  pending_action: 'questionnaire_confirmation',\n  message_sent: true,\n  bot_freed: true\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1568,
-        0
-      ],
-      "id": "06b9a391-4611-4864-b764-c905e24901a6",
-      "name": "Format Success Output1"
-    },
-    {
-      "parameters": {
-        "jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// MANTENER el status actual (para darle otra oportunidad)\n// updatedContext.status sigue siendo \"awaiting_questionnaire_confirmation\"\n\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'respuesta_ambigua_cuestionario',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'ambigua',\n    requiere_aclaracion: true\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  property_title: updatedContext.property_found?.title || 'el inmueble'\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        736,
-        192
-      ],
-      "id": "5ee59752-6334-44f7-9b1c-755ff7cb826e",
-      "name": "Handle Ambiguous Response"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        944,
-        192
-      ],
-      "id": "29c08dd6-aefa-4a86-86f7-9351e66ce01b",
-      "name": "Save Ambiguous Context",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "return {\n  success: true,\n  action: 'clarification_requested',\n  wa_id: $('Handle Ambiguous Response').item.json.wa_id,\n  status_maintained: 'awaiting_questionnaire_confirmation',\n  message_sent: true,\n  bot_freed: true,\n  awaiting_clear_response: true\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1600,
-        192
-      ],
-      "id": "935c8ddb-8b53-4cc8-a5a4-7a038059a56b",
-      "name": "Format Success Output2"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Handle Ambiguous Response').item.json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        1376,
-        192
-      ],
-      "id": "3cc9aa78-30cc-4f2d-ab51-f0257b313988",
-      "name": "Free Bot for Clarification",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Handle Postponement').item.json.wa_id }}'\nRETURNING *;",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        1376,
-        0
-      ],
-      "id": "0ef236a1-69f8-4c25-ac1a-df3ccbf2fd5e",
-      "name": "Free bot to negative",
-      "credentials": {
-        "postgres": {
-          "id": "qyR2OAIR7tUEVcQf",
-          "name": "Postgres-neon"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "848665645000888",
-        "recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
-        "textBody": "¡Perfecto! 👍  Sin problema, cuando estés listo/a para continuar con el cuestionario me avisas.  Puedes seguir preguntando lo que necesites o buscar otra propiedad si lo prefieres 😊",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        1168,
-        0
-      ],
-      "id": "7bc30494-3d22-4ab2-a43b-1d8cd6b8c8a6",
-      "name": "Send a Message Negative",
-      "webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "848665645000888",
-        "recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
-        "textBody": "Disculpa, no entendí tu respuesta 🤔\n\n¿Estás listo/a para responder el cuestionario sobre \"{{ $('Handle Ambiguous Response').item.json.property_title }}\"?\n",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        1168,
-        192
-      ],
-      "id": "d9d47a5b-f4e7-48d7-a98d-f6cf9fdbc6c3",
-      "name": "Send a Message Negative1",
-      "webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "DpdLgHZCEJ199330",
-          "name": "WhatsApp account"
-        }
-      }
-    }
-  ],
-  "connections": {
-    "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Message a model",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Message a model": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Prepare Questionnaire Context",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Postponement",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Ambiguous Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Questionnaire Context": {
-      "main": [
-        [
-          {
-            "node": "Generate Static Questionnaire",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Context with Questionnaire": {
-      "main": [
-        [
-          {
-            "node": "Save Context with Questionnaire",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Context with Questionnaire": {
-      "main": [
-        [
-          {
-            "node": "Send message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send message": {
-      "main": [
-        [
-          {
-            "node": "Format Success Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format Success Output": {
-      "main": [
-        [
-          {
-            "node": "Update Bot to Free",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Generate Static Questionnaire": {
-      "main": [
-        [
-          {
-            "node": "Prepare Context with Questionnaire",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Postponement": {
-      "main": [
-        [
-          {
-            "node": "Save Postponed Context",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Postponed Context": {
-      "main": [
-        [
-          {
-            "node": "Send a Message Negative",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Ambiguous Response": {
-      "main": [
-        [
-          {
-            "node": "Save Ambiguous Context",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Ambiguous Context": {
-      "main": [
-        [
-          {
-            "node": "Send a Message Negative1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Free Bot for Clarification": {
-      "main": [
-        [
-          {
-            "node": "Format Success Output2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Free bot to negative": {
-      "main": [
-        [
-          {
-            "node": "Format Success Output1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a Message Negative": {
-      "main": [
-        [
-          {
-            "node": "Free bot to negative",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a Message Negative1": {
-      "main": [
-        [
-          {
-            "node": "Free Bot for Clarification",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {
-    "When Executed by Another Workflow": [
-      {
-        "wa_id": "5215559177781",
-        "userPrompt ": "Si",
-        "context_data": {
-          "tipo": "renta",
-          "aviso": "Departamento MN 9,000 Emiliano Zapata Jesús del Monte, Huixquilucan 65 m 2 2 recámaras 1 baño 2 estacionamientos 65 m 2 2 rec. 1 baño 2 ests. Renta | Departamento",
-          "correo": "frankesfrank2@gmail.com",
-          "nombre": "Alfonso Villanueva",
-          "status": "awaiting_questionnaire_confirmation",
-          "telefono": "5559177781",
-          "personaje": "Regi",
-          "statusBot": "working",
-          "mail_sent_at": "2025-11-19T21:31:22.949875+00:00",
-          "interacciones": [
-            {
-              "tipo": "contacto_email_inmuebles24",
-              "actor": "sistema",
-              "canal": "email_to_whatsapp",
-              "mensaje": "Contacto recibido vía email de Inmuebles24",
-              "detalles": {
-                "tipo": "renta",
-                "aviso": "Departamento MN 9,000 Emiliano Zapata Jesús del Monte, Huixquilucan 65 m 2 2 recámaras 1 baño 2 estacionamientos 65 m 2 2 rec. 1 baño 2 ests. Renta | Departamento",
-                "correo": "frankesfrank2@gmail.com",
-                "mensaje_enviado": "👋 Hola Frank, te escribe Regi de Inmobiliaria Villanueva García; recibimos tu interés por el inmueble ubicado en Emiliano Zapata, Jesús del Monte, Huixquilucan.\nOperación: Renta, Precio: $9,000. ¿Deseas recibir más información?"
-              },
-              "timestamp": "2025-11-19T21:31:22.949875+00:00"
-            },
-            {
-              "tipo": "mensaje_recibido",
-              "actor": "usuario",
-              "canal": "whatsapp",
-              "mensaje": "Si por favor",
-              "detalles": {
-                "tipo_mensaje": "text"
-              },
-              "timestamp": "2025-11-19T21:36:59.199Z"
-            },
-            {
-              "tipo": "solicitud_datos",
-              "actor": "sistema",
-              "canal": "whatsapp",
-              "mensaje": "Se solicitaron datos del contacto",
-              "detalles": {
-                "original_message": "Si por favor"
-              },
-              "timestamp": "2025-11-19T21:37:36.772Z"
-            },
-            {
-              "tipo": "mensaje_recibido",
-              "actor": "usuario",
-              "canal": "whatsapp",
-              "mensaje": "Alfonso Villanueva 5559177781",
-              "detalles": {
-                "tipo_mensaje": "text"
-              },
-              "timestamp": "2025-11-19T21:37:59.838Z"
-            },
-            {
-              "tipo": "datos_recibidos",
-              "actor": "sistema",
-              "canal": "whatsapp",
-              "mensaje": "Datos del contacto recibidos y validados",
-              "detalles": {
-                "nombre": "Alfonso Villanueva",
-                "telefono": "5559177781",
-                "api_contact_id": 690
-              },
-              "timestamp": "2025-11-19T21:38:05.527Z"
-            },
-            {
-              "tipo": "mensaje_recibido",
-              "actor": "usuario",
-              "canal": "whatsapp",
-              "mensaje": "Si",
-              "detalles": {
-                "tipo_mensaje": "text"
-              },
-              "timestamp": "2025-11-19T21:39:19.848Z"
-            }
-          ],
-          "api_contact_id": 690,
-          "property_found": {
-            "id": 18,
-            "slug": "hermoso-depa-para-dos-personas",
-            "tags": [
-              "division del norte",
-              "museo",
-              "San Pablo Tepetlapa"
-            ],
-            "tipo": "Departamento",
-            "banos": 1,
-            "estado": "Ciudad de México",
-            "extras": [],
-            "precio": "11000.00",
-            "titulo": "Hermoso Depa para Dos Personas",
-            "colonia": "San Pablo Tepetlapa",
-            "estatus": {
-              "id": 1,
-              "color": "#22c55e",
-              "nombre": "Disponible"
-            },
-            "imagenes": [
-              {
-                "id": 26,
-                "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=0d04d718578deca5f7b66ffc954ffdf50151f42937b5956ccdcfe9ff7ed5f4b6",
-                "orden": 1,
-                "metadata": {
-                  "size": 113134,
-                  "variants": {
-                    "original": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_original.jpeg",
-                      "size": 113134,
-                      "mime_type": "image/jpeg"
-                    },
-                    "thumbnail": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_thumbnail.jpg",
-                      "size": 9292,
-                      "width": 300,
-                      "height": 169,
-                      "mime_type": "image/jpeg"
-                    },
-                    "normalized": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_normalized.jpg",
-                      "size": 94912,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    },
-                    "watermarked": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_watermarked.jpg",
-                      "size": 99385,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    }
-                  },
-                  "mime_type": "image/jpeg",
-                  "original_name": "WhatsApp Image 2025-10-15 at 9.17.44 PM (2).jpeg"
-                }
-              },
-              {
-                "id": 27,
-                "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto2_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=f505cb5328c81d5db4052ad7cf822ee59f43bbf834872ccab4f58d5d7acd388d",
-                "orden": 2,
-                "metadata": {
-                  "size": 75607,
-                  "variants": {
-                    "original": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto2_original.jpeg",
-                      "size": 75607,
-                      "mime_type": "image/jpeg"
-                    },
-                    "thumbnail": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto2_thumbnail.jpg",
-                      "size": 7448,
-                      "width": 300,
-                      "height": 169,
-                      "mime_type": "image/jpeg"
-                    },
-                    "normalized": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto2_normalized.jpg",
-                      "size": 66677,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    },
-                    "watermarked": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto2_watermarked.jpg",
-                      "size": 73510,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    }
-                  },
-                  "mime_type": "image/jpeg",
-                  "original_name": "WhatsApp Image 2025-10-15 at 9.17.44 PM (3).jpeg"
-                }
-              },
-              {
-                "id": 28,
-                "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto3_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=4963745dff59df6f9452731f534d6585abd3c3714c34bdacb13e61458e22f58f",
-                "orden": 3,
-                "metadata": {
-                  "size": 95427,
-                  "variants": {
-                    "original": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto3_original.jpeg",
-                      "size": 95427,
-                      "mime_type": "image/jpeg"
-                    },
-                    "thumbnail": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto3_thumbnail.jpg",
-                      "size": 9332,
-                      "width": 300,
-                      "height": 169,
-                      "mime_type": "image/jpeg"
-                    },
-                    "normalized": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto3_normalized.jpg",
-                      "size": 82895,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    },
-                    "watermarked": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto3_watermarked.jpg",
-                      "size": 89278,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    }
-                  },
-                  "mime_type": "image/jpeg",
-                  "original_name": "WhatsApp Image 2025-10-15 at 9.17.44 PM (1).jpeg"
-                }
-              },
-              {
-                "id": 29,
-                "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto4_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=e3b47e95ac0790f7b958a6b59c509efd96776020e1c997df3b084ad2d90da68c",
-                "orden": 4,
-                "metadata": {
-                  "size": 143492,
-                  "variants": {
-                    "original": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto4_original.jpeg",
-                      "size": 143492,
-                      "mime_type": "image/jpeg"
-                    },
-                    "thumbnail": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto4_thumbnail.jpg",
-                      "size": 9322,
-                      "width": 300,
-                      "height": 169,
-                      "mime_type": "image/jpeg"
-                    },
-                    "normalized": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto4_normalized.jpg",
-                      "size": 113707,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    },
-                    "watermarked": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto4_watermarked.jpg",
-                      "size": 118235,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    }
-                  },
-                  "mime_type": "image/jpeg",
-                  "original_name": "WhatsApp Image 2025-10-15 at 9.17.44 PM.jpeg"
-                }
-              },
-              {
-                "id": 30,
-                "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto5_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=df45a69754204c65ef687e08847f570b4bf834c7208492d1af5ae224ba4be4cd",
-                "orden": 5,
-                "metadata": {
-                  "size": 123058,
-                  "variants": {
-                    "original": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto5_original.jpeg",
-                      "size": 123058,
-                      "mime_type": "image/jpeg"
-                    },
-                    "thumbnail": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto5_thumbnail.jpg",
-                      "size": 10656,
-                      "width": 300,
-                      "height": 169,
-                      "mime_type": "image/jpeg"
-                    },
-                    "normalized": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto5_normalized.jpg",
-                      "size": 103533,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    },
-                    "watermarked": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto5_watermarked.jpg",
-                      "size": 108194,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    }
-                  },
-                  "mime_type": "image/jpeg",
-                  "original_name": "WhatsApp Image 2025-10-15 at 9.17.43 PM (4).jpeg"
-                }
-              },
-              {
-                "id": 33,
-                "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto8_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=528385116b2d589bd6e56a5b864bf13861b5a6f90d6198280080602338ab188c",
-                "orden": 8,
-                "metadata": {
-                  "size": 96582,
-                  "variants": {
-                    "original": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto8_original.jpeg",
-                      "size": 96582,
-                      "mime_type": "image/jpeg"
-                    },
-                    "thumbnail": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto8_thumbnail.jpg",
-                      "size": 7916,
-                      "width": 300,
-                      "height": 169,
-                      "mime_type": "image/jpeg"
-                    },
-                    "normalized": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto8_normalized.jpg",
-                      "size": 80348,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    },
-                    "watermarked": {
-                      "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto8_watermarked.jpg",
-                      "size": 86722,
-                      "width": 1200,
-                      "height": 675,
-                      "mime_type": "image/jpeg"
-                    }
-                  },
-                  "mime_type": "image/jpeg",
-                  "original_name": "WhatsApp Image 2025-10-15 at 9.17.43 PM.jpeg"
-                }
-              }
-            ],
-            "location": {
-              "latitude": 19.321995,
-              "longitude": -99.138793
-            },
-            "destacado": true,
-            "direccion": "San Pablo Tepetlapa",
-            "municipio": "Coyoacán",
-            "operacion": "Renta",
-            "ubicacion": {
-              "latitud": 19.321995,
-              "longitud": -99.138793
-            },
-            "video_url": null,
-            "amenidades": [],
-            "created_at": "2025-10-15T21:45:49-06:00",
-            "updated_at": "2025-11-06T17:58:34-06:00",
-            "descripcion": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\r\n\r\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN MASCOTAS) no más.\r\n\r\nCuenta con:\r\n\r\n* Bonitos Acabados\r\n* 2 habitaciones (CON CLOSET)\r\n* 1 cocina integral\r\n* 1 baño completo\r\n* Área de Sala - Comedor.\r\n* NO TIENE ESTACIONAMIENTO\r\n\r\n** REQUISITOS**\r\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\r\n\r\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\r\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\r\n* 1 Mes de depósito en garantía\r\n* 1 Mes de renta corriente.\r\n\r\nNO aceptamos: (NO NEGOCIABLES)\r\n\r\n* Mascotas (PERROS, GATOS)\r\n* Niños\r\n* Estudiantes que NO vivan con padre o tutor\r\n* Roomies (Personas que estén cambiando frecuentemente)\r\n\r\nHorario de Atención TELEFÓNICA: NO WHATSAPP\r\n\r\nLu-Vi 09.00am a 6:00 pm\r\n\r\nSábado y Domingo 09.00am a 3:00pm",
-            "habitaciones": 2,
-            "codigo_postal": "04620",
-            "restricciones": {
-              "acepta_niños": "no",
-              "observaciones": "Ingresos mínimos comprobables de $30,000 mensuales.",
-              "precio_poliza": "4100.00",
-              "acepta_roomies": "no",
-              "acepta_mascotas": "no",
-              "ingresos_minimos": "30000.00",
-              "acepta_estudiantes": "no",
-              "requiere_comprobantes_ingresos": true
-            },
-            "imagen_portada": {
-              "id": 26,
-              "url": "https://inmuebles-alfgow.s3.mx-central-1.amazonaws.com/san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_watermarked.jpg?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAWTLUL7KR3RTMAYIY%2F20251119%2Fmx-central-1%2Fs3%2Faws4_request&X-Amz-Date=20251119T213855Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=0d04d718578deca5f7b66ffc954ffdf50151f42937b5956ccdcfe9ff7ed5f4b6",
-              "orden": 1,
-              "metadata": {
-                "size": 113134,
-                "variants": {
-                  "original": {
-                    "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_original.jpeg",
-                    "size": 113134,
-                    "mime_type": "image/jpeg"
-                  },
-                  "thumbnail": {
-                    "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_thumbnail.jpg",
-                    "size": 9292,
-                    "width": 300,
-                    "height": 169,
-                    "mime_type": "image/jpeg"
-                  },
-                  "normalized": {
-                    "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_normalized.jpg",
-                    "size": 94912,
-                    "width": 1200,
-                    "height": 675,
-                    "mime_type": "image/jpeg"
-                  },
-                  "watermarked": {
-                    "path": "san_pablo_tepetlapa_san_pablo_tepetlapa_coyoacan_ciudad_de_mexico/foto1_watermarked.jpg",
-                    "size": 99385,
-                    "width": 1200,
-                    "height": 675,
-                    "mime_type": "image/jpeg"
-                  }
-                },
-                "mime_type": "image/jpeg",
-                "original_name": "WhatsApp Image 2025-10-15 at 9.17.44 PM (2).jpeg"
-              }
-            },
-            "estacionamientos": 0,
-            "metros_cuadrados": "70.00",
-            "tour_virtual_url": null,
-            "anio_construccion": 2000,
-            "precio_formateado": "$11,000.00",
-            "superficie_terreno": "70.00",
-            "superficie_construida": "70.00"
-          },
-          "original_search": "Si por favor",
-          "ultima_interaccion": "2025-11-19T21:39:19.848Z"
-        },
-        "api_contact": {
-          "id": 690,
-          "nombre": "🤖 - Alfonso Villanueva",
-          "email": "frankesfrank2@gmail.com",
-          "telefono": "5559177781",
-          "estado": "en_contacto",
-          "fuente": "🤖 - WhatsApp Bot",
-          "created_at": "2025-11-19T15:31:23-06:00",
-          "updated_at": "2025-11-19T15:38:56-06:00",
-          "last_interaction_at": "2025-11-19T15:38:56-06:00",
-          "interes_reciente": {
-            "id": 125,
-            "inmueble_id": 18,
-            "inmueble": {
-              "id": 18,
-              "titulo": "Hermoso Depa para Dos Personas",
-              "slug": "hermoso-depa-para-dos-personas",
-              "descripcion": "Villanueva García propone en renta: Hermoso departamento; a 1 cuadra del MUSEO ANAHUACALLI \"Diego Rivera\" y cerca de División del Norte.\r\n\r\n* Departamento para PAREJAS (2 PERSONAS; SIN NIÑOS,SIN MASCOTAS) no más.\r\n\r\nCuenta con:\r\n\r\n* Bonitos Acabados\r\n* 2 habitaciones (CON CLOSET)\r\n* 1 cocina integral\r\n* 1 baño completo\r\n* Área de Sala - Comedor.\r\n* NO TIENE ESTACIONAMIENTO\r\n\r\n** REQUISITOS**\r\nIMPORTANTE: Cubrir por favor requisitos y restricciones al 100% ESPECÍFICADOS EN LA PUBLICACIÓN, PARA PODER AGENDAR CITA; ya que no son NEGOCIABLES.\r\n\r\n* Comprobar ingresos mínimos de $36,000 MENSUALES (Individual o mancomunado y aceptamos recibos de nómina, estados de cuenta completos o facturas)\r\n* Pago Póliza Jurídica Costo $4,100 ( ANUAL)\r\n* 1 Mes de depósito en garantía\r\n* 1 Mes de renta corriente.\r\n\r\nNO aceptamos: (NO NEGOCIABLES)\r\n\r\n* Mascotas (PERROS, GATOS)\r\n* Niños\r\n* Estudiantes que NO vivan con padre o tutor\r\n* Roomies (Personas que estén cambiando frecuentemente)\r\n\r\nHorario de Atención TELEFÓNICA: NO WHATSAPP\r\n\r\nLu-Vi 09.00am a 6:00 pm\r\n\r\nSábado y Domingo 09.00am a 3:00pm",
-              "precio": "11000.00",
-              "precio_formateado": "$11,000.00",
-              "direccion": "San Pablo Tepetlapa",
-              "colonia": "San Pablo Tepetlapa",
-              "municipio": "Coyoacán",
-              "estado": "Ciudad de México",
-              "codigo_postal": "04620",
-              "ubicacion": {
-                "latitud": 19.321995,
-                "longitud": -99.138793
-              },
-              "location": {
-                "latitude": 19.321995,
-                "longitude": -99.138793
-              },
-              "tipo": "Departamento",
-              "operacion": "Renta",
-              "habitaciones": 2,
-              "banos": 1,
-              "estacionamientos": 0,
-              "metros_cuadrados": "70.00",
-              "superficie_construida": "70.00",
-              "superficie_terreno": "70.00",
-              "anio_construccion": 2000,
-              "destacado": true,
-              "video_url": null,
-              "tour_virtual_url": null,
-              "amenidades": [],
-              "extras": [],
-              "tags": [
-                "division del norte",
-                "museo",
-                "San Pablo Tepetlapa"
-              ],
-              "created_at": "2025-10-15T21:45:49-06:00",
-              "updated_at": "2025-11-06T17:58:34-06:00"
-            },
-            "created_at": "2025-11-19T15:38:56-06:00"
-          }
-        }
-      }
-    ]
-  },
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
-  }
+	"nodes": [
+		{
+			"parameters": {
+				"workflowInputs": {
+					"values": [
+						{
+							"name": "wa_id"
+						},
+						{
+							"name": "userPrompt "
+						},
+						{
+							"name": "context_data",
+							"type": "object"
+						},
+						{
+							"name": "api_contact",
+							"type": "object"
+						}
+					]
+				}
+			},
+			"type": "n8n-nodes-base.executeWorkflowTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"id": "20db0ebd-fd3b-4738-bdc1-7d5e39a37818",
+			"name": "When Executed by Another Workflow"
+		},
+		{
+			"parameters": {
+				"modelId": {
+					"__rl": true,
+					"value": "gpt-5-nano",
+					"mode": "list",
+					"cachedResultName": "GPT-5-NANO"
+				},
+				"responses": {
+					"values": [
+						{
+							"role": "system",
+							"content": "=Clasifica la intención del usuario en una de tres categorías:\n\n1. afirmativa → El usuario claramente acepta continuar.\n2. negativa → El usuario claramente rechaza continuar.\n3. ambigua → No se puede saber si acepta o rechaza.\n\nREGLAS:\n- Palabras como \"si\", \"sí\", \"ok\", \"dale\", \"va\", \"claro\", \"adelante\", \"jalo\", \"de acuerdo\", \"perfecto\" → siempre son afirmativa.\n- Palabras como \"no\", \"nel\", \"nope\", \"ahorita no\", \"luego\", \"más tarde\", \"no puedo\", \"gracias pero no\" → siempre son negativa.\n- Si el mensaje cambia de tema, pide información, duda, saluda o no responde directamente → ambigua.\n- No interpretes emociones, sarcasmo ni emojis a menos que cambien claramente el significado.\n- Responde SOLO con una palabra: afirmativa, negativa o ambigua.\n\nMENSAJE: {{ $json['userPrompt '] }}\n"
+						}
+					]
+				},
+				"builtInTools": {},
+				"options": {}
+			},
+			"type": "@n8n/n8n-nodes-langchain.openAi",
+			"typeVersion": 2,
+			"position": [208, 0],
+			"id": "aae2627e-9300-4346-b838-61e358de3b4b",
+			"name": "Message a model",
+			"credentials": {
+				"openAiApi": {
+					"id": "g8OPzRDvvB6YO7mf",
+					"name": "OpenAi account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"leftValue": "={{ $json.output[0].content[0].text }}",
+										"rightValue": "afirmativa",
+										"operator": {
+											"type": "string",
+											"operation": "equals"
+										},
+										"id": "491dc383-ce20-4348-8b6e-07e1be42e6a9"
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "afirmativa"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "337cfbb5-5030-4b75-837a-1a036921e10e",
+										"leftValue": "={{ $json.output[0].content[0].text }}",
+										"rightValue": "negativa",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "negativa"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "strict",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "36e19012-f41e-42e1-af7d-9d4127facc43",
+										"leftValue": "={{ $json.output[0].content[0].text }}",
+										"rightValue": "ambigua",
+										"operator": {
+											"type": "string",
+											"operation": "equals",
+											"name": "filter.operator.equals"
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "ambigua"
+						}
+					]
+				},
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [528, -16],
+			"id": "e7431a44-8874-4993-a883-75a9f145fc29",
+			"name": "Switch"
+		},
+		{
+			"parameters": {
+				"jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// Cambiar status e iniciar cuestionario\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire_step = 1;\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'confirmacion_cuestionario',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'afirmativa',\n    inicia_cuestionario: true\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta basada en restricciones\nconst property = updatedContext.property_found || {};\nconst restrictions = property.restrictions || {};\n\nlet firstQuestion = \"Perfecto, \\n\\n¿Cuántas personas vivirían en el inmueble?\";\n\n// Si la propiedad no acepta niños, agregar aclaración\nif (restrictions.acepta_niños === \"no\") {\n  firstQuestion += \"\\n\\n_(Solo adultos, la propiedad no acepta niños)_\";\n}\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  firstQuestion: firstQuestion,\n  api_contact_id: updatedContext.api_contact_id\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [736, -224],
+			"id": "d60c91b8-f6ab-4da9-bf13-1081ca6b88a6",
+			"name": "Prepare Questionnaire Context"
+		},
+		{
+			"parameters": {
+				"jsCode": "const parseData = $json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(parseData.context_data || {}));\n\n// Agregar cuestionario y configuración\nupdatedContext.status = \"in_questionnaire\";\nupdatedContext.questionnaire = parseData.questionnaire;\nupdatedContext.questionnaire_step = 1;\nupdatedContext.questionnaire_total = parseData.total_questions;\nupdatedContext.questionnaire_answers = []; // Array vacío para ir guardando respuestas\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción al historial\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'sistema',\n  canal: 'whatsapp',\n  tipo: 'inicio_cuestionario',\n  mensaje: 'Cuestionario generado e iniciado',\n  detalles: {\n    total_preguntas: parseData.total_questions,\n    primera_pregunta: parseData.first_question.field\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\n// Preparar primera pregunta para WhatsApp\nconst firstQuestion = parseData.first_question;\nlet questionText = `Perfecto, empecemos 😊:\\n\\n${firstQuestion.question}`;\n\nreturn {\n  wa_id: parseData.wa_id,\n  updatedContext: updatedContext,\n  questionText: questionText,\n  current_question: firstQuestion\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1104, -224],
+			"id": "a16d67b1-de75-4c14-8b2e-1bbb7add2462",
+			"name": "Prepare Context with Questionnaire"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1280, -224],
+			"id": "b710c8ce-7d44-48a0-9928-d5ad14e58a62",
+			"name": "Save Context with Questionnaire",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "848665645000888",
+				"recipientPhoneNumber": "={{ $json.wa_id }}",
+				"textBody": "={{ $('Prepare Context with Questionnaire').item.json.questionText }}",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1440, -224],
+			"id": "acad6a4d-9d2c-41a8-8404-8770dac05582",
+			"name": "Send message",
+			"webhookId": "aef0e0a7-bf3c-454a-9777-e7370c1fcf3b",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "const prepareData = $('Prepare Context with Questionnaire').item.json;\n\nreturn {\n  success: true,\n  status: 'in_questionnaire',\n  questionnaire_started: true,\n  step: 1,\n  total_questions: prepareData.updatedContext.questionnaire_total,\n  wa_id: prepareData.wa_id,\n  message_sent: true\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1616, -224],
+			"id": "d6b637d3-e110-4eea-8a0b-5a18bd155739",
+			"name": "Format Success Output"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "INSERT INTO user_contexts (wa_id, context_data, created_at, updated_at)\nVALUES (\n  '{{ $('Send message').item.json.contacts[0].wa_id }}',\n  jsonb_build_object('statusBot', 'working'),\n  CURRENT_TIMESTAMP,\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (wa_id) DO UPDATE SET\n  context_data = jsonb_set(\n    COALESCE(user_contexts.context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1824, -224],
+			"id": "e079643f-a93c-46a4-9981-52f391e597ac",
+			"name": "Update Bot to Free",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// Obtener datos del nodo anterior\nconst previousData = $('Prepare Questionnaire Context').item.json;\nconst propertyData = previousData.updatedContext.property_found;\nconst contextData = previousData.updatedContext;\n\nconst TEMPLATE = {\n  caracteristicas_fisicas: [\n    {\n      condition: () => !propertyData.estacionamientos || propertyData.estacionamientos === 0,\n      field: \"necesita_estacionamiento\",\n      question: \"El inmueble no cuenta con estacionamiento. ¿Estás de acuerdo con esto?\"\n    }\n  ],\n  \n  restricciones_convivencia: [\n    {\n      condition: () => propertyData.restricciones?.acepta_niños === \"no\",\n      field: \"tiene_ninos\",\n      question: \"¿Entre las personas que vivirían en el inmueble habría niños?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.acepta_mascotas === \"no\",\n      field: \"tiene_mascotas\",\n      question: \"El arrendador no acepta mascotas, es una restricción no negociable. ¿Tienes inconveniente con esto?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.acepta_roomies === \"no\",\n      field: \"tiene_roomies\",\n      question: \"Platícame con quien vivirás ¿solo/a, con pareja, familia o con roomies?\"\n    }\n  ],\n  \n  condiciones_contratacion: [\n    {\n      condition: () => propertyData.restricciones?.precio_poliza > 0,\n      field: \"acepta_poliza\",\n      question: `Se solicita una póliza jurídica de $${parseFloat(propertyData.restricciones.precio_poliza).toLocaleString('es-MX')} que se paga anualmente, es decir, cada año que renueves el contrato. ¿Estás de acuerdo?`\n    },\n    {\n      condition: () => true,\n      field: \"acepta_deposito_renta\",\n      question: \"Los pagos iniciales que se requieren son: Primer mes de renta y un mes de renta como depósito en garantía. ¿Estás de acuerdo con éste requisito?\"\n    }\n  ],\n  \n  validacion_ingresos: [\n    {\n      condition: () => propertyData.restricciones?.ingresos_minimos > 0,\n      field: \"cumple_ingresos\",\n      question: `Se pide un ingreso mínimo de $${parseFloat(propertyData.restricciones.ingresos_minimos).toLocaleString('es-MX')} mensuales, puede ser individual o mancomunado si vivirás en pareja. ¿Cumples con éste requisito?`\n    },\n    {\n      condition: () => true,\n      field: \"ocupacion\",\n      question: \"Para conocer mejor tu perfil, ¿a qué te dedicas actualmente?\"\n    },\n    {\n      condition: () => propertyData.restricciones?.requiere_comprobantes_ingresos === true,\n      field: \"tipo_comprobante\",\n      question: \"¿Qué tipo de comprobantes de ingresos tienes? (Recibo de nómina timbrado por el SAT, estados de cuenta completos o facturas?)\"\n    }\n  ]\n};\n\n// Generar cuestionario\nconst questionnaire = [];\n\nfor (const [section, questions] of Object.entries(TEMPLATE)) {\n  questions.forEach(q => {\n    if (q.condition()) {\n      questionnaire.push({\n        section: section,\n        field: q.field,\n        question: q.question,\n        type: \"text\"\n      });\n    }\n  });\n}\n\n// Obtener primera pregunta\nconst firstQuestion = questionnaire[0] || null;\n\n// Validar que hay al menos una pregunta\nif (!firstQuestion) {\n  throw new Error('No se generaron preguntas para este inmueble');\n}\n\nreturn {\n  wa_id: previousData.wa_id,\n  questionnaire: questionnaire,\n  total_questions: questionnaire.length,\n  first_question: firstQuestion,    // ← ESTO FALTABA\n  context_data: contextData          // ← ESTO FALTABA\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [928, -224],
+			"id": "728f00a9-217e-412d-ab66-ff2db7ad8dec",
+			"name": "Generate Static Questionnaire"
+		},
+		{
+			"parameters": {
+				"jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// Cambiar a \"in_progress\" con acción pendiente\nupdatedContext.status = \"in_progress\";\nupdatedContext.pending_action = \"questionnaire_confirmation\";\nupdatedContext.pending_property = updatedContext.property_found;\nupdatedContext.postponed_at = timestamp;\nupdatedContext.postponed_reason = \"user_declined\";\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'cuestionario_pospuesto',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'negativa',\n    property_title: updatedContext.property_found?.title || 'inmueble'\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  property_title: updatedContext.property_found?.title || 'el inmueble'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [752, 0],
+			"id": "12862a47-0c5f-4872-b7d2-0077e0f3a7d3",
+			"name": "Handle Postponement"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [960, 0],
+			"id": "ca37dc53-f6dc-4a2c-80ff-dd4e9d9ca5ab",
+			"name": "Save Postponed Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "return {\n  success: true,\n  action: 'questionnaire_postponed',\n  wa_id: $('Handle Postponement').item.json.wa_id,\n  new_status: 'in_progress',\n  pending_action: 'questionnaire_confirmation',\n  message_sent: true,\n  bot_freed: true\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1568, 0],
+			"id": "06b9a391-4611-4864-b764-c905e24901a6",
+			"name": "Format Success Output1"
+		},
+		{
+			"parameters": {
+				"jsCode": "const triggerData = $('When Executed by Another Workflow').item.json;\nconst timestamp = new Date().toISOString();\n\n// Clonar contexto existente\nconst updatedContext = JSON.parse(JSON.stringify(triggerData.context_data || {}));\n\n// MANTENER el status actual (para darle otra oportunidad)\n// updatedContext.status sigue siendo \"awaiting_questionnaire_confirmation\"\n\nupdatedContext.ultima_interaccion = timestamp;\n\n// Agregar interacción\nconst interactions = Array.isArray(updatedContext.interacciones) \n  ? updatedContext.interacciones \n  : [];\n\ninteractions.push({\n  timestamp: timestamp,\n  actor: 'usuario',\n  canal: 'whatsapp',\n  tipo: 'respuesta_ambigua_cuestionario',\n  mensaje: triggerData['userPrompt '],\n  detalles: {\n    respuesta: 'ambigua',\n    requiere_aclaracion: true\n  }\n});\n\nupdatedContext.interacciones = interactions;\n\nreturn {\n  wa_id: triggerData.wa_id,\n  updatedContext: updatedContext,\n  property_title: updatedContext.property_found?.title || 'el inmueble'\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [736, 192],
+			"id": "5ee59752-6334-44f7-9b1c-755ff7cb826e",
+			"name": "Handle Ambiguous Response"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = $${{ $json.updatedContext.toJsonString() }}$$::jsonb,\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [944, 192],
+			"id": "29c08dd6-aefa-4a86-86f7-9351e66ce01b",
+			"name": "Save Ambiguous Context",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "return {\n  success: true,\n  action: 'clarification_requested',\n  wa_id: $('Handle Ambiguous Response').item.json.wa_id,\n  status_maintained: 'awaiting_questionnaire_confirmation',\n  message_sent: true,\n  bot_freed: true,\n  awaiting_clear_response: true\n};"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [1600, 192],
+			"id": "935c8ddb-8b53-4cc8-a5a4-7a038059a56b",
+			"name": "Format Success Output2"
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Handle Ambiguous Response').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1376, 192],
+			"id": "3cc9aa78-30cc-4f2d-ab51-f0257b313988",
+			"name": "Free Bot for Clarification",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "executeQuery",
+				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    context_data,\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $('Handle Postponement').item.json.wa_id }}'\nRETURNING *;",
+				"options": {}
+			},
+			"type": "n8n-nodes-base.postgres",
+			"typeVersion": 2.6,
+			"position": [1376, 0],
+			"id": "0ef236a1-69f8-4c25-ac1a-df3ccbf2fd5e",
+			"name": "Free bot to negative",
+			"credentials": {
+				"postgres": {
+					"id": "qyR2OAIR7tUEVcQf",
+					"name": "Postgres-neon"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "848665645000888",
+				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+				"textBody": "¡Perfecto! 👍  Sin problema, cuando estés listo/a para continuar con el cuestionario me avisas.  Puedes seguir preguntando lo que necesites o buscar otra propiedad si lo prefieres 😊",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1168, 0],
+			"id": "7bc30494-3d22-4ab2-a43b-1d8cd6b8c8a6",
+			"name": "Send a Message Negative",
+			"webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "send",
+				"phoneNumberId": "848665645000888",
+				"recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.wa_id }}",
+				"textBody": "Disculpa, no entendí tu respuesta 🤔\n\n¿Estás listo/a para responder el cuestionario sobre \"{{ $('Handle Ambiguous Response').item.json.property_title }}\"?\n",
+				"additionalFields": {}
+			},
+			"type": "n8n-nodes-base.whatsApp",
+			"typeVersion": 1.1,
+			"position": [1168, 192],
+			"id": "d9d47a5b-f4e7-48d7-a98d-f6cf9fdbc6c3",
+			"name": "Send a Message Negative1",
+			"webhookId": "006aa559-105f-4257-baf6-f475e8b6e728",
+			"credentials": {
+				"whatsAppApi": {
+					"id": "DpdLgHZCEJ199330",
+					"name": "WhatsApp account"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Executed by Another Workflow": {
+			"main": [
+				[
+					{
+						"node": "Message a model",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Message a model": {
+			"main": [
+				[
+					{
+						"node": "Switch",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch": {
+			"main": [
+				[
+					{
+						"node": "Prepare Questionnaire Context",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Postponement",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Handle Ambiguous Response",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Questionnaire Context": {
+			"main": [
+				[
+					{
+						"node": "Generate Static Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Prepare Context with Questionnaire": {
+			"main": [
+				[
+					{
+						"node": "Save Context with Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Save Context with Questionnaire": {
+			"main": [
+				[
+					{
+						"node": "Send message",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send message": {
+			"main": [
+				[
+					{
+						"node": "Format Success Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Format Success Output": {
+			"main": [
+				[
+					{
+						"node": "Update Bot to Free",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Generate Static Questionnaire": {
+			"main": [
+				[
+					{
+						"node": "Prepare Context with Questionnaire",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Postponement": {
+			"main": [
+				[
+					{
+						"node": "Save Postponed Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Save Postponed Context": {
+			"main": [
+				[
+					{
+						"node": "Send a Message Negative",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Handle Ambiguous Response": {
+			"main": [
+				[
+					{
+						"node": "Save Ambiguous Context",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Save Ambiguous Context": {
+			"main": [
+				[
+					{
+						"node": "Send a Message Negative1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Free Bot for Clarification": {
+			"main": [
+				[
+					{
+						"node": "Format Success Output2",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Free bot to negative": {
+			"main": [
+				[
+					{
+						"node": "Format Success Output1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send a Message Negative": {
+			"main": [
+				[
+					{
+						"node": "Free bot to negative",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send a Message Negative1": {
+			"main": [
+				[
+					{
+						"node": "Free Bot for Clarification",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
+	}
 }
