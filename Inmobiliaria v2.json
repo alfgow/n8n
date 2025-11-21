@@ -1445,37 +1445,7 @@
 			]
 		}
 	},
-	"pinData": {
-		"WhatsApp Trigger": [
-			{
-				"messaging_product": "whatsapp",
-				"metadata": {
-					"display_phone_number": "5215585693681",
-					"phone_number_id": "848665645000888"
-				},
-				"contacts": [
-					{
-						"profile": {
-							"name": "alfgow"
-						},
-						"wa_id": "5215579071358"
-					}
-				],
-				"messages": [
-					{
-						"from": "5215579071358",
-						"id": "wamid.HBgNNTIxNTU3OTA3MTM1OBUCABIYIEE1MjFGQkI4OUU2MjRFMkM0MjM4RUUxQTc3RkU1QUE4AA==",
-						"timestamp": "1763696913",
-						"text": {
-							"body": "¡Hola! Quiero que se comuniquen conmigo por este inmueble en  renta  que vi en  inmuebles24. \n\nhttps://www.inmuebles24.com/propiedades/clasificado/alclapin-hermoso-departamento-ideal-para-pareja-2-personas-148106581.html?n_src=Listado&n_exp=trigger_pills-original&n_pills=Balc%C3%B3n&n_pg=1&n_pos=2"
-						},
-						"type": "text"
-					}
-				],
-				"field": "messages"
-			}
-		]
-	},
+	"pinData": {},
 	"meta": {
 		"templateCredsSetupCompleted": true,
 		"instanceId": "37571b6e3b06c0ce894d50931b94c0b80b70f40d5b859a8ce717ce6c0e3d4b9d"
