@@ -36,78 +36,13 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "// Check Existing Data - CORREGIDO ✅\nconst data = $json;\nconst contextData = data.context_data || {};\nconst userPrompt = data.userPrompt || '';\n\n// 🔍 REGEX MEJORADO PARA NOMBRES\n// Acepta cualquier combinación de mayúsculas/minúsculas\nconst nombreMatch = userPrompt.match(/\\b([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+)+)\\b/);\n\n// 📱 REGEX MEJORADO PARA TELÉFONOS\n// Primero limpia espacios, guiones y paréntesis\nconst cleanPrompt = userPrompt.replace(/[\\s\\-()]/g, '');\nconst telefonoMatch = cleanPrompt.match(/(\\d{10})/);\n\n// ✅ RETORNAR BOOLEAN, NO ARRAY\nconst messageHasData = !!(nombreMatch && telefonoMatch);\n\nconsole.log('📨 Mensaje tiene datos:', messageHasData);\nif (nombreMatch) console.log('👤 Nombre detectado:', nombreMatch[0]);\nif (telefonoMatch) console.log('📱 Teléfono detectado:', telefonoMatch[0]);\n\nreturn {\n  wa_id: data.wa_id,\n  userPrompt: userPrompt,\n  context_data: contextData,\n  api_contact: data.api_contact,\n  messageHasData: messageHasData\n};"
+				"jsCode": "// Check Existing Data - CORREGIDO ✅\nconst data = $json;\nconst contextData = data.context_data || {};\nconst userPrompt = data.userPrompt || '';\n\n// 🔍 REGEX PARA NOMBRES\nconst nombreMatch = userPrompt.match(/\\b([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+)+)\\b/);\n\n// 📱 REGEX PARA TELÉFONOS\nconst cleanPrompt = userPrompt.replace(/[\\s\\-()]/g, '');\nconst telefonoMatch = cleanPrompt.match(/(\\d{10})/);\n\n// ✅ RETORNA TRUE SI TIENE NOMBRE **O** TELÉFONO\nconst messageHasData = !!(nombreMatch || telefonoMatch);  // ← Cambio clave: || en vez de &&\n\nconsole.log('📨 Mensaje tiene datos:', messageHasData);\nif (nombreMatch) console.log('👤 Nombre detectado:', nombreMatch[0]);\nif (telefonoMatch) console.log('📱 Teléfono detectado:', telefonoMatch[0]);\n\nreturn {\n  ...$json,       // ← esto conserva TODO el payload real\n  messageHasData,\n};"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
 			"position": [160, 144],
 			"id": "448ae3b5-dd63-428b-87c2-ae5b94022440",
 			"name": "Check Existing Data"
-		},
-		{
-			"parameters": {
-				"rules": {
-					"values": [
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "loose",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"id": "f8e22bf5-9079-43f4-b3d2-dc1e0d3492a0",
-										"leftValue": "={{ $json.messageHasData }}",
-										"rightValue": "",
-										"operator": {
-											"type": "boolean",
-											"operation": "false",
-											"singleValue": true
-										}
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Request Data"
-						},
-						{
-							"conditions": {
-								"options": {
-									"caseSensitive": true,
-									"leftValue": "",
-									"typeValidation": "loose",
-									"version": 2
-								},
-								"conditions": [
-									{
-										"id": "80da3e6e-5872-4954-a2bc-9d38706c49b1",
-										"leftValue": "={{ $json.messageHasData }}",
-										"rightValue": "",
-										"operator": {
-											"type": "boolean",
-											"operation": "true",
-											"singleValue": true
-										}
-									}
-								],
-								"combinator": "and"
-							},
-							"renameOutput": true,
-							"outputKey": "Extract Data"
-						}
-					]
-				},
-				"looseTypeValidation": true,
-				"options": {}
-			},
-			"type": "n8n-nodes-base.switch",
-			"typeVersion": 3.3,
-			"position": [368, 144],
-			"id": "06e669f4-ddac-44cc-9a71-7b919745e49a",
-			"name": "Switch: Data Status"
 		},
 		{
 			"parameters": {
@@ -142,7 +77,7 @@
 				"operation": "send",
 				"phoneNumberId": "848665645000888",
 				"recipientPhoneNumber": "={{ $json.wa_id }}",
-				"textBody": "¡Perfecto! Para ayudarte con la información del inmueble que buscas, necesito que me compartas:\n\n📝 Tu nombre completo\n📱 Tu número de teléfono\n\nPor favor compártelos en un solo mensaje 😊",
+				"textBody": "=¡Perfecto! Para ayudarte con la información del inmueble que buscas, necesito que me compartas:\n\n📝 Tu nombre completo\n📱 Tu número de teléfono\n\nPor favor compártelos en un solo mensaje 😊",
 				"additionalFields": {}
 			},
 			"type": "n8n-nodes-base.whatsApp",
@@ -160,7 +95,7 @@
 		},
 		{
 			"parameters": {
-				"jsCode": "// Extract Name & Phone - CORREGIDO ✅\nconst userPrompt = $json.userPrompt || '';\n\nlet nombre = '';\nlet telefono = '';\n\nif (!userPrompt || typeof userPrompt !== 'string') {\n  return {\n    wa_id: $json.wa_id,\n    userPrompt: userPrompt,\n    context_data: $json.context_data,\n    api_contact: $json.api_contact,\n    nombre: '',\n    telefono: '',\n    hasValidData: false\n  };\n}\n\n// 🧹 LIMPIAR PALABRAS COMUNES ANTES DE EXTRAER NOMBRE\nconst cleanedPrompt = userPrompt\n  .replace(/\\b(hola|soy|mi nombre es|me llamo|buenos días|buenas tardes|buenas noches)\\b/gi, '')\n  .trim();\n\n// 👤 EXTRAER NOMBRE (mínimo 2 palabras)\nconst nombreMatch = cleanedPrompt.match(/\\b([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+)+)\\b/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\n// 📱 EXTRAER TELÉFONO (limpiar espacios primero)\nconst cleanPhone = userPrompt.replace(/[\\s\\-()]/g, '');\nconst telefonoMatch = cleanPhone.match(/(\\d{10})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0];\n}\n\n// ✅ VALIDAR DATOS\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  wa_id: $json.wa_id,\n  userPrompt: $json.userPrompt,\n  context_data: $json.context_data,\n  api_contact: $json.api_contact,\n  nombre,\n  telefono,\n  hasValidData\n};"
+				"jsCode": "// Extract Name & Phone - CORREGIDO ✅\nconst userPrompt = $json.userPrompt || '';\n\nlet nombre = '';\nlet telefono = '';\n\nif (!userPrompt || typeof userPrompt !== 'string') {\n  return {\n    wa_id: $json.wa_id,\n    userPrompt: userPrompt,\n    context_data: $json.context_data,\n    api_contact: $json.api_contact,\n    nombre: '',\n    telefono: '',\n    hasValidData: false\n  };\n}\n\n// 🧹 LIMPIAR PALABRAS COMUNES ANTES DE EXTRAER NOMBRE\nconst cleanedPrompt = userPrompt\n  .replace(/\\b(hola|soy|mi nombre es|me llamo|buenos días|buenas tardes|buenas noches)\\b/gi, '')\n  .trim();\n\n// 👤 EXTRAER NOMBRE (mínimo 2 palabras)\nconst nombreMatch = cleanedPrompt.match(/\\b([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+)+)\\b/);\nif (nombreMatch) {\n  nombre = nombreMatch[0].trim();\n}\n\n// 📱 EXTRAER TELÉFONO (limpiar espacios primero)\nconst cleanPhone = userPrompt.replace(/[\\s\\-()]/g, '');\nconst telefonoMatch = cleanPhone.match(/(\\d{10})/);\nif (telefonoMatch) {\n  telefono = telefonoMatch[0];\n}\n\n// ✅ VALIDAR DATOS\nconst hasValidData = nombre !== '' && telefono !== '' && telefono.length === 10;\n\nconsole.log('👤 Nombre extraído:', nombre);\nconsole.log('📱 Teléfono extraído:', telefono);\nconsole.log('✅ Datos válidos:', hasValidData);\n\nreturn {\n  ...$json,       // ← conserva el context_data real de Postgres\n  nombre,\n  telefono,\n  hasValidData\n};\n"
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
@@ -236,7 +171,7 @@
 				"operation": "send",
 				"phoneNumberId": "848665645000888",
 				"recipientPhoneNumber": "={{ $json.wa_id }}",
-				"textBody": "Para continuar, necesito por favor me proporciones en un solo mensaje:|📝 Nombre Completo📱 Número de teléfono en un solo mensaje. Sigo al pendiente.",
+				"textBody": "Para poder continuar, necesito por favor me proporciones *tus datos completos en un solo mensaje*:\n\n👤 Nombre completo\n📱 Teléfono (10 dígitos)\n\nComo este ejemplo:\n\nEmmet Villanueva García\n5512345678\n\n¡Gracias! 😊",
 				"additionalFields": {}
 			},
 			"type": "n8n-nodes-base.whatsApp",
@@ -255,7 +190,7 @@
 		{
 			"parameters": {
 				"operation": "executeQuery",
-				"query": "UPDATE user_contexts \nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.wa_id }}'\nRETURNING *;",
+				"query": "UPDATE user_contexts\nSET \n  context_data = jsonb_set(\n    COALESCE(context_data, '{}'::jsonb),\n    '{statusBot}',\n    '\"free\"'::jsonb,\n    true\n  ),\n  updated_at = CURRENT_TIMESTAMP\nWHERE wa_id = '{{ $json.contacts[0].wa_id }}'\nRETURNING *;\n",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.postgres",
@@ -402,6 +337,71 @@
 			"position": [1072, 480],
 			"id": "858259cf-8713-4dd1-8b13-1c0f82747802",
 			"name": "Call 'PropertySearcher'"
+		},
+		{
+			"parameters": {
+				"rules": {
+					"values": [
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "loose",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "f8e22bf5-9079-43f4-b3d2-dc1e0d3492a0",
+										"leftValue": "={{ $json.messageHasData }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "false",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Request Data"
+						},
+						{
+							"conditions": {
+								"options": {
+									"caseSensitive": true,
+									"leftValue": "",
+									"typeValidation": "loose",
+									"version": 2
+								},
+								"conditions": [
+									{
+										"id": "80da3e6e-5872-4954-a2bc-9d38706c49b1",
+										"leftValue": "={{ $json.messageHasData }}",
+										"rightValue": "",
+										"operator": {
+											"type": "boolean",
+											"operation": "true",
+											"singleValue": true
+										}
+									}
+								],
+								"combinator": "and"
+							},
+							"renameOutput": true,
+							"outputKey": "Extract Data"
+						}
+					]
+				},
+				"looseTypeValidation": true,
+				"options": {}
+			},
+			"type": "n8n-nodes-base.switch",
+			"typeVersion": 3.3,
+			"position": [368, 144],
+			"id": "06e669f4-ddac-44cc-9a71-7b919745e49a",
+			"name": "Switch: Debugguear Data"
 		}
 	],
 	"connections": {
@@ -420,25 +420,7 @@
 			"main": [
 				[
 					{
-						"node": "Switch: Data Status",
-						"type": "main",
-						"index": 0
-					}
-				]
-			]
-		},
-		"Switch: Data Status": {
-			"main": [
-				[
-					{
-						"node": "Prepare Request Context",
-						"type": "main",
-						"index": 0
-					}
-				],
-				[
-					{
-						"node": "Extract Name & Phone",
+						"node": "Switch: Debugguear Data",
 						"type": "main",
 						"index": 0
 					}
@@ -534,6 +516,24 @@
 				[
 					{
 						"node": "Call 'PropertySearcher'",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Switch: Debugguear Data": {
+			"main": [
+				[
+					{
+						"node": "Prepare Request Context",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Extract Name & Phone",
 						"type": "main",
 						"index": 0
 					}

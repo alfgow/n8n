@@ -1,0 +1,39 @@
+{
+	"parameters": {
+		"operation": "sendTemplate",
+		"phoneNumberId": "848665645000888",
+		"recipientPhoneNumber": "={{ $('Extract: data').item.json.wa_id }}",
+		"template": "contacto_inicial|es_MX",
+		"components": {
+			"component": [
+				{
+					"type": "body",
+					"bodyParameters": {
+						"parameter": [
+							{
+								"type": "text",
+								"text": "={{ $('Extract: data').item.json.nombre }}"
+							},
+							{
+								"type": "text",
+								"text": "={{ $('Extract: data').item.json.aviso }}"
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"type": "n8n-nodes-base.whatsApp",
+	"typeVersion": 1.1,
+	"position": [1392, 144],
+	"id": "cbb93af7-ca16-43f9-bc8a-16e8cb53c836",
+	"name": "Send Template Message",
+	"webhookId": "37d127c2-aa60-46d8-af60-5c88e1158331",
+	"credentials": {
+		"whatsAppApi": {
+			"id": "DpdLgHZCEJ199330",
+			"name": "WhatsApp account"
+		}
+	}
+}
